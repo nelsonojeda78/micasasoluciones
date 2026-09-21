@@ -77,8 +77,14 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
       </table>
       <div class="row noprint" style="margin-top:9px">
         <button class="btn ambar" onclick="addFila()">+ Agregar pieza</button>
-        <button class="btn gris" onclick="cargarEjemplo()">Cargar ejemplo (cocina)</button>
+        <button class="btn verde" onclick="document.getElementById('f_csv').click()">📂 Importar CSV</button>
+        <button class="btn gris" onclick="plantillaCSV()">⬇ Plantilla CSV</button>
+        <button class="btn gris" onclick="cargarEjemplo()">Ejemplo</button>
       </div>
+      <input type="file" id="f_csv" accept=".csv,.txt,text/csv,text/plain" style="display:none" onchange="importarCSV(event)">
+      <p class="hint">El CSV puede venir con punto y coma, coma o tabulador, y con o sin encabezados.
+      Si trae encabezados se reconocen solos; si no, el orden es: módulo, pieza, material, espesor,
+      cantidad, largo, ancho, canto L1, L2, A1, A2, veta. Descarga la plantilla para verlo.</p>
       <p class="hint">L1/L2/A1/A2 = lados con canteado (orilla). Marca los lados que llevan cinta de canto.</p>
     </div>
     <div class="card">
@@ -234,6 +240,62 @@ function cantoMetros(p){
   var c=p.canto||[0,0,0,0];
   return ((Number(p.largo)||0)*((c[0]?1:0)+(c[1]?1:0)) + (Number(p.ancho)||0)*((c[2]?1:0)+(c[3]?1:0)))/1000;
 }
+/* ---------- Lectura de archivos CSV con el despiece ----------
+   Acepta punto y coma, coma o tabulador. Si la primera linea trae encabezados
+   los usa; si no, toma las columnas por posicion. Devuelve las piezas listas. */
+function numCSV(x){
+  var t=String(x==null?"":x).replace(/[^0-9.,\-]/g,"").replace(/\.(?=.*\.)/g,"").replace(",",".");
+  var v=parseFloat(t); return isNaN(v)?0:v;
+}
+function parsearCSV(texto){
+  var txt=String(texto==null?"":texto).replace(/^\uFEFF/,"").replace(/\r/g,"");
+  var lineas=txt.split("\n").filter(function(l){ return l.trim()!==""; });
+  if(!lineas.length) return {filas:[],saltadas:0,aviso:"El archivo está vacío."};
+  var cand=[";",",","\t"], sep=";", mejor=0;
+  cand.forEach(function(c){ var k=lineas[0].split(c).length; if(k>mejor){ mejor=k; sep=c; } });
+  function celdas(l){
+    var out=[], ac="", com=false;
+    for(var i=0;i<l.length;i++){
+      var ch=l[i];
+      if(ch==='"'){ if(com && l[i+1]==='"'){ ac+='"'; i++; } else { com=!com; } }
+      else if(ch===sep && !com){ out.push(ac); ac=""; }
+      else { ac+=ch; }
+    }
+    out.push(ac);
+    return out.map(function(x){ return x.trim(); });
+  }
+  function norm(x){ return String(x==null?"":x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""); }
+  function siNo(x){ var t=norm(x); return (t==="si"||t==="s"||t==="1"||t==="x"||t==="true"||t==="verdadero"); }
+  var cab=celdas(lineas[0]).map(norm);
+  var alias={modulo:["modulo","mueble"],pieza:["pieza","descripcion","nombre","elemento"],
+    material:["material","tablero"],espesor:["espesor","esp","grosor"],
+    cant:["cantidad","cant","cantidadpiezas","pzas","unidades"],
+    largo:["largo","longitud"],ancho:["ancho","anchura"],
+    l1:["cantol1","l1","canteadol1","canto1"],l2:["cantol2","l2","canteadol2","canto2"],
+    a1:["cantoa1","a1","canteadoa1","cantoancho1"],a2:["cantoa2","a2","canteadoa2","cantoancho2"],
+    veta:["veta","grano","direccion"]};
+  var col={}, tieneCab=false;
+  Object.keys(alias).forEach(function(k){
+    for(var j=0;j<alias[k].length;j++){
+      var i=cab.indexOf(alias[k][j]);
+      if(i>=0 && col[k]===undefined){ col[k]=i; tieneCab=true; break; }
+    }
+  });
+  if(!tieneCab){ col={modulo:0,pieza:1,material:2,espesor:3,cant:4,largo:5,ancho:6,l1:7,l2:8,a1:9,a2:10,veta:11}; }
+  function val(c,j){ return (j===undefined||j>=c.length)?"":c[j]; }
+  var desde=tieneCab?1:0, out=[], saltadas=0;
+  for(var i=desde;i<lineas.length;i++){
+    var c=celdas(lineas[i]);
+    var largo=numCSV(val(c,col.largo)), ancho=numCSV(val(c,col.ancho)), cant=numCSV(val(c,col.cant));
+    if(!(largo>0 && ancho>0)){ saltadas++; continue; }
+    out.push({modulo:val(c,col.modulo), pieza:val(c,col.pieza)||("Pieza "+(out.length+1)),
+      material:val(c,col.material)||"Melamina 15 mm", espesor:numCSV(val(c,col.espesor))||15,
+      cant:cant>0?cant:1, largo:largo, ancho:ancho,
+      l1:siNo(val(c,col.l1)), l2:siNo(val(c,col.l2)), a1:siNo(val(c,col.a1)), a2:siNo(val(c,col.a2)),
+      veta:siNo(val(c,col.veta))});
+  }
+  return {filas:out, saltadas:saltadas, tieneCab:tieneCab};
+}
 /* Herrajes estimados a partir del nombre de la pieza (regla transparente) */
 function herrajesEstimados(piezas){
   var h={bisagras:0,correderas:0,soportes:0,tornillos:0};
@@ -275,7 +337,16 @@ function fila(i){
    +'<td class="n"><input type="checkbox" '+(filas[i].veta?"checked":"")+' onchange="set('+i+',\'veta\',this.checked)"></td>'
    +'<td class="n"><button class="btn rojo sm" onclick="delFila('+i+')">×</button></td></tr>';
 }
-function pintar(){ var h=""; filas.forEach(function(f,i){ h+=fila(i); }); $("tbod").innerHTML=h; }
+function pintar(){
+  if(!filas.length){
+    $("tbod").innerHTML='<tr><td colspan="14" style="text-align:center;color:var(--gris);padding:24px 12px;line-height:1.7">'
+      +'<b style="color:var(--carbon);font-size:15px">No hay piezas todavía</b><br>'
+      +'Agrega una pieza con el botón de abajo o <b>importa tu despiece desde un archivo CSV</b>.<br>'
+      +'<span style="font-size:12px">Si es la primera vez, descarga la plantilla CSV para ver el formato.</span></td></tr>';
+    return;
+  }
+  var h=""; filas.forEach(function(f,i){ h+=fila(i); }); $("tbod").innerHTML=h;
+}
 function set(i,c,v){
   filas[i][c]= (c==="l1"||c==="l2"||c==="a1"||c==="a2"||c==="veta") ? v : (c==="modulo"||c==="pieza"||c==="material" ? v : Number(v)||0);
 }
@@ -422,6 +493,44 @@ function dibujar(pl,cfg){
   s+='</svg>';
   return s;
 }
+/* Descarga un archivo de texto */
+function descargar(nombre, texto){
+  var b=new Blob(["\ufeff"+texto],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=nombre; a.click();
+}
+/* Plantilla vacia con el formato correcto */
+function plantillaCSV(){
+  descargar("plantilla_despiece_melamina.csv",
+    ["Modulo;Pieza;Material;Espesor;Cantidad;Largo;Ancho;Canto L1;Canto L2;Canto A1;Canto A2;Veta",
+     "MBA01;Base;Melamina 15 mm;15;2;770;335;Si;No;Si;No;No",
+     "MBA01;Lateral;Melamina 15 mm;15;2;700;585;Si;No;Si;Si;No",
+     "MBA01;Puerta;Melamina 15 mm;15;2;700;398;Si;Si;Si;Si;No",
+     "MBA01;Fondo;MDF 3 mm;3;1;684;784;No;No;No;No;No"].join("\n"));
+}
+/* Importa el despiece desde el archivo que elige el usuario */
+function importarCSV(ev){
+  var f = ev.target.files && ev.target.files[0];
+  if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){
+    var res=parsearCSV(r.result);
+    if(!res.filas.length){
+      alert("No se pudo leer ninguna pieza del archivo.\n\nRevisa que tenga las columnas de LARGO y ANCHO.\nDescarga la plantilla CSV para ver el formato correcto.");
+      ev.target.value=""; return;
+    }
+    if(filas.length && !confirm("Ya hay "+filas.length+" pieza(s) en la tabla.\n\n¿Reemplazarlas por las "+res.filas.length+" del archivo?")){
+      ev.target.value=""; return;
+    }
+    filas=res.filas; pintar();
+    var msg="Se importaron "+res.filas.length+" pieza(s) de:\n"+f.name;
+    if(res.saltadas) msg+="\n\nSe omitieron "+res.saltadas+" fila(s) sin largo o ancho válido.";
+    msg+="\n\nPulsa «Calcular corte» en la pestaña siguiente.";
+    alert(msg);
+    ev.target.value="";
+  };
+  r.onerror=function(){ alert("No se pudo leer el archivo."); ev.target.value=""; };
+  r.readAsText(f,"UTF-8");
+}
 function exportarCSV(){
   if(!filas.length){ alert("No hay piezas."); return; }
   var L=["Modulo;Pieza;Material;Espesor;Cantidad;Largo;Ancho;Canto L1;Canto L2;Canto A1;Canto A2;Veta"];
@@ -433,9 +542,7 @@ function exportarCSV(){
   if(R){
     L.push(""); L.push("RESUMEN;Planchas: "+R.totalPlan+";Aprovechamiento: "+(R.totalArea?(R.totalUtil/R.totalArea*100).toFixed(1):0)+"%;Canto: "+R.cantoTotal.toFixed(2)+" m");
   }
-  var b=new Blob(["\ufeff"+L.join("\n")],{type:"text/csv;charset=utf-8"});
-  var a=document.createElement("a"); a.href=URL.createObjectURL(b);
-  a.download="despiece_"+(($("pr").value||"mueble").replace(/[^\w]+/g,"_"))+".csv"; a.click();
+  descargar("despiece_"+(($("pr").value||"mueble").replace(/[^\w]+/g,"_"))+".csv", L.join("\n"));
 }
 function enviarACotizador(){
   var R=window.__res; if(!R){ alert("Primero calcula el corte."); return; }
@@ -452,7 +559,7 @@ function enviarACotizador(){
 /* arranque */
 $("hl").innerHTML='<svg width="32" height="32" viewBox="47 128 119 119" xmlns="http://www.w3.org/2000/svg"><rect x="47" y="128" width="119" height="119" rx="12" fill="#FFB000"/></svg>';
 $("fe").value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
-cargarEjemplo();
+pintar();  /* arranca vacio: el usuario agrega sus piezas o importa su CSV */
 </script>
 <script>
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(function(){}); }

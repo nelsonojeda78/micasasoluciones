@@ -30,7 +30,21 @@ table{width:100%;border-collapse:collapse;font-size:13px}
 th{background:var(--ambar);color:#000;text-align:left;padding:6px;border:1px solid #C9C4BE;font-size:11px;text-transform:uppercase}
 td{border:1px solid var(--borde);padding:5px 6px}
 td.n{text-align:right;white-space:nowrap}
+td.u{font-size:12px;color:var(--gris)}
 tr.tot td{font-weight:900;background:var(--arena);font-size:14px}
+td,th{overflow-wrap:anywhere}
+/* En pantallas de telefono, cada fila del resultado se vuelve un bloque legible:
+   asi las tablas de Agua potable y Canalizacion ya no se salen del encuadre */
+@media(max-width:600px){
+  table.resp, table.resp tbody, table.resp tr, table.resp td{display:block;width:100%}
+  table.resp tr{border:1px solid var(--borde);border-radius:10px;padding:8px 10px;margin-bottom:7px;background:#fff}
+  table.resp td{border:0;padding:0}
+  table.resp td:nth-child(1){font-size:11px;color:var(--gris);text-transform:uppercase;font-weight:700;letter-spacing:.3px;line-height:1.3}
+  table.resp td:nth-child(2){font-size:19px;font-weight:900;color:var(--negro);text-align:left;white-space:normal;line-height:1.25;margin-top:2px}
+  table.resp td:nth-child(3){font-size:12.5px;color:var(--gris);text-align:left;white-space:normal;margin-top:2px}
+  table.resp tr.tot{background:var(--arena);border-color:var(--ambar);border-width:2px}
+  .card{overflow-x:visible}
+}
 .pill{display:inline-block;background:var(--arena);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700}
 .hint{font-size:12px;color:var(--gris);margin:6px 0}
 .nota{background:#FFF3D6;border-left:4px solid var(--ambar);padding:9px 11px;border-radius:8px;font-size:12.5px;margin:10px 0 0}
@@ -58,10 +72,9 @@ tr.tot td{font-weight:900;background:var(--arena);font-size:14px}
 <script>
 /* =====================================================================
    MOTOR DE CÁLCULO DE MATERIALES
-   Fórmulas extraídas y compiladas de las plantillas de metrado
-   (metodología peruana "Manos a la Obra") que entregó el usuario.
-   Cada actividad indica su fuente. Los valores marcados como
-   "práctica estándar" deben confirmarse con el fabricante o en obra.
+   Criterios de cálculo de uso corriente en la construcción en Ecuador.
+   Cada actividad indica su base de cálculo y qué debe confirmarse en obra
+   o con el fabricante. Este módulo calcula CANTIDADES: no maneja precios.
    ===================================================================== */
 //==ENGINE-START==
 function n2(x){ return Math.round((Number(x)||0)*100)/100; }
@@ -69,18 +82,24 @@ function n3(x){ return Math.round((Number(x)||0)*1000)/1000; }
 function arriba(x){ return Math.ceil((Number(x)||0)-1e-9); }
 function M(x,d){ return (Number(x)||0).toFixed(d===undefined?2:d); }
 
-/* Tabla de dosificación de concreto — fuente: plantilla 01 (bolsa de 42,5 kg) */
+/* Dosificación de concreto por m3, con el cemento en KILOGRAMOS
+   (así el resultado sirve con cualquier presentación de bolsa) */
 const CONCRETO = {
-  140:{ac:0.61,slump:4,agreg:'3/4"',dos:'1:2.5:3.5',cem:7.01,arena:0.51,piedra:0.64,agua:0.184},
-  175:{ac:0.51,slump:3,agreg:'1/2"',dos:'1:2.5:2.5',cem:8.43,arena:0.54,piedra:0.55,agua:0.185},
-  210:{ac:0.45,slump:3,agreg:'1/2"',dos:'1:2:2',    cem:9.73,arena:0.52,piedra:0.53,agua:0.186},
-  245:{ac:0.38,slump:3,agreg:'1/2"',dos:'1:1.5:1.5',cem:11.15,arena:0.50,piedra:0.51,agua:0.187},
-  280:{ac:0.38,slump:3,agreg:'1/2"',dos:'1:1:1.5',  cem:13.34,arena:0.45,piedra:0.51,agua:0.189}
+  140:{ac:0.61,slump:4,agreg:'3/4"',dos:'1:2,5:3,5',cemkg:297.9,arena:0.51,piedra:0.64,agua:0.184},
+  175:{ac:0.51,slump:3,agreg:'1/2"',dos:'1:2,5:2,5',cemkg:358.3,arena:0.54,piedra:0.55,agua:0.185},
+  210:{ac:0.45,slump:3,agreg:'1/2"',dos:'1:2:2',    cemkg:413.5,arena:0.52,piedra:0.53,agua:0.186},
+  245:{ac:0.38,slump:3,agreg:'1/2"',dos:'1:1,5:1,5',cemkg:473.9,arena:0.50,piedra:0.51,agua:0.187},
+  280:{ac:0.38,slump:3,agreg:'1/2"',dos:'1:1:1,5',  cemkg:567.0,arena:0.45,piedra:0.51,agua:0.189}
 };
-/* Pesos del acero por metro — fuente: plantilla 14 */
+/* Peso de la bolsa de cemento: lee el numero aunque venga con coma decimal */
+function pesoBolsa(t){
+  var m=String(t==null?"":t).replace(",",".").match(/(\d+(?:\.\d+)?)/);
+  return m? parseFloat(m[1]) : 50;
+}
+/* Pesos nominales del acero de refuerzo por metro, según el diámetro */
 const ACERO = {"6 mm (1/4\")":0.222,"1/4\"":0.25,"8 mm (5/16\")":0.395,"3/8\"":0.56,"12 mm":0.888,"1/2\"":0.994,"5/8\"":1.552,"3/4\"":2.235};
 const ACERO_ORD = ["6 mm (1/4\")","1/4\"","8 mm (5/16\")","3/8\"","12 mm","1/2\"","5/8\"","3/4\""];
-/* Tipos de pieza para muros — fuente: plantillas 04 */
+/* Medidas nominales de las piezas de mampostería más usadas */
 const PIEZAS = {
   "King Kong 9x13x24 (arcilla)":{L:0.24,H:0.09,W:0.13},
   "Pandereta 9x12x24 (arcilla)":{L:0.24,H:0.09,W:0.12},
@@ -89,7 +108,7 @@ const PIEZAS = {
   "Bloque 10x20x40 (hormigón)":{L:0.40,H:0.20,W:0.10},
   "Bloque 20x20x40 (hormigón)":{L:0.40,H:0.20,W:0.20}
 };
-const DENS_CEMENTO = 1450; /* kg/m3 — fuente: plantilla 19 (equivalencias) */
+const DENS_CEMENTO = 1450; /* kg/m3 — densidad del cemento suelto, de uso corriente */
 
 const ACTIVIDADES = [
 /* ---------------------------------------------------------------- 1 */
@@ -99,11 +118,11 @@ const ACTIVIDADES = [
     {k:"l",e:"Largo (m)",t:"num",v:0.35},{k:"a",e:"Ancho (m)",t:"num",v:0.35},
     {k:"h",e:"Alto o espesor (m)",t:"num",v:2.70},{k:"c",e:"Cantidad de elementos",t:"num",v:8},
     {k:"d",e:"Desperdicio (%)",t:"num",v:5},
-    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (Ecuador)","42.5 kg (Perú)","25 kg"]}
+    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (estándar)","42,5 kg","25 kg"]}
   ],
   calc:function(v){
     var t=CONCRETO[v.fc], V=Math.max(0,(v.l*v.a*v.h*v.c)), Vf=V*(1+v.d/100);
-    var kgCem=Vf*t.cem*42.5, pb=parseFloat(v.pb);
+    var kgCem=Vf*t.cemkg, pb=pesoBolsa(v.pb);
     return {filas:[
       ["Volumen de concreto (sin desperdicio)",M(V,3),"m³"],
       ["Volumen con desperdicio de "+v.d+"%",M(Vf,3),"m³"],
@@ -112,12 +131,13 @@ const ACTIVIDADES = [
       ["Arena gruesa",M(Vf*t.arena,3),"m³"],
       ["Piedra chancada o ripio",M(Vf*t.piedra,3),"m³"],
       ["Agua",M(Vf*t.agua,3),"m³  ("+M(Vf*t.agua*1000,0)+" litros)"],
-      ["Proporción en volumen (cemento:arena:piedra)",t.dos,"—"],
+      ["Dosificación de la tabla",M(t.cemkg,1)+" kg de cemento por m³","—"],
+      ["Proporción en volumen (cemento : arena : piedra)",t.dos,"—"],
       ["Relación agua/cemento",t.ac,"—"],
       ["Asentamiento (slump) / tamaño de agregado",t.slump+'" / '+t.agreg,"—"]
     ],
-    nota:"La tabla de dosificación está calculada para bolsa de 42,5 kg (norma peruana). En Ecuador la bolsa es de 50 kg: por eso el resultado se entrega en KILOGRAMOS y luego en bolsas del peso que elijas. El agua es referencial: en obra se corrige por la humedad de la arena.",
-    fuente:"Plantilla 01 — Cálculo de materiales para concreto (Manos a la Obra)"};
+    nota:"El cemento se calcula en KILOGRAMOS por m³, así que el resultado sirve con cualquier presentación de bolsa (en Ecuador lo normal es la bolsa de 50 kg). Las proporciones son en volumen: cemento, arena y piedra. El agua es referencial y en obra se corrige según la humedad de la arena.",
+    fuente:"Dosificación de uso corriente en obra civil: proporciones en volumen 1:2:2, 1:2,5:2,5, 1:1,5:1,5, etc. Confírmala con el proveedor de cemento y con el diseño estructural."};
   },
   cotiza:function(v,r){ return {descripcion:"Hormigón f'c="+v.fc+" kg/cm² en "+v.c+" elemento(s) de "+v.l+"×"+v.a+"×"+v.h+" m",unidad:"m3",cantidad:n3(v.l*v.a*v.h*v.c)}; }
 },
@@ -141,8 +161,8 @@ const ACTIVIDADES = [
       ["Varillas comerciales de "+v.lv+" m",arriba(L/v.lv),"varillas"],
       ["Peso total (quintales)",M(kg/45.36,2),"qq"]
     ],
-    nota:"El peso por metro es el de la tabla de la plantilla 14. El desperdicio incluye ganchos, traslapes y cortes. Si el elemento lleva estribos, repite el cálculo eligiendo el diámetro del estribo y usando su longitud desarrollada.",
-    fuente:"Plantilla 14 — Metrado de acero, encofrado y concreto"};
+    nota:"Los pesos por metro son los nominales del acero de refuerzo. El desperdicio incluye ganchos, traslapes y cortes. Si el elemento lleva estribos, repite el cálculo eligiendo el diámetro del estribo y usando su longitud desarrollada.",
+    fuente:"Pesos nominales del acero de refuerzo por diámetro y práctica usual de metrado en obra."};
   },
   cotiza:function(v,r){ var L=v.cant*v.long*v.el*(1+v.desp/100); return {descripcion:"Acero de refuerzo "+v.diam+" (cortado y armado)",unidad:"kg",cantidad:n2(L*ACERO[v.diam])}; }
 },
@@ -165,7 +185,7 @@ const ACTIVIDADES = [
       ["Puntales o pies derechos (aprox. 1 por m² de losa)",arriba(At),"puntales"]
     ],
     nota:"El encofrado se mide por superficie de contacto con el hormigón. La madera se puede reutilizar: si se usan tableros fenólicos o metálicos el rendimiento sube y el costo baja.",
-    fuente:"Plantilla 14 — Metrado de encofrado"};
+    fuente:"Metrado de encofrado por superficie de contacto: práctica usual de obra."};
   },
   cotiza:function(v,r){ return {descripcion:"Encofrado y desencofrado",unidad:"m2",cantidad:n2(v.caras*v.l*v.h*v.el)}; }
 },
@@ -178,7 +198,7 @@ const ACTIVIDADES = [
     {k:"j",e:"Espesor de junta (cm)",t:"num",v:1.5},
     {k:"desp",e:"Desperdicio (%)",t:"num",v:5},
     {k:"prop",e:"Mortero de asentado",t:"sel",v:"1:4",op:["1:3","1:4","1:5"]},
-    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (Ecuador)","42.5 kg (Perú)","25 kg"]}
+    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (estándar)","42,5 kg","25 kg"]}
   ],
   calc:function(v){
     var p=PIEZAS[v.tipo], J=v.j/100;
@@ -193,7 +213,7 @@ const ACTIVIDADES = [
     var pr=v.prop.split(":"); var c=Number(pr[0]), a=Number(pr[1]);
     var vseco=vmor*1.25;
     var m3cem=vseco*(c/(c+a)), m3are=vseco*(a/(c+a));
-    var pb=parseFloat(v.pb);
+    var pb=pesoBolsa(v.pb);
     var bolsas=m3cem*DENS_CEMENTO/pb;
     return {filas:[
       ["Piezas por m² de muro",M(undM2,1),"unid/m²"],
@@ -206,8 +226,8 @@ const ACTIVIDADES = [
       ["Proporción usada",v.prop,"cemento:arena"],
       ["Espesor del muro",M(espMuro*100,0),"cm"]
     ],
-    nota:"Fórmula verificada en la plantilla: piezas/m² = 1 ÷ ((largo o espesor + junta) × (altura + junta)). El mortero se obtiene restando al volumen del muro el volumen de las piezas. La junta típica es de 1 a 1,5 cm.",
-    fuente:"Plantillas 04 (metrado de ladrillos de arcilla y cálculo automático)"};
+    nota:"Piezas por m² = 1 ÷ ((largo o espesor + junta) × (altura + junta)). El mortero se obtiene restando al volumen del muro el volumen de las piezas. La junta típica es de 1 a 1,5 cm.",
+    fuente:"Cálculo por dimensiones de la pieza y espesor de junta: práctica usual de albañilería."};
   },
   cotiza:function(v,r){ return {descripcion:"Muro de "+v.tipo+" asentado de "+v.as,unidad:"m2",cantidad:Number(v.area)||0}; }
 },
@@ -218,12 +238,12 @@ const ACTIVIDADES = [
     {k:"esp",e:"Espesor del tarrajeo (cm)",t:"num",v:1.5},
     {k:"prop",e:"Proporción del mortero",t:"sel",v:"1:4",op:["1:3","1:4","1:5"]},
     {k:"desp",e:"Desperdicio (%)",t:"num",v:10},
-    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (Ecuador)","42.5 kg (Perú)","25 kg"]}
+    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (estándar)","42,5 kg","25 kg"]}
   ],
   calc:function(v){
     var V=v.area*(v.esp/100)*(1+v.desp/100), Vseco=V*1.25;
     var pr=v.prop.split(":"), c=Number(pr[0]), a=Number(pr[1]);
-    var m3cem=Vseco*(c/(c+a)), m3are=Vseco*(a/(c+a)), pb=parseFloat(v.pb);
+    var m3cem=Vseco*(c/(c+a)), m3are=Vseco*(a/(c+a)), pb=pesoBolsa(v.pb);
     var bolsas=m3cem*DENS_CEMENTO/pb;
     return {filas:[
       ["Volumen de mortero (con desperdicio)",M(V,3),"m³"],
@@ -234,8 +254,8 @@ const ACTIVIDADES = [
       ["Agua aproximada (22 % del volumen de mezcla)",M(Vseco*0.22*1000,0),"litros"],
       ["Proporción usada",v.prop,"cemento:arena"]
     ],
-    nota:"Cálculo por volumen y proporción. El factor 1,25 es el rendimiento de mezcla (la arena suelta ocupa más volumen que el mortero colocado). La densidad del cemento (1450 kg/m³) sale de la plantilla de equivalencias. Confirma el espesor real en obra con una regla antes de comprar.",
-    fuente:"Plantilla 19 (densidad del cemento) + proporciones volumétricas estándar de obra"};
+    nota:"Cálculo por volumen y proporción. El factor 1,25 es el rendimiento de mezcla (la arena suelta ocupa más volumen que el mortero colocado). La densidad del cemento (1450 kg/m³) es la de uso corriente. Confirma el espesor real en obra con una regla antes de comprar.",
+    fuente:"Proporciones volumétricas de mortero y densidad del cemento de uso corriente en obra."};
   },
   cotiza:function(v,r){ return {descripcion:"Tarrajeo o enlucido de pared (espesor "+v.esp+" cm)",unidad:"m2",cantidad:Number(v.area)||0}; }
 },
@@ -263,7 +283,7 @@ const ACTIVIDADES = [
       ["Envases ("+v.env+")",nenv,"envases"]
     ],
     nota:"El rendimiento (m² por litro) está impreso en la etiqueta de cada pintura: es el dato más importante. Si la pared está porosa, sin sellador o es un color muy intenso sobre otro oscuro, baja el rendimiento un 20 % y agrega una mano.",
-    fuente:"Plantilla 13 — Metrado de pintura"};
+    fuente:"Metrado por área y rendimiento del producto: el rendimiento (m² por litro) se lee en la etiqueta de la pintura."};
   },
   cotiza:function(v,r){ var At=v.paredes*v.alt+v.techo; return {descripcion:"Pintura interior, "+v.manos+" mano(s), incluye preparación",unidad:"m2",cantidad:n2(At)}; }
 },
@@ -322,7 +342,7 @@ const ACTIVIDADES = [
       ["Masilla o pasta (0,5 kg por m²)",M(v.area*0.5*caras,1),"kg"],
       ["Aislante (lana de vidrio, si es tabique acústico)",M(v.area,2),"m²"]
     ],
-    nota:"Valores de práctica estándar del oficio (no vienen de las plantillas peruanas, que no incluyen gypsum). Plancha 1,20 × 2,40 = 2,88 m²; estructura cada 40 cm para cielo raso y cada 30 a 40 cm para tabique. Confirma el consumo de tornillos y masilla con el fabricante.",
+    nota:"Valores de práctica estándar del oficio. Plancha 1,20 × 2,40 = 2,88 m²; estructura cada 40 cm para cielo raso y cada 30 a 40 cm para tabique. Confirma el consumo de tornillos y masilla con el fabricante.",
     fuente:"Práctica estándar de instalación de gypsum y steel framing (a validar con el fabricante)"};
   },
   cotiza:function(v,r){ return {descripcion:v.tipo+" en gypsum con estructura metálica",unidad:"m2",cantidad:Number(v.area)||0}; }
@@ -365,7 +385,7 @@ const ACTIVIDADES = [
       ["Prueba de presión y purga",1,"servicio"]
     ],
     nota:"Método por punto y por recorrido. Las conexiones son una ESTIMACIÓN con factores que puedes ajustar (codos por punto, tees por punto, una unión universal cada X m): cámbialos según como instalas tú. El recorrido promedio sirve para cotizar antes de medir en obra. La PRUEBA DE PRESIÓN es obligatoria antes de cerrar paredes: es lo que respalda la garantía.",
-    fuente:"No venía en las plantillas peruanas (no incluyen instalaciones sanitarias). Construido con práctica estándar de instalación de agua potable, solo para calcular cantidades."};
+    fuente:"Práctica estándar de instalación de agua potable en vivienda. Las cantidades de conexiones son estimaciones ajustables."};
   },
   cotiza:function(v,r){ return {descripcion:"Instalación de agua potable en "+v.tipo+" ("+v.puntos+" salidas, ramales "+v.dr+")",unidad:"punto",cantidad:Number(v.puntos)||1}; }
 },
@@ -407,7 +427,7 @@ const ACTIVIDADES = [
       ["Desnivel del colector al "+v.pend+" %",M(desnivel,1),"cm de caída en "+v.lcolector+" m"]
     ],
     nota:"Pendiente mínima: 1 % para 4 pulg, 1,5 % para 3 pulg y 2 % para 2 pulg. Cada salida lleva su trampa o sifón (el inodoro ya la trae incorporada). Las conexiones son estimación con factores ajustables. Antes de tapar se prueba con agua: si no drena, se corrige la pendiente.",
-    fuente:"No venía en las plantillas peruanas. Construido con práctica estándar de instalación sanitaria, solo para calcular cantidades."};
+    fuente:"Práctica estándar de instalación sanitaria en vivienda, con las pendientes mínimas recomendadas. Cantidades estimadas y ajustables."};
   },
   cotiza:function(v,r){ var n=(Number(v.n2)||0)+(Number(v.n3)||0)+(Number(v.n4)||0);
     return {descripcion:"Instalación de desagüe sanitario ("+n+" salidas y colector de "+v.lcolector+" m)",unidad:"punto",cantidad:n||1}; }
@@ -443,7 +463,7 @@ const ACTIVIDADES = [
       ["Cinta aislante y varios",1,"global"]
     ],
     nota:"La canalización se mide por el recorrido real de los ductos: el recorrido promedio por punto sirve para cotizar antes de medir. Se agrega 5 % por las curvas y el desperdicio. Las cajas se cuentan una por salida (octogonal para alumbrado, rectangular para tomas e interruptores). El CABLEADO se calcula en la pestaña Eléctrico: usa las dos juntas.",
-    fuente:"Método por punto derivado de la estructura de la plantilla de metrados de IIEE, ampliado con los materiales de canalización."};
+    fuente:"Método de metrado por punto, de uso corriente en instalaciones eléctricas residenciales, ampliado con los materiales de canalización."};
   },
   cotiza:function(v,r){ return {descripcion:"Canalización eléctrica en "+v.tipo+" "+v.diam+" ("+v.puntos+" puntos)",unidad:"punto",cantidad:Number(v.puntos)||1}; }
 },
@@ -470,8 +490,8 @@ const ACTIVIDADES = [
       ["Breakers (1 por circuito + 1 de reserva)",(Number(v.circ)||0)+1,"unidades"],
       ["Tablero de distribución",1,"unidad"]
     ],
-    nota:"Método de metrado por punto (estructura de la plantilla de IIEE). El recorrido promedio se mide en obra; si no se puede, en vivienda unifamiliar usa de 8 a 12 m por punto. Este cálculo es de CANTIDADES para cotizar, no un diseño eléctrico: el calibre del cable y el breaker se definen según la carga real de cada circuito.",
-    fuente:"Plantilla de metrados de IIEE (estructura de resumen y sustento)"};
+    nota:"Método de metrado por punto, de uso corriente en instalaciones eléctricas residenciales. El recorrido promedio se mide en obra; si no se puede, en vivienda unifamiliar usa de 8 a 12 m por punto. Este cálculo es de CANTIDADES para cotizar, no un diseño eléctrico: el calibre del cable y el breaker se definen según la carga real de cada circuito.",
+    fuente:"Método de metrado por punto, de uso corriente en instalaciones eléctricas residenciales."};
   },
   cotiza:function(v,r){ var P=(Number(v.alum)||0)+(Number(v.toma)||0)+(Number(v.inte)||0); return {descripcion:"Instalación eléctrica: "+P+" punto(s) y "+(v.circ||0)+" circuito(s)",unidad:"punto",cantidad:P}; }
 },
@@ -502,12 +522,12 @@ const ACTIVIDADES = [
   campos:[
     {k:"m3",e:"Volumen (m³)",t:"num",v:1},
     {k:"pie3",e:"O volumen en pie³",t:"num",v:0},
-    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (Ecuador)","42.5 kg (Perú)"]}
+    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (estándar)","42,5 kg"]}
   ],
   calc:function(v){
     var pie=v.pie3>0? v.pie3*0.02831685 : v.m3;
     var m3=pie;
-    var pb=parseFloat(v.pb);
+    var pb=pesoBolsa(v.pb);
     return {filas:[
       ["1 m³ equivale a",35.315,"pie³"],
       ["1 pie³ equivale a",0.02831685,"m³"],
@@ -519,8 +539,8 @@ const ACTIVIDADES = [
       ["Baldes que entran en una carretilla",arriba(0.057/0.028),"baldes"],
       ["Baldes que entran en un buggie",arriba(0.085/0.028),"baldes"]
     ],
-    nota:"Equivalencias para dosificar en obra sin balanza. Verificadas con la plantilla 19: 1 balde de 20 L = 0,028 m³ (36 baldes = 1 m³); carretilla de 2 pie³ = 0,057 m³ (18 = 1 m³); buggie de 3 pie³ = 0,085 m³ (12 = 1 m³). Ojo: la carretilla y el buggie comunes varían de tamaño — mide el tuyo antes de dosificar.",
-    fuente:"Plantilla 19 — Cálculo de equivalencias (baldes, carretillas, buggies)"};
+    nota:"Equivalencias para dosificar en obra sin balanza: 1 balde de 20 L = 0,028 m³ (36 baldes = 1 m³); carretilla de 2 pie³ = 0,057 m³ (18 = 1 m³); buggie de 3 pie³ = 0,085 m³ (12 = 1 m³). Ojo: la carretilla y el buggie comunes varían de tamaño — mide el tuyo antes de dosificar.",
+    fuente:"Equivalencias de volumen de uso corriente en obra: balde de 20 litros, carretilla de 2 pie³, buggie de 3 pie³ y densidad del cemento."};
   },
   cotiza:function(v,r){ return {descripcion:"Suministro y traslado de material (equivalencia de volumen)",unidad:"m3",cantidad:n3(Number(v.m3)||Number(v.pie3)*0.02831685)}; }
 },
@@ -545,8 +565,8 @@ const ACTIVIDADES = [
       ["Aligerantes (losa aligerada, 8,33 unid/m²)",M(A*8.33,0),"unidades"],
       ["Cemento aproximado (9,73 bolsas por m³ de concreto de 210)",M(A*rC[1]*9.73,0),"bolsas"]
     ],
-    nota:"Los ratios sirven SOLO para estimar rápido antes de metrar. Salen de la plantilla de ratios del autor peruano (experiencia en edificios) y son un rango: el número real depende del diseño estructural. Nunca cotices una obra grande con ratios sin metrar.",
-    fuente:"Plantilla 23 — Mano de obra y ratios de estructuras"};
+    nota:"Los ratios sirven SOLO para estimar rápido antes de metrar. Son rangos de referencia de la práctica constructiva: el número real depende del diseño estructural. Nunca cotices una obra grande con ratios sin metrar.",
+    fuente:"Ratios de referencia para estimación rápida de estructuras de vivienda."};
   },
   cotiza:function(v,r){ return {descripcion:"Estimación por ratios de estructura para "+M(v.area*v.pisos,0)+" m² construidos",unidad:"global",cantidad:1}; }
 }
@@ -590,14 +610,14 @@ function calcular(i){
   var a=ACTIVIDADES[i], v=leer(a);
   try{
     var r=a.calc(v);
-    var h='<table><tbody>';
+    var h='<table class="resp"><tbody>';
     r.filas.forEach(function(f){
       var tot=/^(TOTAL|ÁREA TOTAL|Cemento$)/.test(f[0]);
-      h+='<tr'+(tot?' class="tot"':'')+'><td>'+esc(f[0])+'</td><td class="n"><b>'+esc(f[1])+'</b></td><td class="n">'+esc(f[2])+'</td></tr>';
+      h+='<tr'+(tot?' class="tot"':'')+'><td>'+esc(f[0])+'</td><td class="n"><b>'+esc(f[1])+'</b></td><td class="u">'+esc(f[2])+'</td></tr>';
     });
     h+='</tbody></table>';
     if(r.nota) h+='<div class="nota">'+esc(r.nota)+'</div>';
-    if(r.fuente) h+='<div class="fuente">Fuente: '+esc(r.fuente)+'</div>';
+    if(r.fuente) h+='<div class="fuente">Base del cálculo: '+esc(r.fuente)+'</div>';
     h+='<div class="row" style="margin-top:10px"><button class="btn ambar" onclick="enviar('+i+')">Enviar esta cantidad al cotizador</button>'
       +'<button class="btn gris" onclick="window.print()">Imprimir</button></div>';
     $("res_"+a.id).innerHTML=h;
