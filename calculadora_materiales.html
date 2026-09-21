@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#393536">
+<link rel="manifest" href="manifest-calculadora.webmanifest">
+<title>Calculadora de materiales — Mi Casa Soluciones</title>
+<style>
+:root{--ambar:#FFB000;--carbon:#393536;--negro:#100F0D;--arena:#F4F1EC;--gris:#8A8580;--verde:#1E7B4F;--rojo:#C0392B;--borde:#DCD7D0;--sombra:0 2px 10px rgba(16,15,13,.10)}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Lato,Arial,sans-serif;background:var(--arena);color:var(--carbon);font-size:15px;line-height:1.45;padding-bottom:76px}
+h1,h2,h3{margin:0 0 8px}h1{font-size:20px}h2{font-size:16.5px}h3{font-size:14.5px}
+.hdr{background:var(--carbon);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:30;box-shadow:var(--sombra)}
+.hdr .t{font-weight:800;font-size:15px}.hdr .s{font-size:11px;opacity:.75}
+.wrap{padding:12px;max-width:820px;margin:0 auto}
+.card{background:#fff;border-radius:14px;padding:13px;box-shadow:var(--sombra);margin-bottom:12px;overflow-x:auto}
+label{display:block;font-size:11.5px;font-weight:700;color:var(--gris);margin:9px 0 3px;text-transform:uppercase;letter-spacing:.3px}
+input,select,button{font-family:inherit;font-size:15px}
+input,select{width:100%;padding:9px 10px;border:1.5px solid var(--borde);border-radius:9px;background:#fff;color:var(--carbon)}
+input:focus,select:focus{outline:none;border-color:var(--ambar);box-shadow:0 0 0 3px rgba(255,176,0,.2)}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:11px 13px;font-weight:800;background:var(--carbon);color:#fff;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.ambar{background:var(--ambar);color:var(--carbon)}.btn.verde{background:var(--verde)}.btn.gris{background:#fff;color:var(--carbon);border:1.5px solid var(--borde)}
+.btn.sm{padding:7px 9px;font-size:13px}.btn.full{width:100%}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 10px;-webkit-overflow-scrolling:touch}
+.chip{border:1.5px solid var(--borde);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer;background:#fff;color:var(--gris)}
+.chip.on{background:var(--carbon);color:#fff;border-color:var(--carbon)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--ambar);color:#000;text-align:left;padding:6px;border:1px solid #C9C4BE;font-size:11px;text-transform:uppercase}
+td{border:1px solid var(--borde);padding:5px 6px}
+td.n{text-align:right;white-space:nowrap}
+tr.tot td{font-weight:900;background:var(--arena);font-size:14px}
+.pill{display:inline-block;background:var(--arena);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700}
+.hint{font-size:12px;color:var(--gris);margin:6px 0}
+.nota{background:#FFF3D6;border-left:4px solid var(--ambar);padding:9px 11px;border-radius:8px;font-size:12.5px;margin:10px 0 0}
+.fuente{background:var(--arena);border-radius:8px;padding:7px 9px;font-size:11.5px;color:var(--gris);margin-top:8px}
+.sec{display:none}.sec.on{display:block}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--borde);display:flex;z-index:40}
+.tabs button{flex:1;border:0;background:none;padding:9px 2px;font-size:10px;font-weight:700;color:var(--gris);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button.on{color:var(--carbon)}.tabs .ic{width:25px;height:25px;border-radius:8px;background:var(--arena);display:grid;place-items:center;font-size:13px}
+.tabs button.on .ic{background:var(--ambar)}
+</style>
+</head>
+<body>
+<div class="hdr"><span><svg width="32" height="32" viewBox="47 128 119 119" xmlns="http://www.w3.org/2000/svg"><rect x="47" y="128" width="119" height="119" rx="12" fill="#FFB000"/></svg></span>
+<span><span class="t">CALCULADORA DE MATERIALES</span><br><span class="s">Mi Casa Soluciones · metrados y dosificación</span></span></div>
+<div class="wrap">
+  <div class="chips" id="chips"></div>
+  <div id="secciones"></div>
+</div>
+<nav class="tabs">
+  <button class="on" onclick="irA(-1,this)"><span class="ic">◀</span>Anterior</button>
+  <button onclick="irA(1,this)"><span class="ic">▶</span>Siguiente</button>
+  <button onclick="enviar()"><span class="ic">📝</span>Al cotizador</button>
+</nav>
+
+<script>
+/* =====================================================================
+   MOTOR DE CÁLCULO DE MATERIALES
+   Fórmulas extraídas y compiladas de las plantillas de metrado
+   (metodología peruana "Manos a la Obra") que entregó el usuario.
+   Cada actividad indica su fuente. Los valores marcados como
+   "práctica estándar" deben confirmarse con el fabricante o en obra.
+   ===================================================================== */
+//==ENGINE-START==
+function n2(x){ return Math.round((Number(x)||0)*100)/100; }
+function n3(x){ return Math.round((Number(x)||0)*1000)/1000; }
+function arriba(x){ return Math.ceil((Number(x)||0)-1e-9); }
+function M(x,d){ return (Number(x)||0).toFixed(d===undefined?2:d); }
+
+/* Tabla de dosificación de concreto — fuente: plantilla 01 (bolsa de 42,5 kg) */
+const CONCRETO = {
+  140:{ac:0.61,slump:4,agreg:'3/4"',dos:'1:2.5:3.5',cem:7.01,arena:0.51,piedra:0.64,agua:0.184},
+  175:{ac:0.51,slump:3,agreg:'1/2"',dos:'1:2.5:2.5',cem:8.43,arena:0.54,piedra:0.55,agua:0.185},
+  210:{ac:0.45,slump:3,agreg:'1/2"',dos:'1:2:2',    cem:9.73,arena:0.52,piedra:0.53,agua:0.186},
+  245:{ac:0.38,slump:3,agreg:'1/2"',dos:'1:1.5:1.5',cem:11.15,arena:0.50,piedra:0.51,agua:0.187},
+  280:{ac:0.38,slump:3,agreg:'1/2"',dos:'1:1:1.5',  cem:13.34,arena:0.45,piedra:0.51,agua:0.189}
+};
+/* Pesos del acero por metro — fuente: plantilla 14 */
+const ACERO = {"6 mm (1/4\")":0.222,"1/4\"":0.25,"8 mm (5/16\")":0.395,"3/8\"":0.56,"12 mm":0.888,"1/2\"":0.994,"5/8\"":1.552,"3/4\"":2.235};
+const ACERO_ORD = ["6 mm (1/4\")","1/4\"","8 mm (5/16\")","3/8\"","12 mm","1/2\"","5/8\"","3/4\""];
+/* Tipos de pieza para muros — fuente: plantillas 04 */
+const PIEZAS = {
+  "King Kong 9x13x24 (arcilla)":{L:0.24,H:0.09,W:0.13},
+  "Pandereta 9x12x24 (arcilla)":{L:0.24,H:0.09,W:0.12},
+  "Ladrillo 6x12x24 (arcilla)":{L:0.24,H:0.06,W:0.12},
+  "Bloque 15x20x40 (hormigón)":{L:0.40,H:0.20,W:0.15},
+  "Bloque 10x20x40 (hormigón)":{L:0.40,H:0.20,W:0.10},
+  "Bloque 20x20x40 (hormigón)":{L:0.40,H:0.20,W:0.20}
+};
+const DENS_CEMENTO = 1450; /* kg/m3 — fuente: plantilla 19 (equivalencias) */
+
+const ACTIVIDADES = [
+/* ---------------------------------------------------------------- 1 */
+{ id:"concreto", nombre:"Concreto", icono:"🧱",
+  campos:[
+    {k:"fc",e:"Resistencia f'c (kg/cm²)",t:"sel",v:210,op:Object.keys(CONCRETO)},
+    {k:"l",e:"Largo (m)",t:"num",v:0.35},{k:"a",e:"Ancho (m)",t:"num",v:0.35},
+    {k:"h",e:"Alto o espesor (m)",t:"num",v:2.70},{k:"c",e:"Cantidad de elementos",t:"num",v:8},
+    {k:"d",e:"Desperdicio (%)",t:"num",v:5},
+    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (Ecuador)","42.5 kg (Perú)","25 kg"]}
+  ],
+  calc:function(v){
+    var t=CONCRETO[v.fc], V=Math.max(0,(v.l*v.a*v.h*v.c)), Vf=V*(1+v.d/100);
+    var kgCem=Vf*t.cem*42.5, pb=parseFloat(v.pb);
+    return {filas:[
+      ["Volumen de concreto (sin desperdicio)",M(V,3),"m³"],
+      ["Volumen con desperdicio de "+v.d+"%",M(Vf,3),"m³"],
+      ["Cemento",M(kgCem,1),"kg"],
+      ["Cemento",arriba(kgCem/pb),"bolsas de "+pb+" kg"],
+      ["Arena gruesa",M(Vf*t.arena,3),"m³"],
+      ["Piedra chancada o ripio",M(Vf*t.piedra,3),"m³"],
+      ["Agua",M(Vf*t.agua,3),"m³  ("+M(Vf*t.agua*1000,0)+" litros)"],
+      ["Proporción en volumen (cemento:arena:piedra)",t.dos,"—"],
+      ["Relación agua/cemento",t.ac,"—"],
+      ["Asentamiento (slump) / tamaño de agregado",t.slump+'" / '+t.agreg,"—"]
+    ],
+    nota:"La tabla de dosificación está calculada para bolsa de 42,5 kg (norma peruana). En Ecuador la bolsa es de 50 kg: por eso el resultado se entrega en KILOGRAMOS y luego en bolsas del peso que elijas. El agua es referencial: en obra se corrige por la humedad de la arena.",
+    fuente:"Plantilla 01 — Cálculo de materiales para concreto (Manos a la Obra)"};
+  },
+  cotiza:function(v,r){ return {descripcion:"Hormigón f'c="+v.fc+" kg/cm² en "+v.c+" elemento(s) de "+v.l+"×"+v.a+"×"+v.h+" m",unidad:"m3",cantidad:n3(v.l*v.a*v.h*v.c)}; }
+},
+/* ---------------------------------------------------------------- 2 */
+{ id:"acero", nombre:"Acero", icono:"🔩",
+  campos:[
+    {k:"diam",e:"Diámetro de la varilla",t:"sel",v:"3/8\"",op:ACERO_ORD},
+    {k:"cant",e:"Cantidad de varillas por elemento",t:"num",v:4},
+    {k:"long",e:"Longitud de cada una (m)",t:"num",v:4.4},
+    {k:"el",e:"Cantidad de elementos",t:"num",v:8},
+    {k:"desp",e:"Desperdicio y ganchos (%)",t:"num",v:5},
+    {k:"lv",e:"Largo de la varilla comercial (m)",t:"num",v:9}
+  ],
+  calc:function(v){
+    var peso=ACERO[v.diam], L=v.cant*v.long*v.el*(1+v.desp/100);
+    var kg=L*peso;
+    return {filas:[
+      ["Peso del acero "+v.diam,M(peso,3),"kg/m"],
+      ["Longitud total de acero",M(L,2),"m"],
+      ["Peso total",M(kg,2),"kg"],
+      ["Varillas comerciales de "+v.lv+" m",arriba(L/v.lv),"varillas"],
+      ["Peso total (quintales)",M(kg/45.36,2),"qq"]
+    ],
+    nota:"El peso por metro es el de la tabla de la plantilla 14. El desperdicio incluye ganchos, traslapes y cortes. Si el elemento lleva estribos, repite el cálculo eligiendo el diámetro del estribo y usando su longitud desarrollada.",
+    fuente:"Plantilla 14 — Metrado de acero, encofrado y concreto"};
+  },
+  cotiza:function(v,r){ var L=v.cant*v.long*v.el*(1+v.desp/100); return {descripcion:"Acero de refuerzo "+v.diam+" (cortado y armado)",unidad:"kg",cantidad:n2(L*ACERO[v.diam])}; }
+},
+/* ---------------------------------------------------------------- 3 */
+{ id:"encofrado", nombre:"Encofrado", icono:"🪵",
+  campos:[
+    {k:"caras",e:"Caras encofradas por elemento",t:"num",v:2},
+    {k:"l",e:"Largo (m)",t:"num",v:0.4},{k:"h",e:"Alto (m)",t:"num",v:3.2},
+    {k:"el",e:"Cantidad de elementos",t:"num",v:8},
+    {k:"usos",e:"Usos de la madera (reutilización)",t:"num",v:3},
+    {k:"d",e:"Desperdicio (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var A=v.caras*v.l*v.h*v.el, At=A*(1+v.d/100);
+    return {filas:[
+      ["Área de encofrado",M(A,2),"m²"],
+      ["Área con desperdicio",M(At,2),"m²"],
+      ["Área por uso (si la madera se reutiliza "+v.usos+" veces)",M(At/v.usos,2),"m² por uso"],
+      ["Tablones de 0,30 × 2,40 m (aprox.)",arriba(At/0.72),"tablones"],
+      ["Puntales o pies derechos (aprox. 1 por m² de losa)",arriba(At),"puntales"]
+    ],
+    nota:"El encofrado se mide por superficie de contacto con el hormigón. La madera se puede reutilizar: si se usan tableros fenólicos o metálicos el rendimiento sube y el costo baja.",
+    fuente:"Plantilla 14 — Metrado de encofrado"};
+  },
+  cotiza:function(v,r){ return {descripcion:"Encofrado y desencofrado",unidad:"m2",cantidad:n2(v.caras*v.l*v.h*v.el)}; }
+},
+/* ---------------------------------------------------------------- 4 */
+{ id:"muros", nombre:"Muros", icono:"🧱",
+  campos:[
+    {k:"tipo",e:"Tipo de pieza",t:"sel",v:"King Kong 9x13x24 (arcilla)",op:Object.keys(PIEZAS)},
+    {k:"as",e:"Tipo de asentado",t:"sel",v:"soga",op:["soga","cabeza"]},
+    {k:"area",e:"Área del muro (m²)",t:"num",v:10},
+    {k:"j",e:"Espesor de junta (cm)",t:"num",v:1.5},
+    {k:"desp",e:"Desperdicio (%)",t:"num",v:5},
+    {k:"prop",e:"Mortero de asentado",t:"sel",v:"1:4",op:["1:3","1:4","1:5"]},
+    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (Ecuador)","42.5 kg (Perú)","25 kg"]}
+  ],
+  calc:function(v){
+    var p=PIEZAS[v.tipo], J=v.j/100;
+    var base=(v.as==="soga")? p.L : p.W;
+    var cara=(base+J)*(p.H+J);
+    var undM2=1/cara;
+    var und=arriba(undM2*v.area*(1+v.desp/100));
+    var espMuro=p.W;
+    var vmuro=v.area*espMuro;
+    var vlad=undM2*v.area*(p.L*p.H*p.W);
+    var vmor=Math.max(0,vmuro-vlad);
+    var pr=v.prop.split(":"); var c=Number(pr[0]), a=Number(pr[1]);
+    var vseco=vmor*1.25;
+    var m3cem=vseco*(c/(c+a)), m3are=vseco*(a/(c+a));
+    var pb=parseFloat(v.pb);
+    var bolsas=m3cem*DENS_CEMENTO/pb;
+    return {filas:[
+      ["Piezas por m² de muro",M(undM2,1),"unid/m²"],
+      ["Piezas por m² con "+v.desp+"% de desperdicio",arriba(undM2*(1+v.desp/100)),"unid/m²"],
+      ["TOTAL de piezas para "+v.area+" m²",und,"unidades"],
+      ["Área de cara vista por pieza ("+v.as+")",M(base*100,0)+" × "+M(p.H*100,0),"cm"],
+      ["Volumen de mortero de asentado",M(vmor,3),"m³"],
+      ["Cemento para el mortero",arriba(bolsas),"bolsas de "+pb+" kg"],
+      ["Arena para el mortero",M(m3are,3),"m³"],
+      ["Proporción usada",v.prop,"cemento:arena"],
+      ["Espesor del muro",M(espMuro*100,0),"cm"]
+    ],
+    nota:"Fórmula verificada en la plantilla: piezas/m² = 1 ÷ ((largo o espesor + junta) × (altura + junta)). El mortero se obtiene restando al volumen del muro el volumen de las piezas. La junta típica es de 1 a 1,5 cm.",
+    fuente:"Plantillas 04 (metrado de ladrillos de arcilla y cálculo automático)"};
+  },
+  cotiza:function(v,r){ return {descripcion:"Muro de "+v.tipo+" asentado de "+v.as,unidad:"m2",cantidad:Number(v.area)||0}; }
+},
+/* ---------------------------------------------------------------- 5 */
+{ id:"tarrajeo", nombre:"Tarrajeo", icono:"🧴",
+  campos:[
+    {k:"area",e:"Área a tarrajear (m²)",t:"num",v:40},
+    {k:"esp",e:"Espesor del tarrajeo (cm)",t:"num",v:1.5},
+    {k:"prop",e:"Proporción del mortero",t:"sel",v:"1:4",op:["1:3","1:4","1:5"]},
+    {k:"desp",e:"Desperdicio (%)",t:"num",v:10},
+    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (Ecuador)","42.5 kg (Perú)","25 kg"]}
+  ],
+  calc:function(v){
+    var V=v.area*(v.esp/100)*(1+v.desp/100), Vseco=V*1.25;
+    var pr=v.prop.split(":"), c=Number(pr[0]), a=Number(pr[1]);
+    var m3cem=Vseco*(c/(c+a)), m3are=Vseco*(a/(c+a)), pb=parseFloat(v.pb);
+    var bolsas=m3cem*DENS_CEMENTO/pb;
+    return {filas:[
+      ["Volumen de mortero (con desperdicio)",M(V,3),"m³"],
+      ["Volumen de mezcla seca (× 1,25)",M(Vseco,3),"m³"],
+      ["Cemento",arriba(bolsas),"bolsas de "+pb+" kg"],
+      ["Cemento",M(bolsas*pb,1),"kg"],
+      ["Arena",M(m3are,3),"m³"],
+      ["Agua aproximada (22 % del volumen de mezcla)",M(Vseco*0.22*1000,0),"litros"],
+      ["Proporción usada",v.prop,"cemento:arena"]
+    ],
+    nota:"Cálculo por volumen y proporción. El factor 1,25 es el rendimiento de mezcla (la arena suelta ocupa más volumen que el mortero colocado). La densidad del cemento (1450 kg/m³) sale de la plantilla de equivalencias. Confirma el espesor real en obra con una regla antes de comprar.",
+    fuente:"Plantilla 19 (densidad del cemento) + proporciones volumétricas estándar de obra"};
+  },
+  cotiza:function(v,r){ return {descripcion:"Tarrajeo o enlucido de pared (espesor "+v.esp+" cm)",unidad:"m2",cantidad:Number(v.area)||0}; }
+},
+/* ---------------------------------------------------------------- 6 */
+{ id:"pintura", nombre:"Pintura", icono:"🎨",
+  campos:[
+    {k:"paredes",e:"Suma de las paredes (m)",t:"num",v:16},
+    {k:"alt",e:"Altura (m)",t:"num",v:2.6},
+    {k:"techo",e:"Área de techo a pintar (m²)",t:"num",v:16},
+    {k:"rend",e:"Rendimiento de la pintura (m² por litro)",t:"num",v:6.25},
+    {k:"manos",e:"Manos de pintura",t:"sel",v:2,op:[1,2,3]},
+    {k:"desp",e:"Desperdicio (%)",t:"num",v:5},
+    {k:"env",e:"Presentación del envase",t:"sel",v:"Balde de 19 L",op:["Balde de 19 L","Balde de 4 L","Galón de 3,785 L"]}
+  ],
+  calc:function(v){
+    var Ap=v.paredes*v.alt, At=Ap+v.techo;
+    var litros=(At/v.rend)*v.manos*(1+v.desp/100);
+    var env = v.env.indexOf("19")>=0?19:(v.env.indexOf("4 ")>0?4:3.785);
+    var nenv=arriba(litros/env);
+    return {filas:[
+      ["Área de paredes ("+v.paredes+" m × "+v.alt+" m)",M(Ap,2),"m²"],
+      ["Área de techo",M(v.techo,2),"m²"],
+      ["ÁREA TOTAL A PINTAR",M(At,2),"m²"],
+      ["Pintura necesaria ("+v.manos+" mano/s, rendimiento "+v.rend+" m²/L)",M(litros,2),"litros"],
+      ["Envases ("+v.env+")",nenv,"envases"]
+    ],
+    nota:"El rendimiento (m² por litro) está impreso en la etiqueta de cada pintura: es el dato más importante. Si la pared está porosa, sin sellador o es un color muy intenso sobre otro oscuro, baja el rendimiento un 20 % y agrega una mano.",
+    fuente:"Plantilla 13 — Metrado de pintura"};
+  },
+  cotiza:function(v,r){ var At=v.paredes*v.alt+v.techo; return {descripcion:"Pintura interior, "+v.manos+" mano(s), incluye preparación",unidad:"m2",cantidad:n2(At)}; }
+},
+/* ---------------------------------------------------------------- 7 */
+{ id:"pisos", nombre:"Pisos", icono:"▦",
+  campos:[
+    {k:"area",e:"Área del piso o pared (m²)",t:"num",v:20},
+    {k:"pieza",e:"Medida de la cerámica",t:"sel",v:"45 × 45 cm",op:["30 × 30 cm","40 × 40 cm","45 × 45 cm","60 × 60 cm","30 × 60 cm"]},
+    {k:"j",e:"Junta (mm)",t:"num",v:3},
+    {k:"desp",e:"Desperdicio por cortes (%)",t:"num",v:8},
+    {k:"ad",e:"Rendimiento del adhesivo (kg/m²)",t:"num",v:4.5},
+    {k:"fr",e:"Rendimiento de la fragua (kg/m²)",t:"num",v:0.5},
+    {k:"zoc",e:"Zócalo (m lineales)",t:"num",v:0}
+  ],
+  calc:function(v){
+    var mm=v.pieza.match(/(\d+)\s*×\s*(\d+)/); var A=(Number(mm[1])/100)*(Number(mm[2])/100);
+    var J=v.j/1000; var Ac=(Number(mm[1])/100+J)*(Number(mm[2])/100+J);
+    var und=arriba((v.area/Ac)*(1+v.desp/100));
+    return {filas:[
+      ["Rendimiento de la cerámica",M(1/Ac,2),"piezas por m²"],
+      ["Piezas necesarias (con "+v.desp+"% de cortes)",und,"piezas"],
+      ["Área comprada",M(und*A,2),"m²"],
+      ["Adhesivo (pegamento)",M(v.area*v.ad,1),"kg"],
+      ["Sacos de adhesivo (de 20 kg)",arriba(v.area*v.ad/20),"sacos"],
+      ["Fragua o boquilla",M(v.area*v.fr,1),"kg"],
+      ["Nivelación previa (contrapiso, si aplica)",M(v.area,2),"m²"],
+      ["Zócalo",M(v.zoc,2),"m lineales"]
+    ],
+    nota:"El rendimiento del adhesivo y de la fragua depende de la marca, del tamaño de la pieza y de la planitud del piso: revisa siempre la etiqueta del producto. Con piezas de 60×60 o mayores usa doble encolado y suma 20 % más de adhesivo.",
+    fuente:"Cálculo por dimensiones + rendimientos de referencia de producto (verificar etiqueta)"};
+  },
+  cotiza:function(v,r){ return {descripcion:"Colocación de cerámica "+v.pieza+" (incluye cortes y fraguado)",unidad:"m2",cantidad:Number(v.area)||0}; }
+},
+/* ---------------------------------------------------------------- 8 */
+{ id:"gypsum", nombre:"Gypsum", icono:"📐",
+  campos:[
+    {k:"area",e:"Área a cubrir (m²)",t:"num",v:20},
+    {k:"tipo",e:"Tipo de trabajo",t:"sel",v:"Cielo raso plano",op:["Cielo raso plano","Tabique una cara","Tabique doble cara","Cielo raso con diseño"]},
+    {k:"sep",e:"Separación de la estructura (m)",t:"sel",v:0.40,op:[0.30,0.40,0.60]},
+    {k:"per",e:"Perímetro del ambiente (m)",t:"num",v:18},
+    {k:"desp",e:"Desperdicio (%)",t:"num",v:7}
+  ],
+  calc:function(v){
+    var caras = (v.tipo==="Tabique doble cara")?2:1;
+    var pl=arriba((v.area/2.88)*caras*(1+v.desp/100));
+    var m2pl=pl*2.88;
+    var est=(v.area/v.sep)+v.per;
+    var torn=arriba(v.area*30*caras);
+    return {filas:[
+      ["Planchas de gypsum 1,20 × 2,40 m (2,88 m²)",pl,"planchas"],
+      ["Área de plancha comprada",M(m2pl,2),"m²"],
+      ["Parales o perfiles (cada "+M(v.sep*100,0)+" cm)",M(est,1),"m lineales"],
+      ["Canal o riel perimetral",M(v.per*(caras===2?2:1),1),"m lineales"],
+      ["Tornillos (30 por m² y por cara)",torn,"unidades"],
+      ["Cinta para juntas (1,2 m por m²)",M(v.area*1.2*caras,1),"m"],
+      ["Masilla o pasta (0,5 kg por m²)",M(v.area*0.5*caras,1),"kg"],
+      ["Aislante (lana de vidrio, si es tabique acústico)",M(v.area,2),"m²"]
+    ],
+    nota:"Valores de práctica estándar del oficio (no vienen de las plantillas peruanas, que no incluyen gypsum). Plancha 1,20 × 2,40 = 2,88 m²; estructura cada 40 cm para cielo raso y cada 30 a 40 cm para tabique. Confirma el consumo de tornillos y masilla con el fabricante.",
+    fuente:"Práctica estándar de instalación de gypsum y steel framing (a validar con el fabricante)"};
+  },
+  cotiza:function(v,r){ return {descripcion:v.tipo+" en gypsum con estructura metálica",unidad:"m2",cantidad:Number(v.area)||0}; }
+},
+/* ---------------------------------------------------------------- 9 */
+{ id:"electrico", nombre:"Eléctrico", icono:"💡",
+  campos:[
+    {k:"alum",e:"Puntos de alumbrado",t:"num",v:8},
+    {k:"toma",e:"Puntos de tomacorriente",t:"num",v:6},
+    {k:"inte",e:"Puntos de interruptor",t:"num",v:5},
+    {k:"rec",e:"Recorrido promedio por punto (m)",t:"num",v:10},
+    {k:"circ",e:"Cantidad de circuitos",t:"num",v:3},
+    {k:"desp",e:"Desperdicio (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var P=(Number(v.alum)||0)+(Number(v.toma)||0)+(Number(v.inte)||0);
+    var L=(P*v.rec)*(1+v.desp/100);
+    return {filas:[
+      ["TOTAL de puntos eléctricos",P,"puntos"],
+      ["Cable de fase (fase + neutro, 2 conductores)",M(L*2,1),"m"],
+      ["Cable de tierra (THHN verde)",M(L,1),"m"],
+      ["Tubería o ducto (PVC o corrugado)",M(L*1.05,1),"m"],
+      ["Cajas octogonales y rectangulares",P,"unidades"],
+      ["Curvas, uniones y amarres",arriba(P*1.5),"unidades"],
+      ["Breakers (1 por circuito + 1 de reserva)",(Number(v.circ)||0)+1,"unidades"],
+      ["Tablero de distribución",1,"unidad"]
+    ],
+    nota:"Método de metrado por punto (estructura de la plantilla de IIEE). El recorrido promedio se mide en obra; si no se puede, en vivienda unifamiliar usa de 8 a 12 m por punto. Este cálculo es de CANTIDADES para cotizar, no un diseño eléctrico: el calibre del cable y el breaker se definen según la carga real de cada circuito.",
+    fuente:"Plantilla de metrados de IIEE (estructura de resumen y sustento)"};
+  },
+  cotiza:function(v,r){ var P=(Number(v.alum)||0)+(Number(v.toma)||0)+(Number(v.inte)||0); return {descripcion:"Instalación eléctrica: "+P+" punto(s) y "+(v.circ||0)+" circuito(s)",unidad:"punto",cantidad:P}; }
+},
+/* ---------------------------------------------------------------- 10 */
+{ id:"movtierra", nombre:"Mov. tierra", icono:"⛏",
+  campos:[
+    {k:"l",e:"Largo de la excavación (m)",t:"num",v:1.2},
+    {k:"a",e:"Ancho (m)",t:"num",v:0.6},
+    {k:"p",e:"Profundidad (m)",t:"num",v:0.8},
+    {k:"c",e:"Cantidad de excavaciones",t:"num",v:6},
+    {k:"esp",e:"Esponjamiento del material (%)",t:"num",v:25}
+  ],
+  calc:function(v){
+    var V=v.l*v.a*v.p*v.c;
+    return {filas:[
+      ["Volumen excavado",M(V,3),"m³"],
+      ["Volumen a eliminar (con esponjamiento "+v.esp+" %)",M(V*(1+v.esp/100),3),"m³"],
+      ["Viajes en volqueta de 6 m³",arriba(V*(1+v.esp/100)/6),"viajes"],
+      ["Jornales de peón por m³ (referencia: 0,8 a 1,2 m³ por jornal en terreno normal)",M(V*1,1),"jornales aprox."]
+    ],
+    nota:"El esponjamiento es el aumento de volumen al sacar la tierra (20 % a 30 % según el terreno). En terreno rocoso o con agua el rendimiento baja a la mitad. Confirma con quien hace el movimiento de tierra.",
+    fuente:"Práctica estándar de movimiento de tierras"};
+  },
+  cotiza:function(v,r){ return {descripcion:"Excavación manual en terreno normal",unidad:"m3",cantidad:n3(v.l*v.a*v.p*v.c)}; }
+},
+/* ---------------------------------------------------------------- 11 */
+{ id:"equivalencias", nombre:"Equivalencias", icono:"⇄",
+  campos:[
+    {k:"m3",e:"Volumen (m³)",t:"num",v:1},
+    {k:"pie3",e:"O volumen en pie³",t:"num",v:0},
+    {k:"pb",e:"Peso de la bolsa de cemento",t:"sel",v:50,op:["50 kg (Ecuador)","42.5 kg (Perú)"]}
+  ],
+  calc:function(v){
+    var pie=v.pie3>0? v.pie3*0.02831685 : v.m3;
+    var m3=pie;
+    var pb=parseFloat(v.pb);
+    return {filas:[
+      ["1 m³ equivale a",35.315,"pie³"],
+      ["1 pie³ equivale a",0.02831685,"m³"],
+      ["Volumen total",M(m3,4),"m³"],
+      ["Baldes de 20 litros (0,028 m³ cada uno)",arriba(m3/0.028),"baldes"],
+      ["Carretillas de 2 pie³ (0,057 m³ cada una)",arriba(m3/0.057),"carretillas"],
+      ["Buggies de 3 pie³ (0,085 m³ cada uno)",arriba(m3/0.085),"buggies"],
+      ["Bolsas de cemento de "+pb+" kg por m³ (suelto, 1450 kg/m³)",M(DENS_CEMENTO/pb,2),"bolsas por m³"],
+      ["Baldes que entran en una carretilla",arriba(0.057/0.028),"baldes"],
+      ["Baldes que entran en un buggie",arriba(0.085/0.028),"baldes"]
+    ],
+    nota:"Equivalencias para dosificar en obra sin balanza. Verificadas con la plantilla 19: 1 balde de 20 L = 0,028 m³ (36 baldes = 1 m³); carretilla de 2 pie³ = 0,057 m³ (18 = 1 m³); buggie de 3 pie³ = 0,085 m³ (12 = 1 m³). Ojo: la carretilla y el buggie comunes varían de tamaño — mide el tuyo antes de dosificar.",
+    fuente:"Plantilla 19 — Cálculo de equivalencias (baldes, carretillas, buggies)"};
+  },
+  cotiza:function(v,r){ return {descripcion:"Suministro y traslado de material (equivalencia de volumen)",unidad:"m3",cantidad:n3(Number(v.m3)||Number(v.pie3)*0.02831685)}; }
+},
+/* ---------------------------------------------------------------- 12 */
+{ id:"ratios", nombre:"Ratios", icono:"⚡",
+  campos:[
+    {k:"area",e:"Área construida (m²)",t:"num",v:120},
+    {k:"pisos",e:"Número de pisos",t:"num",v:1},
+    {k:"tipo",e:"Tipo de estructura",t:"sel",v:"Vivienda con losa aligerada",op:["Vivienda con losa aligerada","Vivienda con platea de cimentación","Edificio"]}
+  ],
+  calc:function(v){
+    var A=v.area*(v.pisos||1);
+    var rC=[0.30,0.35], rE=[1.5,2.0], rA=[26,32];
+    if(v.tipo==="Vivienda con platea de cimentación"){ rC=[0.30,0.35]; rE=[1.5,2.0]; rA=[35,40]; }
+    if(v.tipo==="Edificio"){ rC=[0.30,0.40]; rE=[1.8,2.4]; rA=[30,38]; }
+    return {filas:[
+      ["Área total construida",M(A,2),"m²"],
+      ["Concreto (ratio "+rC[0]+" a "+rC[1]+" m³/m²)",M(A*rC[0],1)+" a "+M(A*rC[1],1),"m³"],
+      ["Encofrado (ratio "+rE[0]+" a "+rE[1]+" m²/m²)",M(A*rE[0],0)+" a "+M(A*rE[1],0),"m²"],
+      ["Acero (ratio "+rA[0]+" a "+rA[1]+" kg/m²)",M(A*rA[0],0)+" a "+M(A*rA[1],0),"kg"],
+      ["Acero en quintales",M(A*rA[0]/45.36,0)+" a "+M(A*rA[1]/45.36,0),"qq"],
+      ["Aligerantes (losa aligerada, 8,33 unid/m²)",M(A*8.33,0),"unidades"],
+      ["Cemento aproximado (9,73 bolsas por m³ de concreto de 210)",M(A*rC[1]*9.73,0),"bolsas"]
+    ],
+    nota:"Los ratios sirven SOLO para estimar rápido antes de metrar. Salen de la plantilla de ratios del autor peruano (experiencia en edificios) y son un rango: el número real depende del diseño estructural. Nunca cotices una obra grande con ratios sin metrar.",
+    fuente:"Plantilla 23 — Mano de obra y ratios de estructuras"};
+  },
+  cotiza:function(v,r){ return {descripcion:"Estimación por ratios de estructura para "+M(v.area*v.pisos,0)+" m² construidos",unidad:"global",cantidad:1}; }
+}
+];
+//==ENGINE-END==
+
+/* ===================== INTERFAZ ===================== */
+var actual=0;
+function $(i){ return document.getElementById(i); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function valor(a,k){ var e=$(a.id+"_"+k); if(!e) return null; return e.value; }
+function leer(a){ var v={}; a.campos.forEach(function(c){ var x=valor(a,c.k);
+  v[c.k] = (c.t==="num")? (Number(x)||0) : x; }); return v; }
+function pintarChips(){
+  var h=""; ACTIVIDADES.forEach(function(a,i){
+    h+='<span class="chip'+(i===actual?" on":"")+'" onclick="irA('+(i-actual)+')">'+a.icono+" "+esc(a.nombre)+'</span>'; });
+  $("chips").innerHTML=h;
+}
+function pintarSecciones(){
+  var h="";
+  ACTIVIDADES.forEach(function(a,i){
+    var f="";
+    a.campos.forEach(function(c){
+      f+='<div><label>'+esc(c.e)+'</label>';
+      if(c.t==="sel"){
+        f+='<select id="'+a.id+'_'+c.k+'" onchange="calcular('+i+')">';
+        c.op.forEach(function(o){ f+='<option value="'+esc(o)+'"'+(String(o)===String(c.v)?" selected":"")+'>'+esc(o)+'</option>'; });
+        f+='</select>';
+      } else {
+        f+='<input id="'+a.id+'_'+c.k+'" type="number" step="any" value="'+c.v+'" oninput="calcular('+i+')">';
+      }
+      f+='</div>';
+    });
+    h+='<section class="sec'+(i===actual?" on":"")+'" id="sec_'+a.id+'">'
+      +'<div class="card"><h2>'+a.icono+" "+esc(a.nombre)+'</h2><div class="row">'+f+'</div></div>'
+      +'<div class="card"><h2>Resultado</h2><div id="res_'+a.id+'"></div></div></section>';
+  });
+  $("secciones").innerHTML=h;
+}
+function calcular(i){
+  var a=ACTIVIDADES[i], v=leer(a);
+  try{
+    var r=a.calc(v);
+    var h='<table><tbody>';
+    r.filas.forEach(function(f){
+      var tot=/^(TOTAL|ÁREA TOTAL|Cemento$)/.test(f[0]);
+      h+='<tr'+(tot?' class="tot"':'')+'><td>'+esc(f[0])+'</td><td class="n"><b>'+esc(f[1])+'</b></td><td class="n">'+esc(f[2])+'</td></tr>';
+    });
+    h+='</tbody></table>';
+    if(r.nota) h+='<div class="nota">'+esc(r.nota)+'</div>';
+    if(r.fuente) h+='<div class="fuente">Fuente: '+esc(r.fuente)+'</div>';
+    h+='<div class="row" style="margin-top:10px"><button class="btn ambar" onclick="enviar('+i+')">Enviar esta cantidad al cotizador</button>'
+      +'<button class="btn gris" onclick="window.print()">Imprimir</button></div>';
+    $("res_"+a.id).innerHTML=h;
+    window.__ult={i:i,v:v,r:r};
+  }catch(e){ $("res_"+a.id).innerHTML='<div class="nota">Revisa los datos ingresados.</div>'; }
+}
+function irA(d,btn){
+  if(d===-1) actual=(actual-1+ACTIVIDADES.length)%ACTIVIDADES.length;
+  else if(d===1) actual=(actual+1)%ACTIVIDADES.length;
+  else actual=Math.max(0,Math.min(ACTIVIDADES.length-1, actual+d));
+  document.querySelectorAll(".sec").forEach(function(s,k){ s.classList.toggle("on",k===actual); });
+  pintarChips(); calcular(actual); window.scrollTo(0,0);
+}
+function enviar(i){
+  var idx=(i===undefined)? actual : i;
+  var a=ACTIVIDADES[idx], v=leer(a), r=a.calc(v);
+  var item = a.cotiza? a.cotiza(v,r) : {descripcion:a.nombre,unidad:"global",cantidad:1};
+  item.precio=0;
+  try{ localStorage.setItem("mcs_pendiente", JSON.stringify(item)); }catch(e){}
+  window.location.href="cotizador.html";
+}
+pintarSecciones(); pintarChips(); calcular(0);
+</script>
+<script>
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(function(){}); }
+</script>
+</body>
+</html>

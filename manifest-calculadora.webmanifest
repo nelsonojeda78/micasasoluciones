@@ -1,0 +1,16 @@
+{
+  "name": "Materiales Mi Casa Soluciones",
+  "short_name": "Materiales MCS",
+  "description": "Calculo de materiales de construccion: 12 actividades",
+  "start_url": "calculadora_materiales.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F1EC",
+  "theme_color": "#393536",
+  "lang": "es-EC",
+  "icons": [
+    {"src": "icono-calculadora-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icono-calculadora-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

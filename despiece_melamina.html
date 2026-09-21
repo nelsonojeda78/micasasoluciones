@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#393536">
+<link rel="manifest" href="manifest-despiece.webmanifest">
+<title>Despiece y optimización de corte — Mi Casa Soluciones</title>
+<style>
+:root{--ambar:#FFB000;--carbon:#393536;--negro:#100F0D;--arena:#F4F1EC;--gris:#8A8580;--verde:#1E7B4F;--rojo:#C0392B;--borde:#DCD7D0;--sombra:0 2px 10px rgba(16,15,13,.10)}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Lato,Arial,sans-serif;background:var(--arena);color:var(--carbon);font-size:15px;line-height:1.45;padding-bottom:76px}
+h1,h2,h3{margin:0 0 8px}h1{font-size:20px}h2{font-size:16.5px}h3{font-size:14.5px}
+.hdr{background:var(--carbon);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:30;box-shadow:var(--sombra)}
+.hdr .t{font-weight:800;font-size:15px}.hdr .s{font-size:11px;opacity:.75}
+.wrap{padding:12px;max-width:1100px;margin:0 auto}
+.card{background:#fff;border-radius:14px;padding:13px;box-shadow:var(--sombra);margin-bottom:12px;overflow-x:auto}
+label{display:block;font-size:11.5px;font-weight:700;color:var(--gris);margin:8px 0 3px;text-transform:uppercase;letter-spacing:.3px}
+input,select,button,textarea{font-family:inherit;font-size:15px}
+input,select,textarea{width:100%;padding:9px 10px;border:1.5px solid var(--borde);border-radius:9px;background:#fff;color:var(--carbon)}
+input:focus,select:focus{outline:none;border-color:var(--ambar);box-shadow:0 0 0 3px rgba(255,176,0,.2)}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:11px 13px;font-weight:800;background:var(--carbon);color:#fff;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.ambar{background:var(--ambar);color:var(--carbon)}.btn.verde{background:var(--verde)}.btn.gris{background:#fff;color:var(--carbon);border:1.5px solid var(--borde)}.btn.rojo{background:#fff;color:var(--rojo);border:1.5px solid #E7C0BA}
+.btn.sm{padding:7px 9px;font-size:13px;border-radius:8px}.btn.full{width:100%}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px}
+th{background:var(--ambar);color:#000;text-align:left;padding:6px;border:1px solid #C9C4BE;font-size:11px;text-transform:uppercase}
+td{border:1px solid var(--borde);padding:4px 5px;vertical-align:middle}
+td input,td select{padding:5px 6px;font-size:13px;border-radius:6px}
+td.n{text-align:right}
+.pill{display:inline-block;background:var(--arena);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700}
+.pill.verde{background:#E4F3EA;color:var(--verde)}.pill.ambar{background:#FFF3D6;color:#8A5E00}
+.tot{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--borde);font-size:14px}
+.tot.big{font-size:19px;font-weight:900;border:0;color:var(--negro)}
+.hint{font-size:12px;color:var(--gris);margin:6px 0}
+.ok{background:#E4F3EA;border-left:4px solid var(--verde);padding:9px 11px;border-radius:8px;font-size:13px;margin:8px 0}
+.warn{background:#FFF3D6;border-left:4px solid var(--ambar);padding:9px 11px;border-radius:8px;font-size:13px;margin:8px 0}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--borde);display:flex;z-index:40}
+.tabs button{flex:1;border:0;background:none;padding:9px 2px;font-size:10.5px;font-weight:700;color:var(--gris);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button.on{color:var(--carbon)}.tabs .ic{width:25px;height:25px;border-radius:8px;background:var(--arena);display:grid;place-items:center;font-size:13px}
+.tabs button.on .ic{background:var(--ambar)}
+.view{display:none}.view.on{display:block}
+.plancha{border:1.5px solid var(--borde);border-radius:10px;padding:8px;margin-bottom:10px;background:#fff}
+.plancha h3{font-size:13px;margin-bottom:5px}
+svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max-width:520px}
+.retazo{background:var(--arena);border-radius:8px;padding:6px 9px;font-size:12px;margin:4px 6px 4px 0;display:inline-block}
+@media print{body{background:#fff}.hdr,.tabs,.noprint{display:none!important}.wrap{padding:0}.card{box-shadow:none;margin:0 0 8px}}
+</style>
+</head>
+<body>
+<div class="hdr"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones</span></span></div>
+<div class="wrap">
+  <section class="view on" id="v-piezas">
+    <div class="card">
+      <h2>1. Datos del mueble</h2>
+      <div class="row">
+        <div><label>Proyecto</label><input id="pr" placeholder="Ej.: Cocina Sra. López"></div>
+        <div><label>Cliente</label><input id="cl" placeholder="Nombre del cliente"></div>
+      </div>
+      <div class="row">
+        <div><label>Dirección / sector</label><input id="dr" placeholder="Chipipe, Salinas"></div>
+        <div><label>Fecha</label><input id="fe" type="date"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>2. Lista de piezas (despiece)</h2>
+      <p class="hint">Escribe una fila por cada pieza. <b>Largo</b> y <b>ancho</b> en milímetros. Marca la <b>veta</b> cuando el material tenga dirección (madera natural, texturado): esas piezas no se rotan.</p>
+      <table id="tb">
+        <thead><tr>
+          <th style="width:34px">#</th><th style="width:80px">Módulo</th><th style="width:110px">Pieza</th>
+          <th style="width:80px">Material</th><th style="width:56px">Esp.</th><th style="width:50px">Cant.</th>
+          <th style="width:64px">Largo</th><th style="width:64px">Ancho</th>
+          <th style="width:42px">L1</th><th style="width:42px">L2</th><th style="width:42px">A1</th><th style="width:42px">A2</th>
+          <th style="width:52px">Veta</th><th style="width:44px"></th>
+        </tr></thead>
+        <tbody id="tbod"></tbody>
+      </table>
+      <div class="row noprint" style="margin-top:9px">
+        <button class="btn ambar" onclick="addFila()">+ Agregar pieza</button>
+        <button class="btn gris" onclick="cargarEjemplo()">Cargar ejemplo (cocina)</button>
+      </div>
+      <p class="hint">L1/L2/A1/A2 = lados con canteado (orilla). Marca los lados que llevan cinta de canto.</p>
+    </div>
+    <div class="card">
+      <h2>3. Configuración del tablero</h2>
+      <div class="row">
+        <div><label>Medida de plancha</label><select id="cf_med">
+          <option value="2440x1220">2440 × 1220 mm (estándar 15/18 mm)</option>
+          <option value="2150x2440">2150 × 2440 mm</option>
+          <option value="2440x1830">2440 × 1830 mm</option>
+          <option value="2750x1830">2750 × 1830 mm (MDF grande)</option>
+          <option value="1830x610">1830 × 610 mm</option></select></div>
+        <div><label>Grosor de sierra (mm)</label><input id="cf_kerf" type="number" step="0.5" value="4"></div>
+      </div>
+      <div class="row">
+        <div><label>Recorte de borde (mm)</label><input id="cf_margen" type="number" step="5" value="10"></div>
+        <div><label>Permitir girar piezas sin veta</label><select id="cf_rot"><option value="1">Sí</option><option value="0">No</option></select></div>
+      </div>
+      <div class="row">
+        <div><label>Precio de la plancha (USD)</label><input id="cf_pp" type="number" step="0.01" value="0"></div>
+        <div><label>Canto por metro (USD)</label><input id="cf_pc" type="number" step="0.01" value="0"></div>
+        <div><label>Corte por plancha (USD)</label><input id="cf_pk" type="number" step="0.01" value="0"></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn verde" onclick="optimizar()">Calcular corte</button>
+        <button class="btn gris" onclick="exportarCSV()">Exportar al proveedor (CSV)</button>
+      </div>
+    </div>
+  </section>
+  <section class="view" id="v-res">
+    <div class="card"><h2>Resumen de material y herrajes</h2><div id="resumen"></div></div>
+    <div class="card"><h2>Plan de corte por plancha</h2><div id="planos"></div></div>
+    <div class="card noprint"><h2>Retazos aprovechables</h2><div id="retazos"></div></div>
+  </section>
+</div>
+<nav class="tabs">
+  <button class="on" data-v="piezas" onclick="tab('piezas',this)"><span class="ic">📐</span>Despiece</button>
+  <button data-v="res" onclick="tab('res',this)"><span class="ic">🪚</span>Corte</button>
+</nav>
+
+<script>
+/* =====================================================================
+   MOTOR DE OPTIMIZACIÓN DE CORTE (MaxRects + Best Short Side Fit)
+   Funciones puras: no dependen de la interfaz.
+   ===================================================================== */
+//==ENGINE-START==
+function intersecta(a,b){ return !(b.x>=a.x+a.w || b.x+b.w<=a.x || b.y>=a.y+a.h || b.y+b.h<=a.y); }
+function contiene(a,b){ return b.x>=a.x-1e-9 && b.y>=a.y-1e-9 && b.x+b.w<=a.x+a.w+1e-9 && b.y+b.h<=a.y+a.h+1e-9; }
+function dividirLibres(free, usado){
+  var out=[];
+  for(var i=0;i<free.length;i++){
+    var fr=free[i];
+    if(!intersecta(fr,usado)){ out.push(fr); continue; }
+    if(usado.y > fr.y) out.push({x:fr.x, y:fr.y, w:fr.w, h:usado.y-fr.y});
+    if(usado.y+usado.h < fr.y+fr.h) out.push({x:fr.x, y:usado.y+usado.h, w:fr.w, h:fr.y+fr.h-(usado.y+usado.h)});
+    if(usado.x > fr.x) out.push({x:fr.x, y:fr.y, w:usado.x-fr.x, h:fr.h});
+    if(usado.x+usado.w < fr.x+fr.w) out.push({x:usado.x+usado.w, y:fr.y, w:fr.x+fr.w-(usado.x+usado.w), h:fr.h});
+  }
+  for(var a=0;a<out.length;a++){
+    for(var b=out.length-1;b>=0;b--){
+      if(a!==b && out[b] && out[a] && contiene(out[a],out[b])) out.splice(b,1);
+    }
+  }
+  return out;
+}
+/* Coloca el máximo de piezas posible en una plancha */
+function llenarPlancha(pend, W, H, kerf, rotar){
+  var free=[{x:0,y:0,w:W,h:H}], puestos=[], quedan=pend.slice(), avance=true;
+  while(quedan.length && avance){
+    avance=false;
+    for(var i=0;i<quedan.length;i++){
+      var it=quedan[i], mejor=null, r, fr, w, h, ss;
+      for(r=0;r<free.length;r++){
+        fr=free[r];
+        w=it.w+kerf; h=it.h+kerf;
+        if(w<=fr.w+1e-9 && h<=fr.h+1e-9){
+          ss=Math.min(fr.w-w, fr.h-h);
+          if(!mejor || ss<mejor.ss-1e-9) mejor={r:r,x:fr.x,y:fr.y,w:it.w,h:it.h,rot:false,fw:w,fh:h,ss:ss};
+        }
+        if(rotar && !it.veta){
+          w=it.h+kerf; h=it.w+kerf;
+          if(w<=fr.w+1e-9 && h<=fr.h+1e-9){
+            ss=Math.min(fr.w-w, fr.h-h);
+            if(!mejor || ss<mejor.ss-1e-9) mejor={r:r,x:fr.x,y:fr.y,w:it.h,h:it.w,rot:true,fw:w,fh:h,ss:ss};
+          }
+        }
+      }
+      if(mejor){
+        puestos.push({ref:it.ref,modulo:it.modulo,pieza:it.pieza,material:it.material,espesor:it.espesor,
+                      x:mejor.x,y:mejor.y,w:mejor.w,h:mejor.h,rot:mejor.rot,veta:it.veta,
+                      largo:(mejor.rot? it.h : it.w), ancho:(mejor.rot? it.w : it.h),
+                      canto:it.canto});
+        free=dividirLibres(free,{x:mejor.x,y:mejor.y,w:mejor.fw,h:mejor.fh});
+        quedan.splice(i,1); avance=true; break;
+      }
+    }
+  }
+  return {puestos:puestos, quedan:quedan, libres:free};
+}
+/* Optimiza un grupo de piezas del mismo material y espesor */
+function optimizarGrupo(piezas, W, H, kerf, margen, rotar){
+  var U=Math.max(0,W-2*margen), V=Math.max(0,H-2*margen);
+  var pend=[], i, p;
+  for(i=0;i<piezas.length;i++){
+    p=piezas[i];
+    for(var k=0;k<p.cant;k++){
+      pend.push({ref:p.ref,modulo:p.modulo,pieza:p.pieza,material:p.material,espesor:p.espesor,
+                 w:p.largo, h:p.ancho, largo:p.largo, ancho:p.ancho, veta:!!p.veta, canto:p.canto});
+    }
+  }
+  /* Se prueban varios criterios de orden y se conserva el que use menos planchas */
+  var ordenes=[
+    function(a,b){ return (Math.max(b.w,b.h)-Math.max(a.w,a.h)) || (b.w*b.h-a.w*a.h); },
+    function(a,b){ return (b.w*b.h-a.w*a.h) || (Math.max(b.w,b.h)-Math.max(a.w,a.h)); },
+    function(a,b){ return (b.h-a.h) || (b.w-a.w); },
+    function(a,b){ return (b.w-a.w) || (b.h-a.h); }
+  ];
+  var mejor=null;
+  for(var oi=0; oi<ordenes.length; oi++){
+    var cola=pend.slice().sort(ordenes[oi]);
+    var planchasO=[], sinO=[], guarda=0;
+    while(cola.length && guarda<400){
+      guarda++;
+      var rr=llenarPlancha(cola,U,V,kerf,rotar);
+      if(!rr.puestos.length){ sinO=cola; break; }
+      planchasO.push({items:rr.puestos, libres:rr.libres});
+      cola=rr.quedan;
+    }
+    var utilO=0;
+    planchasO.forEach(function(pl){ pl.items.forEach(function(it){ utilO+=it.w*it.h; }); });
+    if(!mejor || planchasO.length<mejor.planchas.length ||
+       (planchasO.length===mejor.planchas.length && utilO>mejor.util)){
+      mejor={planchas:planchasO, sinColocar:sinO, util:utilO, criterio:oi};
+    }
+  }
+  var planchas=mejor.planchas, sinColocar=mejor.sinColocar;
+  /* llevar las coordenadas al sistema absoluto de la plancha (origen real) */
+  planchas.forEach(function(pl){
+    pl.items.forEach(function(it){ it.x+=margen; it.y+=margen; });
+    (pl.libres||[]).forEach(function(f){ f.x+=margen; f.y+=margen; });
+  });
+  /* área y aprovechamiento */
+  var utiles=0, retazos=[];
+  planchas.forEach(function(pl){
+    pl.items.forEach(function(it){ utiles += it.w*it.h; });
+  });
+  var totalPlanchas=planchas.length * W*H;
+  return {planchas:planchas, sinColocar:sinColocar, W:W, H:H, margen:margen,
+          areaUtil:utiles, areaTotal:totalPlanchas,
+          aprovechamiento: totalPlanchas? utiles/totalPlanchas : 0};
+}
+/* Canto (metros lineales) de una pieza */
+function cantoMetros(p){
+  var c=p.canto||[0,0,0,0];
+  return ((Number(p.largo)||0)*((c[0]?1:0)+(c[1]?1:0)) + (Number(p.ancho)||0)*((c[2]?1:0)+(c[3]?1:0)))/1000;
+}
+/* Herrajes estimados a partir del nombre de la pieza (regla transparente) */
+function herrajesEstimados(piezas){
+  var h={bisagras:0,correderas:0,soportes:0,tornillos:0};
+  piezas.forEach(function(p){
+    var n=(p.pieza||"").toLowerCase(), c=Number(p.cant)||0;
+    if(/puerta|tapa/.test(n)) h.bisagras += 2*c;
+    if(/caj|gaveta|gav/.test(n)) h.correderas += c;
+    if(/repisa|estante/.test(n)) h.soportes += 4*c;
+    h.tornillos += 8*c;
+  });
+  return h;
+}
+//==ENGINE-END==
+
+/* ---------------- Interfaz ---------------- */
+var filas=[];
+function $(i){ return document.getElementById(i); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function tab(v,btn){
+  var vs=document.querySelectorAll(".view"); for(var i=0;i<vs.length;i++) vs[i].classList.remove("on");
+  $(v==="piezas"?"v-piezas":"v-res").classList.add("on");
+  var bs=document.querySelectorAll(".tabs button"); for(var j=0;j<bs.length;j++) bs[j].classList.remove("on");
+  if(btn) btn.classList.add("on"); window.scrollTo(0,0);
+}
+function fila(i){
+  return '<tr>'
+   +'<td class="n">'+(i+1)+'</td>'
+   +'<td><input value="'+esc(filas[i].modulo)+'" oninput="set('+i+',\'modulo\',this.value)"></td>'
+   +'<td><input value="'+esc(filas[i].pieza)+'" oninput="set('+i+',\'pieza\',this.value)"></td>'
+   +'<td><input value="'+esc(filas[i].material)+'" oninput="set('+i+',\'material\',this.value)"></td>'
+   +'<td><input type="number" value="'+filas[i].espesor+'" oninput="set('+i+',\'espesor\',this.value)"></td>'
+   +'<td><input type="number" value="'+filas[i].cant+'" oninput="set('+i+',\'cant\',this.value)"></td>'
+   +'<td><input type="number" value="'+filas[i].largo+'" oninput="set('+i+',\'largo\',this.value)"></td>'
+   +'<td><input type="number" value="'+filas[i].ancho+'" oninput="set('+i+',\'ancho\',this.value)"></td>'
+   +'<td class="n"><input type="checkbox" '+(filas[i].l1?"checked":"")+' onchange="set('+i+',\'l1\',this.checked)"></td>'
+   +'<td class="n"><input type="checkbox" '+(filas[i].l2?"checked":"")+' onchange="set('+i+',\'l2\',this.checked)"></td>'
+   +'<td class="n"><input type="checkbox" '+(filas[i].a1?"checked":"")+' onchange="set('+i+',\'a1\',this.checked)"></td>'
+   +'<td class="n"><input type="checkbox" '+(filas[i].a2?"checked":"")+' onchange="set('+i+',\'a2\',this.checked)"></td>'
+   +'<td class="n"><input type="checkbox" '+(filas[i].veta?"checked":"")+' onchange="set('+i+',\'veta\',this.checked)"></td>'
+   +'<td class="n"><button class="btn rojo sm" onclick="delFila('+i+')">×</button></td></tr>';
+}
+function pintar(){ var h=""; filas.forEach(function(f,i){ h+=fila(i); }); $("tbod").innerHTML=h; }
+function set(i,c,v){
+  filas[i][c]= (c==="l1"||c==="l2"||c==="a1"||c==="a2"||c==="veta") ? v : (c==="modulo"||c==="pieza"||c==="material" ? v : Number(v)||0);
+}
+function addFila(){
+  filas.push({modulo:"",pieza:"",material:"Melamina 15 mm",espesor:15,cant:1,largo:0,ancho:0,
+              l1:false,l2:false,a1:false,a2:false,veta:false});
+  pintar();
+}
+function delFila(i){ filas.splice(i,1); pintar(); }
+function cargarEjemplo(){
+  filas=[
+   {modulo:"MBA01",pieza:"Base",material:"Melamina 15 mm",espesor:15,cant:2,largo:770,ancho:335,l1:true,l2:false,a1:true,a2:false,veta:false},
+   {modulo:"MBA01",pieza:"Repisa",material:"Melamina 15 mm",espesor:15,cant:1,largo:770,ancho:297,l1:true,l2:false,a1:false,a2:false,veta:false},
+   {modulo:"MBA01",pieza:"Amarre",material:"Melamina 15 mm",espesor:15,cant:1,largo:770,ancho:90,l1:true,l2:false,a1:false,a2:false,veta:false},
+   {modulo:"MBA01",pieza:"Lateral",material:"Melamina 15 mm",espesor:15,cant:1,largo:700,ancho:585,l1:true,l2:false,a1:true,a2:true,veta:false},
+   {modulo:"MBA01",pieza:"Puerta",material:"Melamina 15 mm",espesor:15,cant:2,largo:700,ancho:398,l1:true,l2:true,a1:true,a2:true,veta:false},
+   {modulo:"MBA01",pieza:"Lateral",material:"Melamina 15 mm",espesor:15,cant:4,largo:700,ancho:335,l1:true,l2:false,a1:true,a2:false,veta:false},
+   {modulo:"MBA01",pieza:"Puerta",material:"Melamina 15 mm",espesor:15,cant:1,largo:700,ancho:260,l1:true,l2:true,a1:true,a2:true,veta:false},
+   {modulo:"MBA01",pieza:"Puerta",material:"Melamina 15 mm",espesor:15,cant:1,largo:700,ancho:245,l1:true,l2:true,a1:true,a2:true,veta:false},
+   {modulo:"MBA01",pieza:"CE_base",material:"Melamina 15 mm",espesor:15,cant:2,largo:570,ancho:585,l1:false,l2:false,a1:false,a2:false,veta:false},
+   {modulo:"MBA01",pieza:"CE_repisa",material:"Melamina 15 mm",espesor:15,cant:1,largo:570,ancho:567,l1:false,l2:false,a1:false,a2:false,veta:false},
+   {modulo:"MBA01",pieza:"Fondo",material:"MDF 3 mm",espesor:3,cant:1,largo:684,ancho:784,l1:false,l2:false,a1:false,a2:false,veta:false},
+   {modulo:"MBA01",pieza:"Fondo",material:"MDF 3 mm",espesor:3,cant:1,largo:684,ancho:584,l1:false,l2:false,a1:false,a2:false,veta:false}];
+  pintar(); alert("Ejemplo cargado: 12 líneas (mueble de cocina). Pulsa Calcular corte.");
+}
+function leerConfig(){
+  var m=$("cf_med").value.split("x");
+  return {W:Number(m[0]), H:Number(m[1]), kerf:Number($("cf_kerf").value)||0,
+          margen:Number($("cf_margen").value)||0, rotar:$("cf_rot").value==="1",
+          pp:Number($("cf_pp").value)||0, pc:Number($("cf_pc").value)||0, pk:Number($("cf_pk").value)||0};
+}
+function optimizar(){
+  if(!filas.length){ alert("Agrega al menos una pieza."); return; }
+  var cfg=leerConfig(), grupos={}, i, f;
+  for(i=0;i<filas.length;i++){
+    f=filas[i];
+    if(!(f.largo>0 && f.ancho>0 && f.cant>0)) continue;
+    var k=f.material+"|"+f.espesor;
+    if(!grupos[k]) grupos[k]={material:f.material, espesor:f.espesor, piezas:[]};
+    grupos[k].piezas.push({ref:i,modulo:f.modulo,pieza:f.pieza,material:f.material,espesor:f.espesor,
+      cant:f.cant,largo:f.largo,ancho:f.ancho,veta:f.veta,canto:[f.l1,f.l2,f.a1,f.a2]});
+  }
+  var totalPlan=0, totalArea=0, totalUtil=0, sinColocar=[], bloques=[], cantoTotal=0, planchasPorGrupo=[];
+  Object.keys(grupos).forEach(function(k){
+    var g=grupos[k];
+    var r=optimizarGrupo(g.piezas,cfg.W,cfg.H,cfg.kerf,cfg.margen,cfg.rotar);
+    totalPlan+=r.planchas.length; totalArea+=r.areaTotal; totalUtil+=r.areaUtil;
+    sinColocar=sinColocar.concat(r.sinColocar);
+    planchasPorGrupo.push({nombre:g.material+" "+g.espesor+" mm", r:r, piezas:g.piezas,
+       areaPiezas:(function(){var a=0;g.piezas.forEach(function(p){a+=(Number(p.largo)||0)*(Number(p.ancho)||0)*(Number(p.cant)||0);});return a;})()});
+    g.piezas.forEach(function(p){ cantoTotal += cantoMetros(p)*(Number(p.cant)||0); });
+  });
+  window.__res={cfg:cfg, totalPlan:totalPlan, totalArea:totalArea, totalUtil:totalUtil,
+                sinColocar:sinColocar, planchasPorGrupo:planchasPorGrupo, cantoTotal:cantoTotal};
+  pintarResumen(); pintarPlanos(); tab("res",document.querySelectorAll(".tabs button")[1]);
+}
+function pintarResumen(){
+  var R=window.__res, c=R.cfg;
+  var m2=function(a){ return (a/1e6).toFixed(3)+" m²"; };
+  var costoPlan=R.totalPlan*c.pp, costoCanto=R.cantoTotal*c.pc, costoCorte=R.totalPlan*c.pk;
+  var costoTotal=costoPlan+costoCanto+costoCorte;
+  var h="";
+  h+='<div class="tot"><span>Planchas necesarias</span><b>'+R.totalPlan+'</b></div>';
+  h+='<div class="tot"><span>Área de material comprado</span><b>'+m2(R.totalArea)+'</b></div>';
+  h+='<div class="tot"><span>Área realmente usada</span><b>'+m2(R.totalUtil)+'</b></div>';
+  h+='<div class="tot"><span>Aprovechamiento</span><b>'+(R.aprovechamientoPct=(R.totalArea?(R.totalUtil/R.totalArea*100).toFixed(1):0))+' %</b></div>';
+  h+='<div class="tot"><span>Desperdicio</span><b>'+(R.totalArea?(100-R.totalUtil/R.totalArea*100).toFixed(1):0)+' %</b></div>';
+  h+='<div class="tot"><span>Canto (cinta de orilla)</span><b>'+R.cantoTotal.toFixed(2)+' m</b></div>';
+  if(c.pp||c.pc||c.pk){
+    h+='<div class="tot"><span>Planchas ('+R.totalPlan+' × $'+c.pp.toFixed(2)+')</span><b>$'+costoPlan.toFixed(2)+'</b></div>';
+    h+='<div class="tot"><span>Canto ('+R.cantoTotal.toFixed(2)+' m × $'+c.pc.toFixed(2)+')</span><b>$'+costoCanto.toFixed(2)+'</b></div>';
+    h+='<div class="tot"><span>Cortes ('+R.totalPlan+' × $'+c.pk.toFixed(2)+')</span><b>$'+costoCorte.toFixed(2)+'</b></div>';
+    h+='<div class="tot big"><span>COSTO DE TABLERO Y CORTE</span><span>$'+costoTotal.toFixed(2)+'</span></div>';
+  } else {
+    h+='<div class="hint">Escribe el precio de la plancha, del canto y del corte en la pestaña Despiece para ver el costo.</div>';
+  }
+  h+='<h3 style="margin-top:12px">Detalle por material</h3>'
+   +'<table><thead><tr><th>Material</th><th>Piezas</th><th>m² de piezas</th><th>Planchas</th><th>m² comprados</th><th>Aprovechamiento</th></tr></thead><tbody>';
+  R.planchasPorGrupo.forEach(function(g){
+    var npiezas=0; g.piezas.forEach(function(p){ npiezas+=Number(p.cant)||0; });
+    var ap=g.areaTotal? (g.areaPiezas/g.areaTotal*100):0;
+    h+='<tr><td>'+esc(g.nombre)+'</td><td class="n">'+npiezas+'</td><td class="n">'+(g.areaPiezas/1e6).toFixed(3)+'</td>'
+      +'<td class="n">'+g.r.planchas.length+'</td><td class="n">'+(g.r.areaTotal/1e6).toFixed(3)+'</td>'
+      +'<td class="n"><b>'+ap.toFixed(1)+' %</b></td></tr>';
+  });
+  h+='</tbody></table>';
+  h+='<p class="hint">El aprovechamiento se mide contra las planchas completas que hay que comprar. Un 65 % a 80 % es normal: el resto es el retazo inevitable por el tamaño de la plancha. Si un material queda por debajo del 50 %, revisa si conviene cambiar la medida de plancha o agrupar más piezas del mismo material.</p>';
+  var hz=herrajesEstimados(filas);
+  h+='<h3 style="margin-top:12px">Herrajes estimados (regla por nombre de pieza)</h3>';
+  h+='<div class="retazo">Bisagras: <b>'+hz.bisagras+'</b></div><div class="retazo">Correderas (pares): <b>'+hz.correderas+'</b></div>'
+   +'<div class="retazo">Soportes de repisa: <b>'+hz.soportes+'</b></div><div class="retazo">Tornillos: <b>'+hz.tornillos+'</b></div>';
+  h+='<p class="hint">El herraje se estima por el nombre de la pieza (puerta/tapa = 2 bisagras, cajón = 1 par de correderas, repisa = 4 soportes). Ajusta a mano lo que corresponda.</p>';
+  if(R.sinColocar.length){
+    h+='<div class="warn">No se pudieron colocar '+R.sinColocar.length+' pieza(s) en la plancha configurada. Revisa las medidas o cambia la medida de plancha.</div>';
+  }
+  h+='<div class="row noprint" style="margin-top:10px">'
+   +'<button class="btn gris" onclick="window.print()">Imprimir plan de corte</button>'
+   +'<button class="btn ambar" onclick="enviarACotizador()">Enviar total al cotizador</button></div>';
+  $("resumen").innerHTML=h;
+}
+function pintarPlanos(){
+  var R=window.__res, h="";
+  R.planchasPorGrupo.forEach(function(g){
+    h+='<h3 style="margin-top:10px">'+esc(g.nombre)+' — '+g.r.planchas.length+' plancha(s)</h3>';
+    g.r.planchas.forEach(function(pl,idx){
+      h+='<div class="plancha"><h3>Plancha '+(idx+1)+' · '+pl.items.length+' piezas</h3>'+dibujar(pl,R.cfg)+'</div>';
+    });
+  });
+  $("planos").innerHTML=h||'<div class="hint">Sin resultados.</div>';
+  /* retazos aprovechables: espacios libres de mas de 0,06 m2 */
+  var rt=[];
+  R.planchasPorGrupo.forEach(function(g){
+    g.r.planchas.forEach(function(pl,idx){
+      (pl.libres||[]).forEach(function(f){
+        if(f.w*f.h >= 60000) rt.push({mat:g.nombre, p:idx+1, w:Math.round(f.w), h:Math.round(f.h), a:f.w*f.h});
+      });
+    });
+  });
+  rt.sort(function(a,b){ return b.a-a.a; });
+  if(!rt.length){
+    $("retazos").innerHTML='<p class="hint">No quedaron retazos de tamaño útil (más de 0,06 m²) en este despiece.</p>';
+  } else {
+    var h2='<p class="hint">Estos son los espacios libres que quedan en las planchas (más de 0,06 m²). Guárdalos etiquetados: sirven para fondos, amarres y repisas pequeñas.</p>';
+    rt.slice(0,40).forEach(function(f){
+      h2+='<div class="retazo">'+esc(f.mat)+' · plancha '+f.p+': <b>'+f.h+' × '+f.w+' mm</b> · '+(f.a/1e6).toFixed(3)+' m²</div>';
+    });
+    if(rt.length>40) h2+='<div class="hint">… y '+(rt.length-40)+' retazo(s) más.</div>';
+    $("retazos").innerHTML=h2;
+  }
+}
+function dibujar(pl,cfg){
+  var W=cfg.W, H=cfg.H, esc_=500/W;
+  var s='<svg class="lay" viewBox="0 0 '+(W*esc_)+' '+(H*esc_)+'" xmlns="http://www.w3.org/2000/svg">';
+  s+='<rect x="0" y="0" width="'+(W*esc_)+'" height="'+(H*esc_)+'" fill="#FAF8F5" stroke="#393536" stroke-width="1.5"/>';
+  var colores=["#FFE7B0","#D9E8F5","#E2F0DC","#F5DEDC","#E8E0F0"];
+  pl.items.forEach(function(it,i){
+    var x=it.x*esc_, y=it.y*esc_, w=it.w*esc_, h=it.h*esc_;
+    s+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="'+colores[i%colores.length]+'" stroke="#393536" stroke-width="0.7"/>';
+    if(w>34 && h>14){
+      s+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(y+h/2-1).toFixed(1)+'" font-size="8" font-family="Arial" text-anchor="middle" fill="#100F0D">'+esc(it.pieza)+'</text>';
+      s+='<text x="'+(x+w/2).toFixed(1)+'" y="'+(y+h/2+8).toFixed(1)+'" font-size="7" font-family="Arial" text-anchor="middle" fill="#6b6663">'+it.h+'×'+it.w+(it.rot?" ↻":"")+'</text>';
+    }
+  });
+  s+='</svg>';
+  return s;
+}
+function exportarCSV(){
+  if(!filas.length){ alert("No hay piezas."); return; }
+  var L=["Modulo;Pieza;Material;Espesor;Cantidad;Largo;Ancho;Canto L1;Canto L2;Canto A1;Canto A2;Veta"];
+  filas.forEach(function(f){
+    L.push([f.modulo,f.pieza,f.material,f.espesor,f.cant,f.largo,f.ancho,
+            f.l1?"Si":"No",f.l2?"Si":"No",f.a1?"Si":"No",f.a2?"Si":"No",f.veta?"Si":"No"].join(";"));
+  });
+  var R=window.__res;
+  if(R){
+    L.push(""); L.push("RESUMEN;Planchas: "+R.totalPlan+";Aprovechamiento: "+(R.totalArea?(R.totalUtil/R.totalArea*100).toFixed(1):0)+"%;Canto: "+R.cantoTotal.toFixed(2)+" m");
+  }
+  var b=new Blob(["\ufeff"+L.join("\n")],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(b);
+  a.download="despiece_"+(($("pr").value||"mueble").replace(/[^\w]+/g,"_"))+".csv"; a.click();
+}
+function enviarACotizador(){
+  var R=window.__res; if(!R){ alert("Primero calcula el corte."); return; }
+  var cfg=R.cfg;
+  var desc="Tablero y corte: "+R.totalPlan+" plancha(s) de "+cfg.W+"x"+cfg.H+" mm, canto "+R.cantoTotal.toFixed(2)+" m";
+  var total=R.totalPlan*cfg.pp + R.cantoTotal*cfg.pc + R.totalPlan*cfg.pk;
+  try{
+    localStorage.setItem("mcs_pendiente", JSON.stringify({
+      descripcion:desc, unidad:"global", cantidad:1, precio:Number(total.toFixed(2)), origen:"despiece"
+    }));
+  }catch(e){}
+  window.location.href="cotizador.html";
+}
+/* arranque */
+$("hl").innerHTML='<svg width="32" height="32" viewBox="47 128 119 119" xmlns="http://www.w3.org/2000/svg"><rect x="47" y="128" width="119" height="119" rx="12" fill="#FFB000"/></svg>';
+$("fe").value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+cargarEjemplo();
+</script>
+<script>
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(function(){}); }
+</script>
+</body>
+</html>

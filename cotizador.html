@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#393536">
+<title>Cotizador — Mi Casa Soluciones</title>
+<link rel="manifest" href="manifest-cotizador.webmanifest">
+<style>
+:root{
+  --ambar:#FFB000; --carbon:#393536; --negro:#100F0D; --blanco:#FFFFFF;
+  --arena:#F4F1EC; --gris:#8A8580; --verde:#1E7B4F; --rojo:#C0392B;
+  --borde:#DCD7D0; --sombra:0 2px 10px rgba(16,15,13,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Lato,Arial,sans-serif;
+  background:var(--arena);color:var(--carbon);font-size:16px;line-height:1.45;
+  padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+h1,h2,h3{margin:0 0 8px;line-height:1.2}
+h1{font-size:21px}h2{font-size:17px}h3{font-size:15px}
+a{color:var(--carbon)}
+.hdr{background:var(--carbon);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:30;box-shadow:var(--sombra)}
+.hdr svg{flex:0 0 auto}
+.hdr .t{font-weight:800;font-size:15px;letter-spacing:.3px}
+.hdr .s{font-size:11px;opacity:.75}
+.wrap{padding:12px;max-width:900px;margin:0 auto}
+.card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--sombra);margin-bottom:12px}
+label{display:block;font-size:12px;font-weight:700;color:var(--gris);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea,button{font-family:inherit;font-size:16px}
+input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--borde);border-radius:10px;background:#fff;color:var(--carbon)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ambar);box-shadow:0 0 0 3px rgba(255,176,0,.22)}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:11px;
+  padding:12px 14px;font-weight:800;background:var(--carbon);color:#fff;cursor:pointer;text-decoration:none}
+.btn:active{transform:scale(.985)}
+.btn.ambar{background:var(--ambar);color:var(--carbon)}
+.btn.verde{background:var(--verde);color:#fff}
+.btn.gris{background:#fff;color:var(--carbon);border:1.5px solid var(--borde)}
+.btn.rojo{background:#fff;color:var(--rojo);border:1.5px solid #E7C0BA}
+.btn.full{width:100%}
+.btn.sm{padding:9px 11px;font-size:14px;border-radius:9px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--borde);
+  display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+.tabs button{flex:1;border:0;background:none;padding:9px 2px 8px;font-size:10.5px;font-weight:700;color:var(--gris);
+  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.tabs button.on{color:var(--carbon)}
+.tabs button.on .ic{background:var(--ambar);color:var(--carbon)}
+.tabs .ic{width:26px;height:26px;border-radius:8px;background:var(--arena);display:grid;place-items:center;font-size:14px}
+.view{display:none}.view.on{display:block}
+.item{border:1.5px solid var(--borde);border-radius:12px;padding:10px;margin-bottom:8px;background:#fff}
+.item .nm{font-weight:800;font-size:14.5px;margin-bottom:2px}
+.item .meta{font-size:12px;color:var(--gris);margin-bottom:7px}
+.cant{display:flex;align-items:center;gap:6px}
+.cant input{text-align:center;padding:9px 4px}
+.pill{display:inline-block;background:var(--arena);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700;color:var(--gris)}
+.pill.ambar{background:#FFF3D6;color:#8A5E00}
+.pill.verde{background:#E4F3EA;color:var(--verde)}
+.tot{display:flex;justify-content:space-between;padding:5px 0;font-size:14.5px;border-bottom:1px dashed var(--borde)}
+.tot.big{font-size:20px;font-weight:900;border-bottom:0;padding-top:9px;color:var(--negro)}
+.hint{font-size:12px;color:var(--gris);margin:6px 0 0}
+.warn{background:#FFF3D6;border-left:4px solid var(--ambar);padding:9px 11px;border-radius:8px;font-size:13px;margin:10px 0}
+.err{background:#FBEAE7;border-left:4px solid var(--rojo);padding:9px 11px;border-radius:8px;font-size:13px;margin:10px 0}
+.ok{background:#E4F3EA;border-left:4px solid var(--verde);padding:9px 11px;border-radius:8px;font-size:13px;margin:10px 0}
+.srch{position:sticky;top:0;background:#fff;padding-bottom:8px;z-index:5}
+.list{border:1.5px solid var(--borde);border-radius:12px;overflow:hidden;max-height:56vh;overflow-y:auto}
+.list .li{padding:10px 12px;border-bottom:1px solid var(--borde);cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.list .li:last-child{border-bottom:0}
+.list .li:active{background:var(--arena)}
+.list .li .d{font-size:13.5px;font-weight:600}
+.list .li .c{font-size:11px;color:var(--gris)}
+.list .li .p{font-weight:800;font-size:13.5px;white-space:nowrap}
+.chip{display:inline-block;border:1.5px solid var(--borde);border-radius:999px;padding:6px 11px;font-size:13px;margin:0 6px 6px 0;cursor:pointer;background:#fff;font-weight:600}
+.chip.on{background:var(--carbon);color:#fff;border-color:var(--carbon)}
+.empty{text-align:center;color:var(--gris);padding:26px 10px;font-size:14px}
+.mask{position:fixed;inset:0;background:rgba(16,15,13,.45);display:none;z-index:50;align-items:flex-end}
+.mask.on{display:flex}
+.sheet{background:#fff;width:100%;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:14px}
+@media(min-width:700px){.mask{align-items:center;justify-content:center}.sheet{max-width:680px;border-radius:18px}}
+.grand{font-size:26px;font-weight:900;color:var(--negro)}
+.small{font-size:12.5px;color:var(--gris)}
+code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
+/* ============ IMPRESIÓN / PDF ============ */
+#print{display:none}
+@media print{
+  body{background:#fff;padding:0;font-size:11.5px}
+  .hdr,.tabs,.wrap{display:none!important}
+  #print{display:block!important;padding:12mm 12mm 10mm}
+  @page{size:A4;margin:11mm}
+}
+#print .ph{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--ambar);padding-bottom:8px}
+#print .ph .lg{display:flex;gap:10px;align-items:center}
+#print .ph .nm{font-size:19px;font-weight:900;letter-spacing:.4px;line-height:1.05}
+#print .ph .lm{font-size:9.5px;color:var(--gris)}
+#print .ph .cx{font-size:9.5px;text-align:right;line-height:1.5}
+#print h2.pt{font-size:15px;margin:10px 0 6px;letter-spacing:1px}
+#print .box{border:1px solid #C9C4BE;border-radius:6px;padding:6px 8px;font-size:10px}
+#print .grid2{display:flex;gap:8px;margin:8px 0}
+#print .grid2>*{flex:1}
+#print table{width:100%;border-collapse:collapse;margin-top:8px;font-size:10px}
+#print th{background:var(--ambar);color:#000;text-align:left;padding:5px 6px;border:1px solid #C9C4BE;font-size:9.5px;text-transform:uppercase;letter-spacing:.3px}
+#print td{border:1px solid #C9C4BE;padding:4.5px 6px;vertical-align:top}
+#print td.n,#print th.n{text-align:right;white-space:nowrap}
+#print td.c,#print th.c{text-align:center;white-space:nowrap}
+#print tfoot td{border:0;padding:2px 6px}
+#print .tt{display:flex;justify-content:flex-end;margin-top:8px}
+#print .tt table{width:60%;margin:0}
+#print .tt td{border:0;padding:3px 6px;font-size:10.5px}
+#print .tt tr.b td{border-top:2px solid var(--carbon);font-size:14px;font-weight:900}
+#print .tc{margin-top:10px;font-size:8.8px;line-height:1.5;color:#333}
+#print .firma{margin-top:22px;display:flex;gap:26px}
+#print .firma div{flex:1;border-top:1px solid #555;padding-top:3px;font-size:9px;text-align:center}
+#print .foot{margin-top:14px;border-top:2px solid var(--ambar);padding-top:5px;font-size:8.5px;color:var(--gris);text-align:center}
+#print .sello{position:absolute;right:14mm;margin-top:-4mm;opacity:.9}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <span id="hdrlogo"></span>
+  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · La Libertad – Salinas</span></span>
+</div>
+
+<div class="wrap">
+  <div id="aviso"></div>
+
+  <!-- =================== NUEVA COTIZACIÓN =================== -->
+  <section class="view on" id="v-nueva">
+    <div class="card">
+      <div class="row">
+        <div><label>N.º de cotización</label><input id="q_num" readonly></div>
+        <div><label>Fecha</label><input id="q_fecha" type="date"></div>
+      </div>
+      <label>Cliente</label>
+      <div class="row">
+        <select id="q_cliente"></select>
+        <button class="btn gris sm" style="flex:0 0 auto" onclick="abrirCliente()">+ Nuevo</button>
+      </div>
+      <div id="q_clientedatos" class="small" style="margin-top:6px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Partidas de la cotización</h2>
+      <p class="hint">Toma las medidas en obra y escribe la cantidad. Para m² puedes usar la calculadora de medidas.</p>
+      <div id="q_items"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ambar" onclick="abrirCatalogo()">+ Agregar partida</button>
+        <button class="btn gris" onclick="agregarLibre()">+ Partida libre</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Resumen</h2>
+      <div class="row">
+        <div><label>Descuento (USD)</label><input id="q_desc" type="number" step="0.01" min="0" value="0" oninput="calc()"></div>
+        <div><label>IVA</label>
+          <select id="q_iva" onchange="calc()">
+            <option value="15">15 % (Ecuador)</option>
+            <option value="0">0 % (sin IVA)</option>
+          </select></div>
+      </div>
+      <div class="row">
+        <div><label>Anticipo (%)</label><input id="q_ant" type="number" step="5" min="0" max="100" value="60" oninput="calc()"></div>
+        <div><label>Validez (días)</label><input id="q_val" type="number" min="1" value="15"></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="tot"><span>Subtotal</span><b id="t_sub">$0.00</b></div>
+        <div class="tot"><span>Descuento</span><b id="t_desc">$0.00</b></div>
+        <div class="tot"><span>Subtotal neto</span><b id="t_net">$0.00</b></div>
+        <div class="tot"><span>IVA</span><b id="t_iva">$0.00</b></div>
+        <div class="tot big"><span>TOTAL</span><span id="t_tot">$0.00</span></div>
+        <div class="tot"><span>Anticipo a la firma</span><b id="t_ant">$0.00</b></div>
+        <div class="tot"><span>Saldo contra entrega</span><b id="t_sal">$0.00</b></div>
+      </div>
+      <label>Observaciones / alcance del trabajo</label>
+      <textarea id="q_obs" rows="3" placeholder="Ej.: Incluye retiro de escombros y limpieza final. No incluye cerámica."></textarea>
+      <div class="row" style="margin-top:12px">
+        <button class="btn verde" onclick="enviarWhatsApp()">Enviar por WhatsApp</button>
+        <button class="btn" onclick="imprimir()">PDF / Imprimir</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn gris" onclick="guardarCotizacion()">Guardar</button>
+        <button class="btn gris" onclick="nuevaCotizacion(true)">Limpiar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== HISTORIAL =================== -->
+  <section class="view" id="v-hist">
+    <div class="card"><h2>Cotizaciones guardadas</h2><div id="h_lista"></div></div>
+  </section>
+
+  <!-- =================== CLIENTES =================== -->
+  <section class="view" id="v-cli">
+    <div class="card">
+      <h2>Clientes</h2>
+      <div class="srch"><input id="c_buscar" placeholder="Buscar por nombre o cédula…" oninput="pintarClientes()"></div>
+      <div id="c_lista"></div>
+      <button class="btn ambar full" style="margin-top:10px" onclick="abrirCliente()">+ Nuevo cliente</button>
+    </div>
+  </section>
+
+  <!-- =================== CATÁLOGO =================== -->
+  <section class="view" id="v-cat">
+    <div class="card">
+      <h2>Catálogo de precios</h2>
+      <p class="hint">Estos precios son tu lista base. Ajústalos con los precios reales de La Libertad y Salinas.</p>
+      <div class="srch"><input id="k_buscar" placeholder="Buscar partida…" oninput="pintarCatalogo()"></div>
+      <div id="k_lista"></div>
+      <button class="btn ambar full" style="margin-top:10px" onclick="abrirCatalogo(true)">+ Nueva partida al catálogo</button>
+      <div class="row" style="margin-top:8px">
+        <button class="btn gris" onclick="exportarTodo()">Respaldar datos</button>
+        <button class="btn gris" onclick="importarTodo()">Restaurar</button>
+      </div>
+      <input type="file" id="f_imp" accept=".json" style="display:none" onchange="leerImport(event)">
+    </div>
+  </section>
+
+  <!-- =================== AJUSTES =================== -->
+  <section class="view" id="v-aj">
+    <div class="card">
+      <h2>Datos de la empresa</h2>
+      <label>Nombre comercial</label><input id="e_nombre">
+      <label>Lema</label><input id="e_lema">
+      <label>RUC</label><input id="e_ruc">
+      <label>Teléfono / WhatsApp (formato 593...)</label><input id="e_tel" placeholder="593963303081">
+      <label>Correo</label><input id="e_mail">
+      <label>Dirección / ciudad</label><input id="e_dir">
+      <label>Datos bancarios para el anticipo</label><input id="e_banco" placeholder="Banco / tipo de cuenta / número / titular">
+      <label>Texto predefinido del QR de WhatsApp</label><input id="e_qrtext">
+      <hr style="margin:14px 0;border:0;border-top:1px solid var(--borde)">
+      <label>Condiciones (una por línea)</label>
+      <textarea id="e_cond" rows="6"></textarea>
+      <button class="btn verde full" style="margin-top:12px" onclick="guardarEmpresa()">Guardar datos de la empresa</button>
+      <div class="row" style="margin-top:8px">
+        <button class="btn gris" onclick="restaurarDemo()">Restaurar catálogo base</button>
+      </div>
+      <p class="hint">Los datos se guardan solo en este teléfono o computadora (almacenamiento local del navegador). Haz respaldos con el botón "Respaldar datos".</p>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs">
+  <button class="on" data-v="nueva" onclick="tab('nueva',this)"><span class="ic">📝</span>Cotizar</button>
+  <button data-v="hist" onclick="tab('hist',this)"><span class="ic">📁</span>Historial</button>
+  <button data-v="cli" onclick="tab('cli',this)"><span class="ic">👤</span>Clientes</button>
+  <button data-v="cat" onclick="tab('cat',this)"><span class="ic">📋</span>Precios</button>
+  <button data-v="aj" onclick="tab('aj',this)"><span class="ic">⚙️</span>Ajustes</button>
+</nav>
+
+<div class="mask" id="mask" onclick="if(event.target===this)cerrarModal()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<div id="print"></div>
+
+<script>
+/* =====================================================================
+   MI CASA SOLUCIONES — COTIZADOR
+   Funciona sin internet. Los datos se guardan en este dispositivo.
+   ===================================================================== */
+
+/* ---------- Emblema vectorial de la marca (paths originales) ---------- */
+const PLATE_D = "M 79.09375 132.964844 C 64.039062 132.964844 51.832031 145.171875 51.832031 160.226562 L 51.832031 214.75 C 51.832031 229.804688 64.039062 242.007812 79.09375 242.007812 L 133.617188 242.007812 C 148.671875 242.007812 160.878906 229.804688 160.878906 214.75 L 160.878906 160.226562 C 160.878906 145.171875 148.671875 132.964844 133.617188 132.964844 Z M 79.09375 132.964844";
+const CHECK_D = "M 152.566406 171.191406 L 110.160156 140.382812 C 107.867188 138.71875 104.703125 138.734375 102.460938 140.425781 L 60.113281 171.191406 C 57.214844 173.300781 56.566406 177.375 58.667969 180.273438 C 59.6875 181.683594 61.195312 182.609375 62.914062 182.882812 C 64.628906 183.152344 66.347656 182.742188 67.753906 181.722656 L 71.042969 179.332031 L 71.042969 221.601562 C 71.042969 224.6875 73.554688 227.199219 76.640625 227.199219 L 93.195312 227.199219 L 105.445312 236.003906 C 105.710938 236.195312 106.027344 236.292969 106.339844 236.292969 C 106.652344 236.292969 106.96875 236.195312 107.234375 236.003906 L 119.484375 227.199219 L 136.035156 227.199219 C 139.125 227.199219 141.636719 224.6875 141.636719 221.601562 L 141.636719 179.332031 L 144.925781 181.722656 C 146.046875 182.535156 147.367188 182.964844 148.730469 182.964844 C 149.074219 182.964844 149.421875 182.9375 149.765625 182.882812 C 151.484375 182.609375 152.992188 181.683594 154.011719 180.273438 C 156.113281 177.375 155.464844 173.300781 152.566406 171.191406 Z M 94.660156 217.859375 C 90.6875 215.003906 88.671875 211.078125 88.671875 206.183594 L 88.671875 188.996094 C 101.9375 181.839844 110.742188 181.839844 124.007812 188.996094 L 124.007812 206.183594 C 124.007812 211.078125 121.992188 215.003906 118.019531 217.859375 L 106.339844 226.253906 Z M 138.566406 221.601562 C 138.566406 222.996094 137.429688 224.132812 136.035156 224.132812 L 123.71875 224.132812 C 129.429688 219.695312 132.445312 213.511719 132.445312 206.183594 L 132.445312 184.976562 C 132.445312 184.433594 132.160156 183.933594 131.695312 183.65625 C 121.796875 177.785156 113.976562 175.167969 106.339844 175.167969 C 98.703125 175.167969 90.882812 177.785156 80.984375 183.65625 C 80.519531 183.933594 80.234375 184.433594 80.234375 184.976562 L 80.234375 206.183594 C 80.234375 213.511719 83.246094 219.699219 88.957031 224.132812 L 76.640625 224.132812 C 75.246094 224.132812 74.113281 222.996094 74.113281 221.601562 L 74.113281 177.101562 L 106.339844 153.6875 L 138.566406 177.101562 Z M 119.546875 197.945312 L 105.164062 212.328125 C 104.308594 213.183594 103.164062 213.652344 101.972656 213.652344 C 101.839844 213.652344 101.707031 213.648438 101.570312 213.636719 C 100.25 213.519531 99.054688 212.835938 98.285156 211.761719 L 92.113281 203.992188 C 91.363281 203.046875 91.023438 201.867188 91.160156 200.667969 C 91.296875 199.472656 91.894531 198.398438 92.839844 197.648438 C 93.78125 196.894531 94.960938 196.558594 96.160156 196.695312 C 97.359375 196.832031 98.433594 197.425781 99.183594 198.371094 L 102.347656 202.355469 L 113.152344 191.550781 C 114.914062 189.789062 117.78125 189.789062 119.546875 191.550781 C 121.308594 193.316406 121.308594 196.183594 119.546875 197.945312 Z M 119.546875 197.945312";
+function logoSVG(w, plate, check){
+  return '<svg width="'+w+'" height="'+w+'" viewBox="47 128 119 119" xmlns="http://www.w3.org/2000/svg">'
+       + '<path d="'+PLATE_D+'" fill="'+plate+'"/>'
+       + '<path d="'+CHECK_D+'" fill="'+check+'"/></svg>';
+}
+
+/* ---------- Datos por defecto ---------- */
+const EMPRESA_DEF = {
+  nombre:"Mi Casa Soluciones",
+  lema:"Soluciones integrales para tu hogar",
+  ruc:"",
+  tel:"593963303081",
+  mail:"nelsonojedablog@gmail.com",
+  dir:"La Libertad – Salinas, Santa Elena, Ecuador",
+  banco:"",
+  garantia:12,
+  qrtext:"Hola, quiero realizar una cotización. Vengo de su tarjeta.",
+  cond:[
+    "Precio cerrado por escrito. Todo trabajo adicional se cotiza y aprueba antes de ejecutarse.",
+    "El anticipo se destina a la compra de materiales y se descuenta del valor total.",
+    "El saldo se cancela contra entrega y aceptación del trabajo.",
+    "Garantía escrita de 12 meses en mano de obra. No cubre mal uso, intervención de terceros ni materiales suministrados por el cliente.",
+    "Los valores no incluyen trabajos no detallados en esta cotización.",
+    "El cliente garantiza el acceso al área de trabajo y el suministro de agua y energía.",
+    "Esta cotización tiene la validez indicada; pasada esa fecha los precios pueden variar por costo de materiales."
+  ]
+};
+
+/* ---------- Catálogo base (precios de lista inicial, editables) ---------- */
+const CATALOGO_DEF = [
+ // ===== MI CASA AGUA — gasfitería y termofusión =====
+ ["AGU-01","Visita de diagnóstico y presupuesto en La Libertad y Salinas","visita",0,"Mi Casa Agua"],
+ ["AGU-02","Reparación de fuga de agua (localización, corte y prueba)","punto",45,"Mi Casa Agua"],
+ ["AGU-03","Instalación de punto de agua con termofusión PPR (½\")","punto",65,"Mi Casa Agua"],
+ ["AGU-04","Instalación de punto de agua con termofusión PPR (¾\")","punto",85,"Mi Casa Agua"],
+ ["AGU-05","Cambio de tubería empotrada, incluye picado y resane","m",28,"Mi Casa Agua"],
+ ["AGU-06","Cambio de grifería (lavabo, fregadero o ducha)","unidad",35,"Mi Casa Agua"],
+ ["AGU-07","Instalación de inodoro o lavamanos","unidad",45,"Mi Casa Agua"],
+ ["AGU-08","Destape de desagüe (lavabo, ducha o inodoro)","servicio",40,"Mi Casa Agua"],
+ ["AGU-09","Destape de alcantarilla o caja de revisión","servicio",80,"Mi Casa Agua"],
+ ["AGU-10","Instalación de calentador de agua (ducha eléctrica o gas)","unidad",55,"Mi Casa Agua"],
+ ["AGU-11","Instalación de bomba hidráulica o presurizador","unidad",90,"Mi Casa Agua"],
+ ["AGU-12","Instalación de tanque y flotador","unidad",60,"Mi Casa Agua"],
+ ["AGU-13","Impermeabilización de filtración en techo o pared de baño","m2",22,"Mi Casa Agua"],
+ ["AGU-14","Reparación de fuga en medidor o acometida","servicio",60,"Mi Casa Agua"],
+ // ===== MI CASA LUZ — electricidad residencial =====
+ ["LUZ-01","Diagnóstico de falla eléctrica con instrumentos","visita",0,"Mi Casa Luz"],
+ ["LUZ-02","Instalación de punto eléctrico (tomacorriente o interruptor)","punto",40,"Mi Casa Luz"],
+ ["LUZ-03","Instalación de punto de iluminación (con plafón y foco)","punto",35,"Mi Casa Luz"],
+ ["LUZ-04","Cambio de luminaria (panel LED, dicroico o reflector)","unidad",20,"Mi Casa Luz"],
+ ["LUZ-05","Instalación o cambio de tablero de distribución","unidad",120,"Mi Casa Luz"],
+ ["LUZ-06","Cambio de breaker o pastilla","unidad",25,"Mi Casa Luz"],
+ ["LUZ-07","Revisión y puesta a tierra con varilla y medición","punto",90,"Mi Casa Luz"],
+ ["LUZ-08","Acometida y medidor (cableado, ducto y gestión)","servicio",150,"Mi Casa Luz"],
+ ["LUZ-09","Cableado estructurado y redes (UTP o coaxial)","punto",35,"Mi Casa Luz"],
+ ["LUZ-10","Automatización y domótica básica (sensor o relé)","punto",60,"Mi Casa Luz"],
+ ["LUZ-11","Emergencia eléctrica (sin energía u olor a quemado)","servicio",50,"Mi Casa Luz"],
+ ["LUZ-12","Instalación de extractor, bomba o equipo con circuito dedicado","punto",65,"Mi Casa Luz"],
+ ["LUZ-13","Reemplazo de cableado por metro (THHN 12/14 AWG)","m",3.5,"Mi Casa Luz"],
+ // ===== MI CASA METAL — soldadura y herrería =====
+ ["MET-01","Soldadura en sitio (reparación de reja, portón o estructura)","punto",18,"Mi Casa Metal"],
+ ["MET-02","Fabricación de reja o ventana de hierro","m2",65,"Mi Casa Metal"],
+ ["MET-03","Fabricación de puerta metálica","unidad",140,"Mi Casa Metal"],
+ ["MET-04","Pasamanos y barandas","m",45,"Mi Casa Metal"],
+ ["MET-05","Estructura para pérgola o cubierta","m2",55,"Mi Casa Metal"],
+ ["MET-06","Portón corredizo o abatible","unidad",280,"Mi Casa Metal"],
+ ["MET-07","Refuerzo estructural y anclajes","punto",35,"Mi Casa Metal"],
+ ["MET-08","Reparación de mueble o estructura metálica","servicio",30,"Mi Casa Metal"],
+ ["MET-09","Herrería por hora de soldador","hora",15,"Mi Casa Metal"],
+ // ===== MI CASA DISEÑO — remodelación =====
+ ["DIS-01","Asesoría de diseño y propuesta (gratis si se ejecuta la obra)","servicio",0,"Mi Casa Diseño"],
+ ["DIS-02","Remodelación de baño completo","global",1200,"Mi Casa Diseño"],
+ ["DIS-03","Remodelación de cocina","global",1500,"Mi Casa Diseño"],
+ ["DIS-04","Closet a medida en melamina o MDF","m",180,"Mi Casa Diseño"],
+ ["DIS-05","Mueble de cocina a medida","m",200,"Mi Casa Diseño"],
+ ["DIS-06","Cambio de piso (retiro, nivelación y colocación)","m2",18,"Mi Casa Diseño"],
+ ["DIS-07","Reparación de pared, grietas y resanes","m2",14,"Mi Casa Diseño"],
+ ["DIS-08","Diseño y montaje de iluminación decorativa","punto",45,"Mi Casa Diseño"],
+ ["DIS-09","Decoración de interiores (color, materiales y mobiliario)","servicio",80,"Mi Casa Diseño"],
+ ["DIS-10","Colocación de cerámica en pared de baño o cocina","m2",16,"Mi Casa Diseño"],
+ // ===== MI CASA COLOR — pintura y acabados =====
+ ["COL-01","Pintura interior, 1 a 2 manos (pared en buen estado)","m2",4.5,"Mi Casa Color"],
+ ["COL-02","Pintura interior con masillado y estucado","m2",8.5,"Mi Casa Color"],
+ ["COL-03","Pintura de exteriores y fachadas","m2",6.5,"Mi Casa Color"],
+ ["COL-04","Pintura de cielo raso","m2",5.5,"Mi Casa Color"],
+ ["COL-05","Pintura de rejas, puertas y ventanas metálicas","m2",9,"Mi Casa Color"],
+ ["COL-06","Empapelado y revestimiento de pared","m2",12,"Mi Casa Color"],
+ ["COL-07","Texturizado y acabados decorativos","m2",15,"Mi Casa Color"],
+ ["COL-08","Restauración de fachada (limpieza, resane y sellado)","m2",18,"Mi Casa Color"],
+ ["COL-09","Pintura de canchas y pisos deportivos","m2",7,"Mi Casa Color"],
+ ["COL-10","Pintura de estructura metálica (anticorrosivo y esmalte)","m2",9,"Mi Casa Color"],
+ // ===== MI CASA GYPSUM — gypsum y steel framing =====
+ ["GYP-01","Cielo raso de gypsum plano (estructura, plancha y masillado)","m2",17,"Mi Casa Gypsum"],
+ ["GYP-02","Cielo raso con diseño (niveles, luces o islas)","m2",24,"Mi Casa Gypsum"],
+ ["GYP-03","Tabique divisorio de gypsum, una cara","m2",16,"Mi Casa Gypsum"],
+ ["GYP-04","Tabique divisorio de gypsum, doble cara con aislante","m2",26,"Mi Casa Gypsum"],
+ ["GYP-05","Cielo raso con steel framing reforzado","m2",28,"Mi Casa Gypsum"],
+ ["GYP-06","Cornisa, moldura y detalles decorativos","m",7,"Mi Casa Gypsum"],
+ ["GYP-07","Ducto o caja para aire acondicionado","unidad",95,"Mi Casa Gypsum"],
+ ["GYP-08","Reparación de cielo raso dañado por humedad","m2",22,"Mi Casa Gypsum"],
+ ["GYP-09","Trampa de acceso a cielo raso (registro)","unidad",55,"Mi Casa Gypsum"],
+ // ===== ALBAÑILERÍA Y OBRA CIVIL =====
+ ["ALB-01","Excavación manual en terreno normal","m3",22,"Albañilería"],
+ ["ALB-02","Relleno y compactado con material de sitio","m3",18,"Albañilería"],
+ ["ALB-03","Eliminación de material excedente","m3",15,"Albañilería"],
+ ["ALB-04","Demolición de mampostería (bloque o ladrillo)","m2",12,"Albañilería"],
+ ["ALB-05","Demolición de piso de hormigón","m2",14,"Albañilería"],
+ ["ALB-06","Muro de bloque o ladrillo (asentado y nivelado)","m2",16,"Albañilería"],
+ ["ALB-07","Tarrajeo o enlucido de pared (mortero)","m2",9,"Albañilería"],
+ ["ALB-08","Enlucido de cielo raso","m2",11,"Albañilería"],
+ ["ALB-09","Contrapiso o solado de hormigón simple","m2",12,"Albañilería"],
+ ["ALB-10","Hormigón en columnas, vigas o losa (f'c 210)","m3",120,"Albañilería"],
+ ["ALB-11","Encofrado y desencofrado","m2",10,"Albañilería"],
+ ["ALB-12","Acero de refuerzo fy=4200 (cortado y armado)","kg",1.6,"Albañilería"],
+ ["ALB-13","Escalera de hormigón armado","m3",140,"Albañilería"],
+ ["ALB-14","Filos, bruñas y remates","m",4,"Albañilería"],
+ // ===== MATERIALES (Mi Casa Ferretería) =====
+ ["MAT-01","Cemento Portland (saco 50 kg)","saco",0,"Materiales"],
+ ["MAT-02","Arena gruesa o fina","m3",0,"Materiales"],
+ ["MAT-03","Piedra chancada o ripio","m3",0,"Materiales"],
+ ["MAT-04","Bloque de hormigón 15x20x40","unidad",0,"Materiales"],
+ ["MAT-05","Ladrillo de arcilla (unidad)","unidad",0,"Materiales"],
+ ["MAT-06","Tubería PVC desagüe 2\" o 3\"","m",0,"Materiales"],
+ ["MAT-07","Tubería y accesorios PPR termofusión ½\"","punto",0,"Materiales"],
+ ["MAT-08","Cable THHN 12 AWG","m",0,"Materiales"],
+ ["MAT-09","Plancha de gypsum 1,20 x 2,40 x 12,5 mm","plancha",0,"Materiales"],
+ ["MAT-10","Perfilería steel framing (paral y canal)","m",0,"Materiales"],
+ ["MAT-11","Pintura interior (balde 4 L o cubeta)","balde",0,"Materiales"],
+ ["MAT-12","Masilla, cinta y lija para gypsum","global",0,"Materiales"],
+ ["MAT-13","Entrega de materiales a domicilio en La Libertad y Salinas","servicio",5,"Materiales"],
+ // ===== MANO DE OBRA POR JORNAL =====
+ ["MO-01","Jornal de maestro (8 horas)","jornal",117,"Mano de obra"],
+ ["MO-02","Jornal de ayudante (8 horas)","jornal",104,"Mano de obra"],
+ ["MO-03","Hora de maestro","hora",14.61,"Mano de obra"],
+ ["MO-04","Hora de ayudante","hora",13.02,"Mano de obra"],
+ ["MO-05","Recargo por trabajo nocturno, domingo o feriado (30 %)","servicio",0,"Mano de obra"],
+ ["MO-06","Movilización fuera de La Libertad y Salinas","servicio",15,"Mano de obra"],
+ // ===== SERVICIOS Y CONTRATOS =====
+ ["SER-01","Plan de mantenimiento mensual de condominio (básico)","mes",80,"Servicios"],
+ ["SER-02","Plan de mantenimiento mensual de condominio (medio)","mes",150,"Servicios"],
+ ["SER-03","Plan de mantenimiento mensual de condominio (completo)","mes",260,"Servicios"],
+ ["SER-04","Plan de mantenimiento de arriendo turístico o Airbnb","mes",70,"Servicios"],
+ ["SER-05","Informe técnico con fotos y recomendaciones","servicio",35,"Servicios"],
+ ["SER-06","Trabajo mínimo de movilización","servicio",25,"Servicios"]
+].map(function(r){return {codigo:r[0],descripcion:r[1],unidad:r[2],precio:r[3],capitulo:r[4]};});
+
+/* =====================================================================
+   MOTOR DE CÁLCULO (funciones puras — no dependen de la interfaz)
+   ===================================================================== */
+//==ENGINE-START==
+function r2(n){ return Math.round((Number(n)||0)*100)/100; }
+function calcTotales(items, descuento, ivaPct, anticipoPct){
+  var subtotal = 0;
+  (items||[]).forEach(function(it){
+    subtotal += (Number(it.cantidad)||0) * (Number(it.precio)||0);
+  });
+  subtotal = r2(subtotal);
+  var desc = Math.min(Number(descuento)||0, subtotal);
+  var neto = r2(subtotal - desc);
+  var iva  = r2(neto * (Number(ivaPct)||0)/100);
+  var total= r2(neto + iva);
+  var ant  = r2(total * (Number(anticipoPct)||0)/100);
+  return {subtotal:subtotal, descuento:r2(desc), neto:neto, iva:iva, total:total,
+          anticipo:ant, saldo:r2(total-ant)};
+}
+/* Cantidad por medidas: area = ancho*alto*veces - descuento de vanos */
+function calcArea(ancho, alto, veces, vanos){
+  var a = (Number(ancho)||0)*(Number(alto)||0)*(Number(veces)||1);
+  return r2(Math.max(0, a - (Number(vanos)||0)));
+}
+/* Numero de cotizacion correlativo */
+function numCotizacion(ultimo, anio){
+  return "MCS-" + anio + "-" + String((Number(ultimo)||0)+1).padStart(3,"0");
+}
+/* Fechas */
+function hoyISO(){ var d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function sumarDias(iso, dias){ var p=iso.split("-"); var d=new Date(+p[0], +p[1]-1, +p[2]); d.setDate(d.getDate()+(Number(dias)||0));
+  return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function fLatina(iso){ if(!iso) return ""; var p=iso.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
+function money(n){ return "$" + (Number(n)||0).toFixed(2); }
+/* Texto del resumen para WhatsApp */
+function textoWhatsApp(cot, emp){
+  var t = calcTotales(cot.items, cot.descuento, cot.iva, cot.anticipo);
+  var L = [];
+  L.push("*" + emp.nombre.toUpperCase() + "*");
+  L.push(emp.lema);
+  L.push("");
+  L.push("*COTIZACIÓN " + cot.numero + "*   " + fLatina(cot.fecha));
+  L.push("Cliente: " + (cot.cliente.nombre||""));
+  if(cot.cliente.direccion) L.push("Obra: " + cot.cliente.direccion);
+  L.push("");
+  L.push("*Detalle:*");
+  (cot.items||[]).forEach(function(it){
+    L.push("• " + it.descripcion + " — " + it.cantidad + " " + it.unidad + " x " + money(it.precio) + " = *" + money((Number(it.cantidad)||0)*(Number(it.precio)||0)) + "*");
+  });
+  L.push("");
+  if(t.descuento>0) L.push("Subtotal: " + money(t.subtotal) + "  |  Descuento: -" + money(t.descuento));
+  if(t.iva>0) L.push("IVA: " + money(t.iva));
+  L.push("*TOTAL: " + money(t.total) + "*");
+  L.push("Anticipo (" + cot.anticipo + "%): " + money(t.anticipo));
+  L.push("Saldo contra entrega: " + money(t.saldo));
+  L.push("");
+  if(cot.obs) L.push("Alcance: " + cot.obs);
+  L.push("Incluye: garantía escrita de " + (emp.garantia||12) + " meses en mano de obra y factura.");
+  L.push("Validez de la oferta: " + cot.validez + " días.");
+  L.push("");
+  L.push("WhatsApp: +" + emp.tel);
+  return L.join("\n");
+}
+//==ENGINE-END==
+
+/* ---------- Almacenamiento ---------- */
+var LS = {
+  get:function(k,d){ try{ var v=localStorage.getItem("mcs_"+k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set:function(k,v){ try{ localStorage.setItem("mcs_"+k, JSON.stringify(v)); }catch(e){ aviso("No se pudo guardar en este navegador.","err"); } }
+};
+var emp = LS.get("empresa", null) || JSON.parse(JSON.stringify(EMPRESA_DEF));
+var catalogo = LS.get("catalogo", null) || JSON.parse(JSON.stringify(CATALOGO_DEF));
+var clientes = LS.get("clientes", []) || [];
+var cotizaciones = LS.get("cotizaciones", []) || [];
+var contador = LS.get("contador", 0) || 0;
+var q = null;           // cotización en edición
+var filtroCat = "Todas";
+</script>
+
+<script>
+/* =====================================================================
+   INTERFAZ
+   ===================================================================== */
+function $(id){ return document.getElementById(id); }
+function aviso(msg,tipo){
+  var t = tipo==="err"?"err":(tipo==="ok"?"ok":"warn");
+  $("aviso").innerHTML = '<div class="'+t+'">'+msg+'</div>';
+  if(t!=="err") setTimeout(function(){ if($("aviso")) $("aviso").innerHTML=""; }, 5000);
+}
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function tab(v,btn){
+  var vs=document.querySelectorAll(".view"); for(var i=0;i<vs.length;i++) vs[i].classList.remove("on");
+  var id = v==="nueva"?"v-nueva":(v==="hist"?"v-hist":(v==="cli"?"v-cli":(v==="cat"?"v-cat":"v-aj")));
+  $(id).classList.add("on");
+  var bs=document.querySelectorAll(".tabs button"); for(var j=0;j<bs.length;j++) bs[j].classList.remove("on");
+  if(btn) btn.classList.add("on");
+  if(v==="hist") pintarHistorial();
+  if(v==="cli") pintarClientes();
+  if(v==="cat") pintarCatalogo();
+  if(v==="aj") pintarEmpresa();
+  window.scrollTo(0,0);
+}
+
+/* ---------------- Cotización ---------------- */
+function nuevaCotizacion(limpiar){
+  var anio = new Date().getFullYear();
+  q = {
+    id: "c" + Date.now(),
+    numero: numCotizacion(contador, anio),
+    fecha: hoyISO(),
+    cliente: {nombre:"",cedula:"",telefono:"",direccion:"",email:""},
+    items: [], descuento:0, iva:15, anticipo:60, validez:15, obs:""
+  };
+  if(limpiar) LS.set("borrador", q);
+  pintarCotizacion();
+}
+function pintarCotizacion(){
+  $("q_num").value = q.numero;
+  $("q_fecha").value = q.fecha;
+  $("q_desc").value = q.descuento;
+  $("q_iva").value = String(q.iva);
+  $("q_ant").value = q.anticipo;
+  $("q_val").value = q.validez;
+  $("q_obs").value = q.obs || "";
+  pintarClientesSelect();
+  pintarItems();
+  calc();
+}
+function pintarClientesSelect(){
+  var s = $("q_cliente"); s.innerHTML = "";
+  var o0 = document.createElement("option"); o0.value=""; o0.textContent="— Cliente ocasional —"; s.appendChild(o0);
+  clientes.forEach(function(c){
+    var o=document.createElement("option"); o.value=c.id; o.textContent=c.nombre + (c.cedula?" ("+c.cedula+")":"");
+    s.appendChild(o); s.dataset[c.id]=JSON.stringify(c);
+  });
+  s.value = q.cliente && q.cliente.id ? q.cliente.id : "";
+  mostrarDatosCliente();
+}
+function mostrarDatosCliente(){
+  var s=$("q_cliente"), c = q.cliente||{};
+  var d = [];
+  if(c.cedula) d.push("CI/RUC: "+esc(c.cedula));
+  if(c.telefono) d.push("Tel: "+esc(c.telefono));
+  if(c.email) d.push(esc(c.email));
+  if(c.direccion) d.push("Obra: "+esc(c.direccion));
+  $("q_clientedatos").innerHTML = d.length? d.join(" · ") :
+    '<span class="small">Cliente sin datos. Usa “+ Nuevo” para registrarlo y reutilizarlo.</span>';
+}
+function cambiarCliente(){
+  var id=$("q_cliente").value;
+  if(!id){ q.cliente={nombre:"",cedula:"",telefono:"",direccion:"",email:""}; mostrarDatosCliente(); return; }
+  var c=null; clientes.forEach(function(x){ if(x.id===id) c=x; });
+  if(c){ q.cliente={id:c.id,nombre:c.nombre,cedula:c.cedula,telefono:c.telefono,direccion:c.direccion,email:c.email}; mostrarDatosCliente(); }
+}
+function pintarItems(){
+  var box=$("q_items");
+  if(!q.items.length){ box.innerHTML='<div class="empty">Todavía no hay partidas.<br>Agrega la primera con “+ Agregar partida”.</div>'; return; }
+  var h="";
+  q.items.forEach(function(it,i){
+    var st=(Number(it.cantidad)||0)*(Number(it.precio)||0);
+    var medida = (it.unidad==="m2"||it.unidad==="m3"||it.unidad==="m") ? '<button class="btn gris sm" onclick="abrirMedidas('+i+')">📐 Medidas</button>' : '';
+    h += '<div class="item">'
+      +  '<div class="nm">'+esc(it.descripcion)+'</div>'
+      +  '<div class="meta">'+esc(it.codigo||"libre")+' · '+esc(it.unidad)+' · '+money(it.precio)+' por '+esc(it.unidad)
+      +    (it.detalle? ' · '+esc(it.detalle):'') + '</div>'
+      +  '<div class="cant">'
+      +    '<button class="btn gris sm" onclick="paso('+i+',-1)">–</button>'
+      +    '<input type="number" step="0.01" min="0" value="'+it.cantidad+'" oninput="setCant('+i+',this.value)">'
+      +    '<button class="btn gris sm" onclick="paso('+i+',1)">+</button>'
+      +    '<input type="number" step="0.01" min="0" value="'+it.precio+'" oninput="setPrecio('+i+',this.value)" title="Precio unitario">'
+      +  '</div>'
+      +  '<div class="row" style="margin-top:8px;align-items:center">'
+      +    '<div style="flex:1"><b>'+money(st)+'</b> <span class="small">total de la partida</span></div>'
+      +    medida
+      +    '<button class="btn rojo sm" style="flex:0 0 auto" onclick="quitar('+i+')">Quitar</button>'
+      +  '</div></div>';
+  });
+  box.innerHTML=h;
+}
+function setCant(i,v){ q.items[i].cantidad=Number(v)||0; calc(); }
+function setPrecio(i,v){ q.items[i].precio=Number(v)||0; calc(); }
+function paso(i,d){ var it=q.items[i]; var s=(it.unidad==="m2"||it.unidad==="m3")?0.5:(it.unidad==="m"?1:1);
+  it.cantidad=r2(Math.max(0,(Number(it.cantidad)||0)+d*s)); pintarItems(); calc(); }
+function quitar(i){ q.items.splice(i,1); pintarItems(); calc(); }
+
+function calc(){
+  q.descuento=Number($("q_desc").value)||0;
+  q.iva=Number($("q_iva").value)||0;
+  q.anticipo=Number($("q_ant").value)||0;
+  q.validez=Number($("q_val").value)||15;
+  q.fecha=$("q_fecha").value||hoyISO();
+  q.obs=$("q_obs").value||"";
+  var t=calcTotales(q.items,q.descuento,q.iva,q.anticipo);
+  $("t_sub").textContent=money(t.subtotal);
+  $("t_desc").textContent="-"+money(t.descuento);
+  $("t_net").textContent=money(t.neto);
+  $("t_iva").textContent=money(t.iva);
+  $("t_tot").textContent=money(t.total);
+  $("t_ant").textContent=money(t.anticipo)+"  ("+q.anticipo+"%)";
+  $("t_sal").textContent=money(t.saldo);
+}
+
+/* ---------------- Modales ---------------- */
+function abrirModal(html){ $("sheet").innerHTML=html; $("mask").classList.add("on"); }
+function cerrarModal(){ $("mask").classList.remove("on"); }
+
+function abrirCatalogo(alta){
+  var caps=["Todas"]; catalogo.forEach(function(p){ if(caps.indexOf(p.capitulo)<0) caps.push(p.capitulo); });
+  var chips=""; caps.forEach(function(c){ chips+='<span class="chip'+(c===filtroCat?" on":"")+'" onclick="setFiltroCat(\''+c.replace(/'/g,"")+'\')">'+esc(c)+'</span>'; });
+  abrirModal(
+    '<h2>'+(alta?"Nueva partida en el catálogo":"Agregar partida")+'</h2>'
+   +'<div class="srch"><input id="m_buscar" placeholder="Buscar…" oninput="pintarListaCat('+(alta?1:0)+')"></div>'
+   +'<div style="margin:6px 0 10px">'+chips+'</div>'
+   +'<div class="list" id="m_lista"></div>'
+   +'<div class="row" style="margin-top:10px"><button class="btn gris" onclick="cerrarModal()">Cerrar</button>'
+   +(alta?'<button class="btn ambar" onclick="formPartida()">+ Crear nueva</button>':'<button class="btn ambar" onclick="agregarLibre()">+ Partida libre</button>')+'</div>');
+  pintarListaCat(alta?1:0);
+}
+function setFiltroCat(c){ filtroCat=c; var bs=document.querySelectorAll(".chip");
+  for(var i=0;i<bs.length;i++) bs[i].classList.toggle("on", bs[i].textContent===c); pintarListaCat(0); }
+function pintarListaCat(alta){
+  var s=($("m_buscar").value||"").toLowerCase();
+  var h=""; var n=0;
+  catalogo.forEach(function(p){
+    if(filtroCat!=="Todas" && p.capitulo!==filtroCat) return;
+    if(s && (p.descripcion+" "+p.codigo).toLowerCase().indexOf(s)<0) return;
+    n++;
+    h+='<div class="li" onclick="'+(alta?("formPartida('"+p.codigo+"')"):("addPartida('"+p.codigo+"')"))+'">'
+      + '<div><div class="d">'+esc(p.descripcion)+'</div><div class="c">'+esc(p.codigo)+' · '+esc(p.capitulo)+'</div></div>'
+      + '<div class="p">'+money(p.precio)+'<div class="c" style="text-align:right">/'+esc(p.unidad)+'</div></div></div>';
+  });
+  $("m_lista").innerHTML = n? h : '<div class="empty">Sin resultados.</div>';
+}
+function addPartida(cod){
+  var p=null; catalogo.forEach(function(x){ if(x.codigo===cod) p=x; });
+  if(!p) return;
+  q.items.push({codigo:p.codigo,descripcion:p.descripcion,unidad:p.unidad,cantidad:1,precio:p.precio,capitulo:p.capitulo});
+  cerrarModal(); pintarItems(); calc();
+  aviso("Partida agregada. Ajusta la cantidad con las medidas de la obra.","ok");
+}
+function agregarLibre(){
+  abrirModal('<h2>Partida libre</h2>'
+   +'<label>Descripción del trabajo</label><input id="f_d" placeholder="Ej.: Cambio de tubería en baño principal">'
+   +'<div class="row"><div><label>Unidad</label><select id="f_u"><option>servicio</option><option>m2</option><option>m3</option><option>m</option><option>punto</option><option>unidad</option><option>hora</option><option>jornal</option><option>global</option><option>mes</option></select></div>'
+   +'<div><label>Cantidad</label><input id="f_c" type="number" step="0.01" value="1"></div></div>'
+   +'<label>Precio unitario (USD)</label><input id="f_p" type="number" step="0.01" value="0">'
+   +'<div class="row" style="margin-top:12px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button>'
+   +'<button class="btn ambar" onclick="guardarLibre()">Agregar</button></div>');
+}
+function guardarLibre(){
+  var d=$("f_d").value.trim(); if(!d){ aviso("Escribe la descripción.","err"); return; }
+  q.items.push({codigo:"",descripcion:d,unidad:$("f_u").value,cantidad:Number($("f_c").value)||1,precio:Number($("f_p").value)||0,capitulo:"Otras"});
+  cerrarModal(); pintarItems(); calc();
+}
+function formPartida(cod){
+  var p = cod? catalogo.filter(function(x){return x.codigo===cod;})[0] : {codigo:"",descripcion:"",unidad:"unidad",precio:0,capitulo:filtroCat==="Todas"?"Otras":filtroCat};
+  abrirModal('<h2>'+(cod?"Editar partida":"Nueva partida del catálogo")+'</h2>'
+   +'<label>Código</label><input id="p_c" value="'+esc(p.codigo)+'">'
+   +'<label>Descripción</label><input id="p_d" value="'+esc(p.descripcion)+'">'
+   +'<div class="row"><div><label>Unidad</label><input id="p_u" value="'+esc(p.unidad)+'"></div>'
+   +'<div><label>Precio (USD)</label><input id="p_p" type="number" step="0.01" value="'+p.precio+'"></div></div>'
+   +'<label>Capítulo</label><input id="p_k" value="'+esc(p.capitulo)+'">'
+   +'<div class="row" style="margin-top:12px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button>'
+   +'<button class="btn ambar" onclick="guardarPartida('+(cod?"'"+cod+"'":"null")+')">Guardar</button></div>'
+   +(cod?'<button class="btn rojo full" style="margin-top:8px" onclick="borrarPartida(\''+cod+'\')">Eliminar del catálogo</button>':''));
+}
+function guardarPartida(orig){
+  var o={codigo:$("p_c").value.trim(),descripcion:$("p_d").value.trim(),unidad:$("p_u").value.trim()||"unidad",
+         precio:Number($("p_p").value)||0,capitulo:$("p_k").value.trim()||"Otras"};
+  if(!o.descripcion){ aviso("La descripción es obligatoria.","err"); return; }
+  if(orig){ catalogo = catalogo.map(function(x){ return x.codigo===orig? o : x; }); }
+  else { catalogo.push(o); }
+  LS.set("catalogo",catalogo); cerrarModal(); pintarCatalogo(); aviso("Catálogo actualizado.","ok");
+}
+function borrarPartida(cod){
+  if(!confirm("¿Eliminar esta partida del catálogo?")) return;
+  catalogo = catalogo.filter(function(x){ return x.codigo!==cod; });
+  LS.set("catalogo",catalogo); cerrarModal(); pintarCatalogo();
+}
+function abrirMedidas(i){
+  var it=q.items[i];
+  abrirModal('<h2>Medidas en obra</h2><p class="hint">'+esc(it.descripcion)+'</p>'
+   +'<div class="row"><div><label>Largo / ancho (m)</label><input id="g_a" type="number" step="0.01"></div>'
+   +'<div><label>Alto (m)</label><input id="g_b" type="number" step="0.01"></div></div>'
+   +'<div class="row"><div><label>Veces (repeticiones)</label><input id="g_v" type="number" step="1" value="1"></div>'
+   +'<div><label>Restar vanos (m²)</label><input id="g_d" type="number" step="0.01" value="0"></div></div>'
+   +'<div id="g_res" class="ok" style="margin-top:10px">Ingresa las medidas…</div>'
+   +'<div class="row" style="margin-top:10px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button>'
+   +'<button class="btn ambar" onclick="aplicarMedidas('+i+')">Usar esta cantidad</button></div>');
+  ["g_a","g_b","g_v","g_d"].forEach(function(id){ $(id).addEventListener("input",function(){
+    var a=calcArea($("g_a").value,$("g_b").value,$("g_v").value,$("g_d").value);
+    $("g_res").innerHTML="Cantidad calculada: <b>"+a+" "+esc(it.unidad)+"</b>"; }); });
+}
+function aplicarMedidas(i){
+  var a=calcArea($("g_a").value,$("g_b").value,$("g_v").value,$("g_d").value);
+  if(a<=0){ aviso("Ingresa medidas válidas.","err"); return; }
+  q.items[i].cantidad=a;
+  q.items[i].detalle="medido en obra";
+  cerrarModal(); pintarItems(); calc(); aviso("Cantidad aplicada: "+a+".","ok");
+}
+function abrirCliente(){
+  abrirModal('<h2>Nuevo cliente</h2>'
+   +'<label>Nombre y apellido / razón social</label><input id="c_n">'
+   +'<div class="row"><div><label>Cédula o RUC</label><input id="c_c"></div>'
+   +'<div><label>Teléfono / WhatsApp</label><input id="c_t"></div></div>'
+   +'<label>Dirección de la obra</label><input id="c_d" placeholder="Ej.: Cdla. … , La Libertad">'
+   +'<label>Correo</label><input id="c_e">'
+   +'<div class="row" style="margin-top:12px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button>'
+   +'<button class="btn ambar" onclick="guardarCliente()">Guardar</button></div>');
+}
+function guardarCliente(){
+  var n=$("c_n").value.trim(); if(!n){ aviso("El nombre es obligatorio.","err"); return; }
+  var c={id:"cli"+Date.now(),nombre:n,cedula:$("c_c").value.trim(),telefono:$("c_t").value.trim(),
+         direccion:$("c_d").value.trim(),email:$("c_e").value.trim()};
+  clientes.push(c); LS.set("clientes",clientes);
+  q.cliente=c; cerrarModal(); pintarClientesSelect(); pintarClientes(); aviso("Cliente guardado.","ok");
+}
+
+/* ---------------- Historial ---------------- */
+function guardarCotizacion(){
+  if(!q.cliente.nombre){ aviso("Falta el nombre del cliente.","err"); return; }
+  if(!q.items.length){ aviso("Agrega al menos una partida.","err"); return; }
+  calc();
+  var idx=-1; cotizaciones.forEach(function(c,i){ if(c.id===q.id) idx=i; });
+  var copia=JSON.parse(JSON.stringify(q));
+  if(idx>=0) cotizaciones[idx]=copia; else { cotizaciones.push(copia); contador++; LS.set("contador",contador); }
+  LS.set("cotizaciones",cotizaciones);
+  LS.set("borrador",null);
+  aviso("Cotización "+q.numero+" guardada.","ok");
+  nuevaCotizacion();
+}
+function pintarHistorial(){
+  var h="";
+  if(!cotizaciones.length) h='<div class="empty">No hay cotizaciones guardadas todavía.</div>';
+  cotizaciones.slice().reverse().forEach(function(c){
+    var t=calcTotales(c.items,c.descuento,c.iva,c.anticipo);
+    h+='<div class="item"><div class="nm">'+esc(c.numero)+' · '+esc(c.cliente.nombre)+'</div>'
+      +'<div class="meta">'+fLatina(c.fecha)+' · '+c.items.length+' partidas · Total '+money(t.total)+'</div>'
+      +'<div class="row"><button class="btn gris sm" onclick="cargarCotizacion(\''+c.id+'\')">Abrir</button>'
+      +'<button class="btn gris sm" onclick="waGuardada(\''+c.id+'\')">WhatsApp</button>'
+      +'<button class="btn rojo sm" onclick="borrarCotizacion(\''+c.id+'\')">Borrar</button></div></div>';
+  });
+  $("h_lista").innerHTML=h;
+}
+function cargarCotizacion(id){
+  cotizaciones.forEach(function(c){ if(c.id===id) q=JSON.parse(JSON.stringify(c)); });
+  pintarCotizacion(); tab("nueva",document.querySelector('.tabs button'));
+}
+function waGuardada(id){
+  var c=null; cotizaciones.forEach(function(x){ if(x.id===id) c=x; });
+  if(c) window.open("https://wa.me/"+(c.cliente.telefono||"").replace(/[^0-9]/g,"")+"?text="+encodeURIComponent(textoWhatsApp(c,emp)),"_blank");
+}
+function borrarCotizacion(id){
+  if(!confirm("¿Borrar esta cotización?")) return;
+  cotizaciones=cotizaciones.filter(function(c){ return c.id!==id; });
+  LS.set("cotizaciones",cotizaciones); pintarHistorial();
+}
+
+/* ---------------- Clientes / Catálogo / Ajustes ---------------- */
+function pintarClientes(){
+  var s=($("c_buscar").value||"").toLowerCase(), h="", n=0;
+  clientes.forEach(function(c){
+    if(s && (c.nombre+" "+c.cedula).toLowerCase().indexOf(s)<0) return; n++;
+    h+='<div class="item"><div class="nm">'+esc(c.nombre)+'</div>'
+      +'<div class="meta">'+esc(c.cedula||"sin cédula")+' · '+esc(c.telefono||"sin teléfono")+'</div>'
+      +'<div class="meta">'+esc(c.direccion||"")+'</div>'
+      +'<div class="row"><button class="btn gris sm" onclick="usarCliente(\''+c.id+'\')">Cotizar a este cliente</button>'
+      +'<button class="btn rojo sm" onclick="borrarCliente(\''+c.id+'\')">Borrar</button></div></div>';
+  });
+  $("c_lista").innerHTML = n? h : '<div class="empty">Sin clientes. Agrega el primero.</div>';
+}
+function usarCliente(id){
+  var c=null; clientes.forEach(function(x){ if(x.id===id) c=x; });
+  q.cliente={id:c.id,nombre:c.nombre,cedula:c.cedula,telefono:c.telefono,direccion:c.direccion,email:c.email};
+  pintarClientesSelect(); tab("nueva",document.querySelector('.tabs button'));
+}
+function borrarCliente(id){ if(!confirm("¿Borrar este cliente?")) return;
+  clientes=clientes.filter(function(c){return c.id!==id;}); LS.set("clientes",clientes); pintarClientes(); }
+function pintarCatalogo(){
+  var s=($("k_buscar").value||"").toLowerCase(), h="", n=0;
+  catalogo.forEach(function(p){
+    if(s && (p.descripcion+" "+p.codigo+" "+p.capitulo).toLowerCase().indexOf(s)<0) return; n++;
+    h+='<div class="li" style="display:flex;justify-content:space-between;align-items:center;padding:9px 11px;border-bottom:1px solid var(--borde)">'
+      +'<div><div class="d">'+esc(p.descripcion)+'</div><div class="c">'+esc(p.codigo)+' · '+esc(p.capitulo)+'</div></div>'
+      +'<div style="text-align:right"><div class="p">'+money(p.precio)+'</div><div class="c">/'+esc(p.unidad)+'</div>'
+      +'<button class="btn gris sm" style="margin-top:4px" onclick="formPartida(\''+p.codigo+'\')">Editar</button></div></div>';
+  });
+  $("k_lista").innerHTML = n? h : '<div class="empty">Sin resultados.</div>';
+}
+function pintarEmpresa(){
+  $("e_nombre").value=emp.nombre; $("e_lema").value=emp.lema; $("e_ruc").value=emp.ruc||"";
+  $("e_tel").value=emp.tel||""; $("e_mail").value=emp.mail||""; $("e_dir").value=emp.dir||"";
+  $("e_banco").value=emp.banco||""; $("e_qrtext").value=emp.qrtext||"";
+  $("e_cond").value=(emp.cond||[]).join("\n");
+}
+function guardarEmpresa(){
+  emp.nombre=$("e_nombre").value.trim()||"Mi Casa Soluciones";
+  emp.lema=$("e_lema").value.trim();
+  emp.ruc=$("e_ruc").value.trim(); emp.tel=$("e_tel").value.trim().replace(/[^0-9]/g,"");
+  emp.mail=$("e_mail").value.trim(); emp.dir=$("e_dir").value.trim(); emp.banco=$("e_banco").value.trim();
+  emp.qrtext=$("e_qrtext").value.trim();
+  emp.cond=$("e_cond").value.split("\n").filter(function(x){return x.trim();});
+  LS.set("empresa",emp); aviso("Datos de la empresa guardados.","ok");
+}
+function restaurarDemo(){
+  if(!confirm("Esto reemplaza el catálogo por la lista base. ¿Continuar?")) return;
+  catalogo=JSON.parse(JSON.stringify(CATALOGO_DEF)); LS.set("catalogo",catalogo); pintarCatalogo();
+  aviso("Catálogo base restaurado.","ok");
+}
+function exportarTodo(){
+  var data={v:1,empresa:emp,catalogo:catalogo,clientes:clientes,cotizaciones:cotizaciones,contador:contador};
+  var b=new Blob([JSON.stringify(data,null,1)],{type:"application/json"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(b);
+  a.download="respaldo_micasasoluciones_"+hoyISO()+".json"; a.click();
+}
+function importarTodo(){ $("f_imp").click(); }
+function leerImport(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var d=JSON.parse(r.result);
+      if(!confirm("Esto reemplaza tus datos actuales. ¿Continuar?")) return;
+      if(d.empresa) LS.set("empresa",emp=d.empresa);
+      if(d.catalogo) LS.set("catalogo",catalogo=d.catalogo);
+      if(d.clientes) LS.set("clientes",clientes=d.clientes);
+      if(d.cotizaciones) LS.set("cotizaciones",cotizaciones=d.cotizaciones);
+      if(d.contador) LS.set("contador",contador=d.contador);
+      pintarEmpresa(); pintarCatalogo(); pintarClientes(); pintarHistorial(); nuevaCotizacion();
+      aviso("Datos restaurados.","ok");
+    }catch(err){ aviso("El archivo no es un respaldo válido.","err"); }
+  };
+  r.readAsText(f);
+}
+
+/* ---------------- WhatsApp e impresión ---------------- */
+function enviarWhatsApp(){
+  if(!q.items.length){ aviso("Agrega al menos una partida.","err"); return; }
+  calc();
+  var tel=(q.cliente.telefono||"").replace(/[^0-9]/g,"");
+  if(!tel) tel="";
+  var url="https://wa.me/"+tel+"?text="+encodeURIComponent(textoWhatsApp(q,emp));
+  window.open(url,"_blank");
+}
+function imprimir(){ calc(); pintarPrint(); window.print(); }
+function pintarPrint(){
+  var t=calcTotales(q.items,q.descuento,q.iva,q.anticipo);
+  var anio=new Date().getFullYear();
+  var filas="";
+  q.items.forEach(function(it,i){
+    filas+='<tr><td class="c">'+(i+1)+'</td><td>'+esc(it.descripcion)+(it.detalle?' <i>('+esc(it.detalle)+')</i>':'')+'</td>'
+      +'<td class="c">'+esc(it.unidad)+'</td><td class="n">'+it.cantidad+'</td>'
+      +'<td class="n">'+money(it.precio)+'</td><td class="n">'+money((Number(it.cantidad)||0)*(Number(it.precio)||0))+'</td></tr>';
+  });
+  var cond=(emp.cond||[]).map(function(c,i){ return "<div>"+(i+1)+". "+esc(c)+"</div>"; }).join("");
+  var html=''
+   +'<div class="ph"><div class="lg">'+logoSVG(58,"#393536","#FFFFFF")
+   +'<div><div class="nm">'+esc(emp.nombre.toUpperCase())+'</div><div class="lm">'+esc(emp.lema)+'</div></div></div>'
+   +'<div class="cx"><b>COTIZACIÓN N.º '+esc(q.numero)+'</b><br>Fecha: '+fLatina(q.fecha)+'<br>Validez: '+q.validez+' días (hasta '+fLatina(sumarDias(q.fecha,q.validez))+')'
+   +(emp.ruc?'<br>RUC: '+esc(emp.ruc):'')+'<br>WhatsApp: +'+esc(emp.tel)+'</div></div>'
+   +'<div class="grid2"><div class="box"><b>CLIENTE</b><br>'+esc(q.cliente.nombre||"")+'<br>'
+   +(q.cliente.cedula?'CI/RUC: '+esc(q.cliente.cedula)+'<br>':'')
+   +(q.cliente.telefono?'Tel: '+esc(q.cliente.telefono)+'<br>':'')
+   +(q.cliente.email?esc(q.cliente.email)+'<br>':'')
+   +(q.cliente.direccion?'<b>Obra:</b> '+esc(q.cliente.direccion):'')+'</div>'
+   +'<div class="box"><b>EMPRESA</b><br>'+esc(emp.nombre)+'<br>'+esc(emp.dir)+'<br>'+esc(emp.mail)
+   +'<br>Gasfitería · Electricidad · Soldadura<br>Remodelación · Pintura · Gypsum</div></div>'
+   +'<table><thead><tr><th class="c" style="width:26px">#</th><th>Descripción del trabajo</th><th class="c" style="width:52px">Unidad</th>'
+   +'<th class="n" style="width:48px">Cant.</th><th class="n" style="width:62px">V. Unit.</th><th class="n" style="width:70px">V. Total</th></tr></thead>'
+   +'<tbody>'+filas+'</tbody></table>'
+   +'<div class="tt"><table>'
+   +'<tr><td>Subtotal</td><td class="n">'+money(t.subtotal)+'</td></tr>'
+   +(t.descuento>0?'<tr><td>Descuento</td><td class="n">-'+money(t.descuento)+'</td></tr>':'')
+   +'<tr><td>Subtotal neto</td><td class="n">'+money(t.neto)+'</td></tr>'
+   +'<tr><td>IVA '+q.iva+'%</td><td class="n">'+money(t.iva)+'</td></tr>'
+   +'<tr class="b"><td>TOTAL</td><td class="n">'+money(t.total)+'</td></tr>'
+   +'<tr><td>Anticipo ('+q.anticipo+'%) a la firma</td><td class="n">'+money(t.anticipo)+'</td></tr>'
+   +'<tr><td>Saldo contra entrega</td><td class="n">'+money(t.saldo)+'</td></tr>'
+   +'</table></div>'
+   +(emp.banco?'<div class="box" style="margin-top:6px"><b>Forma de pago:</b> '+esc(emp.banco)+'</div>':'')
+   +(q.obs?'<div class="box" style="margin-top:6px"><b>Alcance del trabajo:</b> '+esc(q.obs)+'</div>':'')
+   +'<div class="tc"><b>CONDICIONES</b>'+cond
+   +'<div style="margin-top:4px"><b>INCLUYE:</b> mano de obra especializada, protección del área de trabajo, retiro de escombros y limpieza final, '
+   +'pruebas de funcionamiento, <b>garantía escrita de '+(emp.garantia||12)+' meses en mano de obra</b> y factura electrónica.</div></div>'
+   +'<div class="firma"><div>Firma del cliente<br>Nombre: ______________________<br>CI: __________________________</div>'
+   +'<div>Por '+esc(emp.nombre)+'<br>Nelson Patricio Ojeda Pantoja<br>CI: 1002170775</div></div>'
+   +'<div class="foot">'+esc(emp.nombre)+' · '+esc(emp.lema)+' · WhatsApp +'+esc(emp.tel)+' · '+esc(emp.mail)+'</div>';
+  $("print").innerHTML=html;
+}
+
+/* ---------------- Arranque ---------------- */
+/* Recoge la partida que envían la calculadora de materiales o el despiece */
+function leerPendiente(){
+  var p=LS.get("pendiente",null);
+  if(!p) return;
+  LS.set("pendiente",null);
+  if(!q) nuevaCotizacion();
+  q.items.push({codigo:"",descripcion:p.descripcion||"Partida calculada",
+                unidad:p.unidad||"global",cantidad:Number(p.cantidad)||1,
+                precio:Number(p.precio)||0,capitulo:"Otras",
+                detalle:"calculado en "+(p.origen||"la calculadora")});
+  pintarItems(); calc();
+  setTimeout(function(){ aviso("Se agregó la partida calculada (cantidad "+(Number(p.cantidad)||1)+" "+(p.unidad||"")+"). Revisa el precio y el resto de partidas.","ok"); },500);
+}
+function init(){
+  $("hdrlogo").innerHTML=logoSVG(34,"#FFB000","#393538");
+  var borr=LS.get("borrador",null);
+  if(borr && borr.items){ q=borr; } else { nuevaCotizacion(); }
+  pintarCotizacion();
+  leerPendiente();
+  $("q_cliente").addEventListener("change",cambiarCliente);
+  $("q_fecha").addEventListener("change",calc);
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape") cerrarModal(); });
+  if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(function(){}); }
+}
+init();
+</script>
+</body>
+</html>
