@@ -20,7 +20,12 @@ input,select,button{font-family:inherit;font-size:15px}
 input,select{width:100%;padding:9px 10px;border:1.5px solid var(--borde);border-radius:9px;background:#fff;color:var(--carbon)}
 input:focus,select:focus{outline:none;border-color:var(--ambar);box-shadow:0 0 0 3px rgba(255,176,0,.2)}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:11px 13px;font-weight:800;background:var(--carbon);color:#fff;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:11px 13px;font-weight:800;background:var(--carbon);color:#fff;cursor:pointer;text-decoration:none;white-space:normal;text-align:center;line-height:1.25}
+/* Filas de botones de accion: en el pantalla angosta cada boton ocupa su propia
+   linea, asi el texto NUNCA se sale del boton (era el caso de "Enviar esta
+   cantidad al cotizador" en el telefono). */
+.row.acciones>*{min-width:150px}
+@media(max-width:560px){ .row.acciones>*{flex:1 1 100%} }
 .btn.ambar{background:var(--ambar);color:var(--carbon)}.btn.verde{background:var(--verde)}.btn.gris{background:#fff;color:var(--carbon);border:1.5px solid var(--borde)}
 .btn.sm{padding:7px 9px;font-size:13px}.btn.full{width:100%}
 .chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 10px;-webkit-overflow-scrolling:touch}
@@ -618,7 +623,7 @@ function calcular(i){
     h+='</tbody></table>';
     if(r.nota) h+='<div class="nota">'+esc(r.nota)+'</div>';
     if(r.fuente) h+='<div class="fuente">Base del cálculo: '+esc(r.fuente)+'</div>';
-    h+='<div class="row" style="margin-top:10px"><button class="btn ambar" onclick="enviar('+i+')">Enviar esta cantidad al cotizador</button>'
+    h+='<div class="row acciones" style="margin-top:10px"><button class="btn ambar" onclick="enviar('+i+')">Enviar esta cantidad al cotizador</button>'
       +'<button class="btn gris" onclick="window.print()">Imprimir</button></div>';
     $("res_"+a.id).innerHTML=h;
     window.__ult={i:i,v:v,r:r};

@@ -31,10 +31,16 @@ label{display:block;font-size:12px;font-weight:700;color:var(--gris);margin:10px
 input,select,textarea,button{font-family:inherit;font-size:16px}
 input,select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--borde);border-radius:10px;background:#fff;color:var(--carbon)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ambar);box-shadow:0 0 0 3px rgba(255,176,0,.22)}
-.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:0}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:11px;
   padding:12px 14px;font-weight:800;background:var(--carbon);color:#fff;cursor:pointer;text-decoration:none}
 .btn:active{transform:scale(.985)}
+.btn{white-space:normal;text-align:center;line-height:1.25}
+/* Filas de botones de accion: en el pantalla angosta cada boton ocupa su propia
+   linea, asi el texto NUNCA se sale del boton (era el caso de "Enviar esta
+   cantidad al cotizador" en el telefono). */
+.row.acciones>*{min-width:150px}
+@media(max-width:560px){ .row.acciones>*{flex:1 1 100%} }
 .btn.ambar{background:var(--ambar);color:var(--carbon)}
 .btn.verde{background:var(--verde);color:#fff}
 .btn.gris{background:#fff;color:var(--carbon);border:1.5px solid var(--borde)}
@@ -185,11 +191,11 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
       </div>
       <label>Observaciones / alcance del trabajo</label>
       <textarea id="q_obs" rows="3" placeholder="Ej.: Incluye retiro de escombros y limpieza final. No incluye cerámica."></textarea>
-      <div class="row" style="margin-top:12px">
+      <div class="row acciones" style="margin-top:12px">
         <button class="btn verde" onclick="enviarWhatsApp()">Enviar por WhatsApp</button>
         <button class="btn" onclick="imprimir()">PDF / Imprimir</button>
       </div>
-      <div class="row" style="margin-top:8px">
+      <div class="row acciones" style="margin-top:8px">
         <button class="btn gris" onclick="guardarCotizacion()">Guardar</button>
         <button class="btn gris" onclick="nuevaCotizacion(true)">Limpiar</button>
       </div>
@@ -219,7 +225,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
       <div class="srch"><input id="k_buscar" placeholder="Buscar partida…" oninput="pintarCatalogo()"></div>
       <div id="k_lista"></div>
       <button class="btn ambar full" style="margin-top:10px" onclick="abrirCatalogo(true)">+ Nueva partida al catálogo</button>
-      <div class="row" style="margin-top:8px">
+      <div class="row acciones" style="margin-top:8px">
         <button class="btn gris" onclick="exportarTodo()">Respaldar datos</button>
         <button class="btn gris" onclick="importarTodo()">Restaurar</button>
       </div>
