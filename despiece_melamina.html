@@ -26,6 +26,29 @@ input:focus,select:focus{outline:none;border-color:var(--ambar);box-shadow:0 0 0
    cantidad al cotizador" en el telefono). */
 .row.acciones>*{min-width:150px}
 @media(max-width:560px){ .row.acciones>*{flex:1 1 100%} }
+/* La tabla de piezas tiene 14 columnas y necesita 802 px: en el telefono no cabe.
+   En pantallas angostas cada pieza se muestra como una tarjeta con sus campos
+   etiquetados, asi no hay que desplazar la tabla de lado para escribir. */
+@media(max-width:620px){
+  #tb{min-width:0;display:block}
+  #tb thead{display:none}
+  #tb tbody{display:block}
+  #tb tr{display:grid;grid-template-columns:1fr 1fr;gap:7px 9px;align-items:end;
+         border:1.5px solid var(--borde);border-radius:11px;padding:10px;margin-bottom:9px;background:#fff}
+  #tb td{display:block;border:0;padding:0;min-width:0;text-align:left}
+  #tb td::before{content:attr(data-l);display:block;font-size:10px;font-weight:700;color:var(--gris);
+                 text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+  #tb td.sin-et::before{content:"";margin:0}
+  #tb td.num{grid-column:1;font-size:12px;color:var(--gris);font-weight:700}
+  #tb td.num::before{content:"PIEZA N.º ";display:inline;margin:0}
+  #tb td.borrar{grid-column:2;text-align:right}
+  #tb td.borrar::before{content:"";margin:0}
+  #tb td.canto input{width:auto;transform:scale(1.25);margin-top:2px}
+  #tb td.vacio{grid-column:1 / -1}
+  #tb td input,#tb td select{font-size:16px}  /* 16 px evita que el telefono haga zoom al escribir */
+  #tb td.n{text-align:left}
+  #tb{overflow:visible}
+}
 .btn.ambar{background:var(--ambar);color:var(--carbon)}.btn.verde{background:var(--verde)}.btn.gris{background:#fff;color:var(--carbon);border:1.5px solid var(--borde)}.btn.rojo{background:#fff;color:var(--rojo);border:1.5px solid #E7C0BA}
 .btn.sm{padding:7px 9px;font-size:13px;border-radius:8px}.btn.full{width:100%}
 table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px}
@@ -53,7 +76,7 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
 </style>
 </head>
 <body>
-<div class="hdr"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones</span></span></div>
+<div class="hdr"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v1.5</span></span></div>
 <div class="wrap">
   <section class="view on" id="v-piezas">
     <div class="card">
@@ -326,25 +349,26 @@ function tab(v,btn){
   if(btn) btn.classList.add("on"); window.scrollTo(0,0);
 }
 function fila(i){
+  var f=filas[i];
   return '<tr>'
-   +'<td class="n">'+(i+1)+'</td>'
-   +'<td><input value="'+esc(filas[i].modulo)+'" oninput="set('+i+',\'modulo\',this.value)"></td>'
-   +'<td><input value="'+esc(filas[i].pieza)+'" oninput="set('+i+',\'pieza\',this.value)"></td>'
-   +'<td><input value="'+esc(filas[i].material)+'" oninput="set('+i+',\'material\',this.value)"></td>'
-   +'<td><input type="number" value="'+filas[i].espesor+'" oninput="set('+i+',\'espesor\',this.value)"></td>'
-   +'<td><input type="number" value="'+filas[i].cant+'" oninput="set('+i+',\'cant\',this.value)"></td>'
-   +'<td><input type="number" value="'+filas[i].largo+'" oninput="set('+i+',\'largo\',this.value)"></td>'
-   +'<td><input type="number" value="'+filas[i].ancho+'" oninput="set('+i+',\'ancho\',this.value)"></td>'
-   +'<td class="n"><input type="checkbox" '+(filas[i].l1?"checked":"")+' onchange="set('+i+',\'l1\',this.checked)"></td>'
-   +'<td class="n"><input type="checkbox" '+(filas[i].l2?"checked":"")+' onchange="set('+i+',\'l2\',this.checked)"></td>'
-   +'<td class="n"><input type="checkbox" '+(filas[i].a1?"checked":"")+' onchange="set('+i+',\'a1\',this.checked)"></td>'
-   +'<td class="n"><input type="checkbox" '+(filas[i].a2?"checked":"")+' onchange="set('+i+',\'a2\',this.checked)"></td>'
-   +'<td class="n"><input type="checkbox" '+(filas[i].veta?"checked":"")+' onchange="set('+i+',\'veta\',this.checked)"></td>'
-   +'<td class="n"><button class="btn rojo sm" onclick="delFila('+i+')">×</button></td></tr>';
+   +'<td class="num">'+(i+1)+'</td>'
+   +'<td data-l="Módulo"><input value="'+esc(f.modulo)+'" oninput="set('+i+',\'modulo\',this.value)"></td>'
+   +'<td data-l="Pieza"><input value="'+esc(f.pieza)+'" oninput="set('+i+',\'pieza\',this.value)"></td>'
+   +'<td data-l="Material"><input value="'+esc(f.material)+'" oninput="set('+i+',\'material\',this.value)"></td>'
+   +'<td data-l="Espesor (mm)"><input type="number" value="'+f.espesor+'" oninput="set('+i+',\'espesor\',this.value)"></td>'
+   +'<td data-l="Cantidad"><input type="number" value="'+f.cant+'" oninput="set('+i+',\'cant\',this.value)"></td>'
+   +'<td data-l="Largo (mm)"><input type="number" value="'+f.largo+'" oninput="set('+i+',\'largo\',this.value)"></td>'
+   +'<td data-l="Ancho (mm)"><input type="number" value="'+f.ancho+'" oninput="set('+i+',\'ancho\',this.value)"></td>'
+   +'<td class="n canto" data-l="Canto L1"><input type="checkbox" '+(f.l1?"checked":"")+' onchange="set('+i+',\'l1\',this.checked)"></td>'
+   +'<td class="n canto" data-l="Canto L2"><input type="checkbox" '+(f.l2?"checked":"")+' onchange="set('+i+',\'l2\',this.checked)"></td>'
+   +'<td class="n canto" data-l="Canto A1"><input type="checkbox" '+(f.a1?"checked":"")+' onchange="set('+i+',\'a1\',this.checked)"></td>'
+   +'<td class="n canto" data-l="Canto A2"><input type="checkbox" '+(f.a2?"checked":"")+' onchange="set('+i+',\'a2\',this.checked)"></td>'
+   +'<td class="n canto" data-l="Veta (no girar)"><input type="checkbox" '+(f.veta?"checked":"")+' onchange="set('+i+',\'veta\',this.checked)"></td>'
+   +'<td class="borrar"><button class="btn rojo sm" onclick="delFila('+i+')">Quitar</button></td></tr>';
 }
 function pintar(){
   if(!filas.length){
-    $("tbod").innerHTML='<tr><td colspan="14" style="text-align:center;color:var(--gris);padding:24px 12px;line-height:1.7">'
+    $("tbod").innerHTML='<tr><td class="vacio" colspan="14" style="text-align:center;color:var(--gris);padding:24px 12px;line-height:1.7">'
       +'<b style="color:var(--carbon);font-size:15px">No hay piezas todavía</b><br>'
       +'Agrega una pieza con el botón de abajo o <b>importa tu despiece desde un archivo CSV</b>.<br>'
       +'<span style="font-size:12px">Si es la primera vez, descarga la plantilla CSV para ver el formato.</span></td></tr>';
