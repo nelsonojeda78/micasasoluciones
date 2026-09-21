@@ -1,6 +1,7 @@
-/* Service worker: permite usar las aplicaciones sin internet.
-   Version 2 — incluye la pagina de inicio y las tres aplicaciones. */
-var CACHE = "mcs-sistema-v2";
+/* Service worker: permite usar las aplicaciones sin internet Y que se actualicen solas.
+   Version 3 — estrategia "red primero" para las paginas: cuando hay internet siempre
+   carga la version mas reciente; sin internet usa la copia guardada. */
+var CACHE = "mcs-sistema-v3";
 var ARCHIVOS = [
   "./", "index.html",
   "cotizador.html", "calculadora_materiales.html", "despiece_melamina.html",
@@ -23,13 +24,31 @@ self.addEventListener("activate", function(e){
 });
 self.addEventListener("fetch", function(e){
   if(e.request.method!=="GET") return;
-  e.respondWith(
-    caches.match(e.request).then(function(r){
-      return r || fetch(e.request).then(function(resp){
-        var copia=resp.clone();
-        caches.open(CACHE).then(function(c){ c.put(e.request,copia); });
+  var url = e.request.url;
+  var esPagina = e.request.mode==="navigate" || /\.html($|\?)/.test(url) || /\/$/.test(url);
+  if(esPagina){
+    /* RED PRIMERO: asi una actualizacion se ve apenas hay internet */
+    e.respondWith(
+      fetch(e.request).then(function(resp){
+        var copia = resp.clone();
+        caches.open(CACHE).then(function(c){ c.put(e.request, copia); });
         return resp;
-      }).catch(function(){ return caches.match("index.html"); });
-    })
-  );
+      }).catch(function(){
+        return caches.match(e.request).then(function(r){
+          return r || caches.match("index.html") || caches.match("calculadora_materiales.html");
+        });
+      })
+    );
+  } else {
+    /* CACHE PRIMERO para iconos y manifiestos: son fijos y cargan mas rapido */
+    e.respondWith(
+      caches.match(e.request).then(function(r){
+        return r || fetch(e.request).then(function(resp){
+          var copia = resp.clone();
+          caches.open(CACHE).then(function(c){ c.put(e.request, copia); });
+          return resp;
+        }).catch(function(){});
+      })
+    );
+  }
 });
