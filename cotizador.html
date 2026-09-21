@@ -58,6 +58,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ambar);b
 .pill{display:inline-block;background:var(--arena);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700;color:var(--gris)}
 .pill.ambar{background:#FFF3D6;color:#8A5E00}
 .pill.verde{background:#E4F3EA;color:var(--verde)}
+.pill.rojo{background:#FBEAE7;color:var(--rojo)}
+.inc{font-size:12px;color:var(--carbon);background:#F7FAF8;border-left:3px solid var(--verde);
+  padding:5px 8px;border-radius:0 7px 7px 0;margin-top:6px;line-height:1.45}
+.exc{font-size:12px;color:#7A4A44;background:#FDF6F5;border-left:3px solid var(--rojo);
+  padding:5px 8px;border-radius:0 7px 7px 0;margin-top:4px;line-height:1.45}
+.desg{background:var(--arena);border-radius:10px;padding:9px 11px;margin-top:8px}
 .tot{display:flex;justify-content:space-between;padding:5px 0;font-size:14.5px;border-bottom:1px dashed var(--borde)}
 .tot.big{font-size:20px;font-weight:900;border-bottom:0;padding-top:9px;color:var(--negro)}
 .hint{font-size:12px;color:var(--gris);margin:6px 0 0}
@@ -110,6 +116,9 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
 #print .tt td{border:0;padding:3px 6px;font-size:10.5px}
 #print .tt tr.b td{border-top:2px solid var(--carbon);font-size:14px;font-weight:900}
 #print .tc{margin-top:10px;font-size:8.8px;line-height:1.5;color:#333}
+#print .pinc{font-size:8.2px;color:#2E5B41;margin-top:2.5px;line-height:1.4}
+#print .pexc{font-size:8.2px;color:#8A4B42;margin-top:1.5px;line-height:1.4}
+#print .tt td.dg{font-size:9.4px;color:#4A4644}
 #print .firma{margin-top:22px;display:flex;gap:26px}
 #print .firma div{flex:1;border-top:1px solid #555;padding-top:3px;font-size:9px;text-align:center}
 #print .foot{margin-top:14px;border-top:2px solid var(--ambar);padding-top:5px;font-size:8.5px;color:var(--gris);text-align:center}
@@ -169,6 +178,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
         <div class="tot"><span>Descuento</span><b id="t_desc">$0.00</b></div>
         <div class="tot"><span>Subtotal neto</span><b id="t_net">$0.00</b></div>
         <div class="tot"><span>IVA</span><b id="t_iva">$0.00</b></div>
+        <div class="desg" id="t_desglose"></div>
         <div class="tot big"><span>TOTAL</span><span id="t_tot">$0.00</span></div>
         <div class="tot"><span>Anticipo a la firma</span><b id="t_ant">$0.00</b></div>
         <div class="tot"><span>Saldo contra entrega</span><b id="t_sal">$0.00</b></div>
@@ -229,6 +239,20 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
       <label>Dirección / ciudad</label><input id="e_dir">
       <label>Datos bancarios para el anticipo</label><input id="e_banco" placeholder="Banco / tipo de cuenta / número / titular">
       <label>Texto predefinido del QR de WhatsApp</label><input id="e_qrtext">
+      <div class="row">
+        <div><label>Gestión y garantía (%)</label><input id="e_gestion" type="number" step="1" min="0" max="40"></div>
+        <div><label>Mostrar el desglose al cliente</label><select id="e_desglose">
+          <option value="1">Sí: material + mano de obra + gestión</option>
+          <option value="0">No: solo el precio de cada partida</option></select></div>
+      </div>
+      <label>Mostrar lo que incluye cada partida</label>
+      <select id="e_incluye">
+        <option value="1">Sí: lista de lo que recibe el cliente</option>
+        <option value="0">No</option>
+      </select>
+      <p class="hint">El porcentaje de gestión y garantía cubre herramienta y su desgaste, consumibles, movilización,
+      imprevistos, la garantía escrita de 12 meses, la factura y la administración. <b>Al cliente se le muestra como una sola
+      línea</b>, sin el detalle de esos porcentajes.</p>
       <hr style="margin:14px 0;border:0;border-top:1px solid var(--borde)">
       <label>Condiciones (una por línea)</label>
       <textarea id="e_cond" rows="6"></textarea>
@@ -280,6 +304,9 @@ const EMPRESA_DEF = {
   dir:"La Libertad – Salinas, Santa Elena, Ecuador",
   banco:"",
   garantia:12,
+  gestion:10,
+  desglose:true,
+  incluye:true,
   qrtext:"Hola, quiero realizar una cotización. Vengo de su tarjeta.",
   cond:[
     "Precio cerrado por escrito. Todo trabajo adicional se cotiza y aprueba antes de ejecutarse.",
@@ -414,10 +441,10 @@ const CATALOGO_DEF = [
  ["MAT-30","Caja rectangular para tomas e interruptores (unidad)","unidad",0,"Materiales"],
  ["MAT-31","Curva, copla y abrazaderas para conduit (unidad)","unidad",0,"Materiales"],
  // ===== MANO DE OBRA POR JORNAL =====
- ["MO-01","Jornal de maestro (8 horas)","jornal",117,"Mano de obra"],
- ["MO-02","Jornal de ayudante (8 horas)","jornal",104,"Mano de obra"],
- ["MO-03","Hora de maestro","hora",14.61,"Mano de obra"],
- ["MO-04","Hora de ayudante","hora",13.02,"Mano de obra"],
+ ["MO-01","Jornal de maestro (8 horas) — uso interno","jornal",70,"Mano de obra"],
+ ["MO-02","Jornal de ayudante (8 horas) — uso interno","jornal",62,"Mano de obra"],
+ ["MO-03","Hora de maestro — uso interno","hora",8.77,"Mano de obra"],
+ ["MO-04","Hora de ayudante — uso interno","hora",7.81,"Mano de obra"],
  ["MO-05","Recargo por trabajo nocturno, domingo o feriado (30 %)","servicio",0,"Mano de obra"],
  ["MO-06","Movilización fuera de La Libertad y Salinas","servicio",15,"Mano de obra"],
  // ===== SERVICIOS Y CONTRATOS =====
@@ -428,6 +455,138 @@ const CATALOGO_DEF = [
  ["SER-05","Informe técnico con fotos y recomendaciones","servicio",35,"Servicios"],
  ["SER-06","Trabajo mínimo de movilización","servicio",25,"Servicios"]
 ].map(function(r){return {codigo:r[0],descripcion:r[1],unidad:r[2],precio:r[3],capitulo:r[4]};});
+
+/* ---------- Detalle de cada partida ----------
+   Formato: codigo | material incluido (USD) | lo que INCLUYE | lo que NO incluye
+   El material es lo que pone Mi Casa Soluciones. Si el cliente compra el material
+   principal (grifería, sanitario, cerámica), ese valor no se cuenta y se aclara
+   en la columna de "no incluye". */
+const DETALLE_TXT = `
+AGU-01|0|Visita al sitio, revisión del problema con el cliente, detección de la falla y presupuesto por escrito.|Trabajos correctivos: se cotizan aparte y se aprueban antes de empezar.
+AGU-02|12|Localización de la fuga, corte del tramo dañado, tubería y accesorios de reposición hasta 1 m, sellado, prueba de presión y limpieza.|Rotura de losa o de muro de hormigón estructural y reposición de cerámica o acabado.
+AGU-03|22|Tubería PPR de 1/2", codos, tees y uniones, termofusión, fijación a la pared, prueba de presión y limpieza.|La grifería o accesorios de salida si los compra el cliente, y la obra civil de picado.
+AGU-04|28|Tubería PPR de 3/4", accesorios, termofusión, fijación, prueba de presión y limpieza.|La grifería y la obra civil de picado y resane.
+AGU-05|9|Tubería nueva del diámetro existente, accesorios, picado del tramo dañado y resane con mortero.|Reposición de cerámica, pintura del área y albañilería mayor.
+AGU-06|4|Desmontaje de la grifería vieja, teflón o sellador, empaques, instalación y prueba de fugas.|La grifería nueva: la puede comprar el cliente.
+AGU-07|8|Desmontaje del aparato viejo, sello, empaques, instalación, conexión de agua y prueba.|El inodoro o lavamanos nuevo y la reposición de cerámica.
+AGU-08|2|Sonda o máquina destapadora, retiro de residuos, prueba de flujo y limpieza del área.|La reparación de la tubería rota, si aparece al destapar.
+AGU-09|5|Sonda, apertura y limpieza de la caja de revisión, retiro de residuos y prueba de flujo.|El cambio de la tubería principal, si está colapsada.
+AGU-10|12|Soporte, conexiones, sellado, purga y prueba de funcionamiento.|El calentador y el punto eléctrico si no existe (se cotiza en Mi Casa Luz).
+AGU-11|18|Base o soporte, conexiones de succión y descarga, cebado, regulación y prueba.|La bomba y el tablero eléctrico de protección.
+AGU-12|10|Instalación del tanque, flotador, conexiones y regulación del nivel.|El tanque y sus accesorios si los compra el cliente.
+AGU-13|16|Limpieza del área, sellador o mortero impermeabilizante, aplicación en dos capas y prueba con agua.|La reparación de la causa estructural de la filtración y la pintura final.
+AGU-14|8|Revisión del medidor y la acometida, cambio de accesorios dañados, sellado y prueba.|Trámites y tasas ante la empresa de agua potable.
+LUZ-01|0|Revisión con multímetro y pinza amperimétrica, identificación de la falla y presupuesto por escrito.|Los trabajos de reparación, que se cotizan aparte.
+LUZ-02|6|Cable THHN del calibre necesario, caja rectangular, tomacorriente o interruptor, placa, tubería, conectores y pruebas.|Obra civil de picado y resane y la reposición de acabados.
+LUZ-03|7|Cable, caja octogonal, plafón, foco o luminaria básica, tubería, conexión y prueba.|Luminarias decorativas o especiales que elija el cliente.
+LUZ-04|0|Retiro de la luminaria vieja, conexión, fijación y prueba; la luminaria la compra el cliente.|La luminaria nueva.
+LUZ-05|45|Tablero, breakers, cableado de entrada y salida, rotulado de circuitos, ajuste y prueba.|La acometida desde el medidor y los trámites con la empresa eléctrica.
+LUZ-06|9|Breaker nuevo, ajuste en el tablero, revisión del circuito y prueba.|La reparación de la falla que provocó el disparo (se diagnostica aparte).
+LUZ-07|22|Varilla de cobre, cable verde, conectores, medición de resistencia y conexión al tablero.|Obra civil y la revisión completa de la instalación.
+LUZ-08|60|Cableado de acometida, ducto, caja del medidor, sellado y gestión de la inspección.|Tasas y derechos de la empresa eléctrica y el medidor.
+LUZ-09|12|Cable UTP o coaxial, conectores, canaleta o tubería, conectorizado y prueba de continuidad.|El módem, router y equipos de red.
+LUZ-10|25|Sensor o relé, cableado, configuración y prueba de funcionamiento.|Equipos inteligentes adicionales y la red wifi del cliente.
+LUZ-11|5|Atención prioritaria, diagnóstico, corte del circuito en falla y reparación provisional segura.|La reparación definitiva, que se cotiza después del diagnóstico.
+LUZ-12|12|Circuito dedicado, cable, tubería, protecciones y prueba; el equipo lo compra el cliente.|El extractor, la bomba o el equipo que se va a conectar.
+LUZ-13|0|Cable THHN nuevo del calibre indicado, tendido por el ducto existente y prueba.|Rotura de paredes y trabajos de albañilería.
+MET-01|6|Equipo de soldadura, electrodos, corte, ajuste en sitio y prueba de resistencia.|Pintura de acabado y trabajos de albañilería.
+MET-02|22|Perfil de hierro, corte, armado, soldadura, anclaje y anticorrosivo.|Pintura de acabado (se cotiza en Mi Casa Color).
+MET-03|55|Perfil, marco, bisagras, cerradura básica, soldadura, anclaje y ajuste.|Pintura de acabado y el vidrio o la malla si lleva.
+MET-04|16|Perfil, corte, soldadura, anclaje a la pared y prueba de rigidez.|Pintura de acabado.
+MET-05|20|Perfil estructural, corte, soldadura, anclaje y anticorrosivo.|La cubierta (policarbonato, chapa o teja) y la pintura.
+MET-06|95|Estructura, rieles, ruedas, topes, soldadura, anclaje y ajuste del recorrido.|La automatización con motor y la pintura de acabado.
+MET-07|8|Placa, pernos, soldadura y anclaje según el refuerzo requerido.|El cálculo estructural, si el trabajo lo requiere.
+MET-08|6|Corte, soldadura, ajuste y prueba en el sitio.|Pintura y repuestos que no sean metálicos.
+MET-09|3|Equipo, electrodos, gas y consumibles por hora de soldador.|El material a soldar y la pintura de acabado.
+DIS-01|0|Levantamiento de medidas, propuesta de distribución y de materiales, y presupuesto por rubros por escrito.|La ejecución de la obra. Si no se contrata, la asesoría se cobra como servicio.
+DIS-02|420|Demolición, instalaciones de agua y desagüe, puntos eléctricos, cerámica, grifería, sanitarios, muebles y pintura, con limpieza final.|Electrodomésticos, espejos y accesorios decorativos.
+DIS-03|520|Demolición, instalaciones, mesón, muebles, cerámica, pintura y limpieza final.|Electrodomésticos y el mesón de piedra natural si se elige.
+DIS-04|95|Melamina o MDF, herrajes (bisagras, correderas y jaladores), corte, canteado, armado e instalación.|Espejos, iluminación interior y accesorios decorativos.
+DIS-05|110|Estructura en melamina o MDF, puertas, herrajes, mesón básico, armado e instalación.|El mesón de granito o cuarzo y los electrodomésticos.
+DIS-06|8|Retiro del piso viejo, nivelación con mortero, adhesivo, fragua y colocación.|La cerámica o porcelanato: lo puede comprar el cliente.
+DIS-07|4|Picado, resane con mortero, masillado y lijado de la zona dañada.|La pintura final del área.
+DIS-08|15|Cálculo de la iluminación, cableado, puntos, luminarias básicas y prueba.|Luminarias decorativas especiales.
+DIS-09|0|Propuesta de color, materiales, textiles y mobiliario, con muestra y plano del ambiente.|La compra del mobiliario y los materiales decorativos.
+DIS-10|7|Adhesivo, fragua, cortes, nivelación y colocación en pared.|La cerámica, que la puede comprar el cliente.
+COL-01|1.3|Protección de pisos y muebles, preparación de la superficie, pintura en 1 a 2 manos, materiales y limpieza final.|La reparación de grietas profundas y de la humedad (se cotiza en Mi Casa Diseño).
+COL-02|1.9|Masillado, lijado, estucado, dos manos de pintura, materiales y limpieza final.|La reparación de humedad o filtraciones.
+COL-03|2.2|Limpieza de la fachada, sellador, dos manos de pintura para exteriores y andamio básico.|Los trabajos en altura que requieran andamio certificado.
+COL-04|1.5|Protección del área, preparación, pintura del cielo raso, materiales y limpieza.|La reparación de la estructura del cielo raso.
+COL-05|2.5|Limpieza, lijado, anticorrosivo, esmalte y limpieza final.|Los trabajos de soldadura o el cambio de la pieza.
+COL-06|4.5|Preparación de la pared, adhesivo, papel o revestimiento y colocación.|El papel o revestimiento decorativo, que lo elige el cliente.
+COL-07|4|Preparación, base, textura y sellado.|Diseños especiales con plantilla.
+COL-08|3.5|Limpieza con hidrolavadora, resane, sellado y pintura de la fachada.|La reparación estructural de la fachada.
+COL-09|2|Demarcación, pintura especial para piso deportivo y líneas.|La nivelación del piso.
+COL-10|2.6|Limpieza, lijado, anticorrosivo y esmalte de la estructura metálica.|La reparación de la estructura (soldadura).
+GYP-01|8.5|Perfilería, planchas de gypsum, tornillería, masillado de juntas, lijado y limpieza.|La pintura final (se cotiza en Mi Casa Color) y la iluminación.
+GYP-02|12|Estructura reforzada, planchas, masillado, lijado y diseño de niveles o islas.|La iluminación embutida y la pintura final.
+GYP-03|8|Estructura, plancha por una cara, masillado y lijado.|El aislante acústico y la pintura.
+GYP-04|14|Estructura, planchas por las dos caras, lana de vidrio, masillado y lijado.|La pintura de ambas caras.
+GYP-05|15|Perfilería de acero, refuerzos, planchas, masillado y lijado.|La pintura y las estructuras de soporte de cubierta.
+GYP-06|2|Perfil de cornisa, masillado, lijado y acabado.|La pintura final.
+GYP-07|30|Estructura, planchas, masillado, lijado y refuerzo para el equipo.|El aire acondicionado y su instalación eléctrica.
+GYP-08|9|Retiro de la plancha dañada, revisión de la causa, plancha nueva, masillado y lijado.|La reparación de la filtración que causó el daño y la pintura.
+GYP-09|22|Marco, tapa de registro, bisagras y acabado.|La pintura.
+ALB-01|0|Herramienta, retiro del material excavado y limpieza del área.|La eliminación del material (se cotiza aparte) y las obras de contención.
+ALB-02|3|Material de sitio o de préstamo, tendido por capas, compactado y nivelado.|El material de préstamo si hay que traerlo de fuera.
+ALB-03|0|Carga, transporte y descarga del material excedente en el botadero.|Las tasas del botadero municipal.
+ALB-04|0|Herramienta, demolición del muro y retiro del escombro.|La reconstrucción del muro y la eliminación del material.
+ALB-05|0|Herramienta, corte y demolición del piso de hormigón.|El retiro del escombro y la nivelación posterior.
+ALB-06|7|Bloque o ladrillo, mortero de asentado, nivelado, plomada y limpieza.|El tarrajeo (se cotiza aparte) y los refuerzos estructurales.
+ALB-07|2.5|Cemento, arena, agua, aplicación del mortero, nivelado y curado.|La pintura y los resanes profundos.
+ALB-08|3|Cemento, arena, aplicación en cielo raso y curado.|Los trabajos en altura con andamio certificado.
+ALB-09|5|Hormigón simple, nivelación, curado y limpieza.|La cerámica o el piso final.
+ALB-10|95|Cemento, arena, piedra, agua, vaciado, vibrado, curado y encofrado básico.|El acero de refuerzo (se cotiza aparte) y el diseño estructural.
+ALB-11|6|Madera o tablero, puntales, armado, desencofrado y limpieza.|El alquiler de andamios o de encofrado metálico especial.
+ALB-12|1.4|Acero de refuerzo, corte, doblado, amarre y colocación.|El cálculo estructural y los ensayos de laboratorio.
+ALB-13|105|Hormigón, encofrado, acero, vaciado, curado y acabado de peldaños.|El pasamanos y los acabados del piso.
+ALB-14|1|Mortero, herramienta y acabado de filos, bruñas y remates.|Los trabajos de ornamentación especial.
+MAT-01|0|Saco de cemento Portland de 50 kg, producto nuevo de marca conocida, entregado en obra.|El transporte fuera de La Libertad y Salinas.
+MAT-02|0|Arena gruesa o fina de cantera, medida en metros cúbicos y entregada en obra.|El transporte fuera de La Libertad y Salinas.
+MAT-03|0|Piedra chancada o ripio, medido en metros cúbicos y entregado en obra.|El transporte fuera de La Libertad y Salinas.
+MAT-04|0|Bloque de hormigón de 15x20x40 cm, producto nuevo, entregado en obra.|El transporte fuera de La Libertad y Salinas.
+MAT-05|0|Ladrillo de arcilla, producto nuevo, entregado en obra.|El transporte fuera de La Libertad y Salinas.
+MAT-06|0|Tubería PVC de desagüe de 2" o 3", con sus uniones, entregada en obra.|Los accesorios especiales que se pidan aparte.
+MAT-07|0|Tubería y accesorios PPR de termofusión de 1/2", entregados en obra.|Los accesorios de otros diámetros.
+MAT-08|0|Cable THHN de 12 AWG, entregado en obra.|El cableado de otros calibres.
+MAT-09|0|Plancha de gypsum de 1,20 x 2,40 x 12,5 mm, entregada en obra.|La perfilería y la tornillería.
+MAT-10|0|Perfilería de steel framing (paral y canal), entregada en obra.|Los refuerzos estructurales especiales.
+MAT-11|0|Pintura interior en balde de 4 litros o cubeta, entregada en obra.|El sellador y la masilla.
+MAT-12|0|Masilla, cinta y lija para gypsum, entregadas en obra.|Las planchas y la perfilería.
+MAT-13|5|Entrega de los materiales en la obra, dentro de La Libertad y Salinas.|La entrega fuera de la zona, que se cotiza según la distancia.
+MAT-14|0|Tubería PPR de termofusión de 1/2", entregada en obra.|Los accesorios de termofusión.
+MAT-15|0|Tubería PPR de termofusión de 3/4", entregada en obra.|Los accesorios de termofusión.
+MAT-16|0|Tubería PVC de presión de 1/2", entregada en obra.|Los accesorios roscables.
+MAT-17|0|Tubería PVC de desagüe de 2", entregada en obra.|Los accesorios y el pegamento.
+MAT-18|0|Tubería PVC de desagüe de 3", entregada en obra.|Los accesorios y el pegamento.
+MAT-19|0|Tubería PVC de desagüe de 4", entregada en obra.|Los accesorios y el pegamento.
+MAT-20|0|Codos, tees y uniones de PPR para termofusión, entregados en obra.|Las llaves de paso y las transiciones a otro material.
+MAT-21|0|Codos, yees y reducciones de PVC, entregados en obra.|El pegamento y la limpieza del área.
+MAT-22|0|Pegamento PVC en envase de 125 cc, entregado en obra.|El teflón y el sellador de roscas.
+MAT-23|0|Teflón o sellador para roscas, entregado en obra.|El pegamento para PVC.
+MAT-24|0|Llave de paso del diámetro requerido, entregada en obra.|Su instalación, que se cotiza como punto de agua.
+MAT-25|0|Trampa o sifón del diámetro requerido, entregado en obra.|Su instalación, que se cotiza como punto de desagüe.
+MAT-26|0|Caja de revisión de hormigón o plástico, entregada en obra.|La excavación y la conexión a la red.
+MAT-27|0|Tubería conduit PVC eléctrico de 3/4", entregada en obra.|Los accesorios y las cajas.
+MAT-28|0|Tubería EMT metálica de 1/2" o 3/4", entregada en obra.|Los accesorios y las cajas.
+MAT-29|0|Caja octogonal para alumbrado, entregada en obra.|Su instalación y el cableado.
+MAT-30|0|Caja rectangular para tomas e interruptores, entregada en obra.|Su instalación y el cableado.
+MAT-31|0|Curvas, coplas y abrazaderas para conduit, entregadas en obra.|La tubería y las cajas.
+MO-01|0|Jornal de 8 horas de maestro, con su herramienta básica.|Uso interno para trabajos por día. No se muestra al cliente como rubro.
+MO-02|0|Jornal de 8 horas de ayudante, con su herramienta básica.|Uso interno para trabajos por día. No se muestra al cliente como rubro.
+MO-03|0|Una hora de maestro, con su herramienta básica.|Uso interno para diagnosticos y trabajos de alcance incierto.
+MO-04|0|Una hora de ayudante, con su herramienta básica.|Uso interno para trabajos por hora.
+MO-05|0|Recargo por trabajar de noche, en domingo o en feriado, avisado antes de empezar.|El recargo se aplica solo si el cliente lo aprueba por escrito.
+MO-06|0|Movilización de la cuadrilla y la herramienta fuera de La Libertad y Salinas.|Los viáticos si el trabajo requiere pernoctar.
+SER-01|0|Dos visitas al mes de inspección de áreas comunes (bombas, tablero, fugas, iluminación y pintura), informe con fotos y atención de urgencias en 24 horas.|Los materiales y la mano de obra de las reparaciones, que se cotizan aparte.
+SER-02|0|Cuatro visitas al mes, informe con fotos, atención de urgencias en 24 horas y 10 % de descuento en trabajos adicionales.|Los materiales de las reparaciones.
+SER-03|0|Visitas semanales, informe con fotos, respuesta en 24 horas, prioridad de agenda y 15 % de descuento en trabajos adicionales.|Los materiales de las reparaciones.
+SER-04|0|Revisión mensual del departamento entre huéspedes: fugas, tomacorrientes, grifería, cerraduras y pintura, con informe y fotos.|Los materiales y las reparaciones.
+SER-05|0|Visita técnica, informe escrito con fotos, lista de trabajos recomendados por prioridad y presupuesto estimado.|La ejecución de los trabajos.
+SER-06|0|Movilización y mano de obra de un trabajo mínimo de hasta una hora, dentro de La Libertad y Salinas.|Los trabajos que superen la hora y el material.
+`;
+const DETALLE = parsearDetalle(DETALLE_TXT);
+const CATALOGO_VERSION = 2;
 
 /* =====================================================================
    MOTOR DE CÁLCULO (funciones puras — no dependen de la interfaz)
@@ -480,6 +639,13 @@ function textoWhatsApp(cot, emp){
   });
   L.push("");
   if(t.descuento>0) L.push("Subtotal: " + money(t.subtotal) + "  |  Descuento: -" + money(t.descuento));
+  if(emp.desglose){
+    var rp=repartoCotizacion(cot.items, emp.gestion);
+    if(rp.material>0) L.push("Materiales: " + money(rp.material));
+    if(rp.manoObra>0) L.push("Mano de obra: " + money(rp.manoObra));
+    if(rp.gestion>0) L.push("Gestión, garantía y respaldo: " + money(rp.gestion));
+    L.push("");
+  }
   if(t.iva>0) L.push("IVA: " + money(t.iva));
   L.push("*TOTAL: " + money(t.total) + "*");
   L.push("Anticipo (" + cot.anticipo + "%): " + money(t.anticipo));
@@ -491,6 +657,65 @@ function textoWhatsApp(cot, emp){
   L.push("");
   L.push("WhatsApp: +" + emp.tel);
   return L.join("\n");
+}
+
+/* ===== Reparto de una partida: material + mano de obra + gestion y garantia =====
+   El precio de la partida NO cambia: se descompone.
+   - Partidas de MATERIALES: todo es material.
+   - Partidas de MANO DE OBRA (uso interno): todo es mano de obra.
+   - Partidas de servicio: material segun el detalle; la mano de obra es el resto
+     despues de apartar el porcentaje de gestion y garantia. */
+function parsearDetalle(txt){
+  var out={};
+  String(txt||"").split("\n").forEach(function(l){
+    l=l.trim(); if(!l) return;
+    var p=l.split("|"); if(p.length<4) return;
+    out[p[0].trim()]={mat:Number(p[1])||0, incl:p[2].trim(), no:p[3].trim()};
+  });
+  return out;
+}
+function esMaterial(p){ return !!p && p.capitulo==="Materiales"; }
+function esInterno(p){ return !!p && p.capitulo==="Mano de obra"; }
+function materialDe(p, gestionPct){
+  if(!p) return 0;
+  if(esMaterial(p)) return Number(p.precio)||0;
+  if(esInterno(p)) return 0;
+  return Math.min(Number(p.mat)||0, Number(p.precio)||0);
+}
+function reparto(p, gestionPct){
+  var precio=Number(p&&p.precio)||0, g=(Number(gestionPct)||0)/100;
+  if(esMaterial(p)) return {material:precio, manoObra:0, gestion:0, total:precio};
+  if(esInterno(p))  return {material:0, manoObra:precio, gestion:0, total:precio};
+  var mat=materialDe(p,gestionPct);
+  var mo=r2(precio/(1+g)-mat);
+  if(mo<0) mo=0;
+  var ges=r2(precio-mat-mo);
+  return {material:mat, manoObra:mo, gestion:ges, total:precio};
+}
+function repartoCotizacion(items, gestionPct){
+  var t={material:0,manoObra:0,gestion:0,total:0};
+  (items||[]).forEach(function(it){
+    var r=reparto(it,gestionPct);
+    var c=(it.cantidad===undefined? 1 : (Number(it.cantidad)||0));
+    t.material+=r.material*c; t.manoObra+=r.manoObra*c; t.gestion+=r.gestion*c; t.total+=r.total*c;
+  });
+  t.material=r2(t.material); t.manoObra=r2(t.manoObra); t.gestion=r2(t.gestion); t.total=r2(t.total);
+  return t;
+}
+/* Agrega a cada partida del catalogo su detalle y su material */
+function enriquecerCatalogo(lista){
+  var cambiado=false;
+  (lista||[]).forEach(function(p){
+    var d=DETALLE[p.codigo]||{};
+    if(p.v!==CATALOGO_VERSION){
+      if(!esMaterial(p)) p.mat = (d.mat!==undefined? d.mat : (Number(p.mat)||0));
+      p.incl = d.incl || p.incl || "";
+      p.no   = d.no   || p.no   || "";
+      p.v = CATALOGO_VERSION;
+      cambiado=true;
+    }
+  });
+  return cambiado;
 }
 //==ENGINE-END==
 
@@ -504,6 +729,9 @@ var catalogo = LS.get("catalogo", null) || JSON.parse(JSON.stringify(CATALOGO_DE
 var clientes = LS.get("clientes", []) || [];
 var cotizaciones = LS.get("cotizaciones", []) || [];
 var contador = LS.get("contador", 0) || 0;
+/* Completa el detalle (material, incluye, no incluye) en las partidas que vengan
+   de un catalogo guardado antes de esta version */
+if(enriquecerCatalogo(catalogo)) LS.set("catalogo", catalogo);
 var q = null;           // cotización en edición
 var filtroCat = "Todas";
 </script>
@@ -595,6 +823,8 @@ function pintarItems(){
       +  '<div class="nm">'+esc(it.descripcion)+'</div>'
       +  '<div class="meta">'+esc(it.codigo||"libre")+' · '+esc(it.unidad)+' · '+money(it.precio)+' por '+esc(it.unidad)
       +    (it.detalle? ' · '+esc(it.detalle):'') + '</div>'
+      +  (emp.incluye && it.incl ? '<div class="inc"><b>Incluye:</b> '+esc(it.incl)+'</div>' : '')
+      +  (emp.incluye && it.no ? '<div class="exc"><b>No incluye:</b> '+esc(it.no)+'</div>' : '')
       +  '<div class="cant">'
       +    '<button class="btn gris sm" onclick="paso('+i+',-1)">–</button>'
       +    '<input type="number" step="0.01" min="0" value="'+it.cantidad+'" oninput="setCant('+i+',this.value)">'
@@ -630,6 +860,17 @@ function calc(){
   $("t_tot").textContent=money(t.total);
   $("t_ant").textContent=money(t.anticipo)+"  ("+q.anticipo+"%)";
   $("t_sal").textContent=money(t.saldo);
+  /* Desglose transparente: material + mano de obra + gestion y garantia */
+  var rp=repartoCotizacion(q.items, emp.gestion);
+  var dg=$("t_desglose");
+  if(dg){
+    dg.innerHTML = emp.desglose ? (
+        '<div class="tot"><span>Materiales</span><b>'+money(rp.material)+'</b></div>'
+      + '<div class="tot"><span>Mano de obra</span><b>'+money(rp.manoObra)+'</b></div>'
+      + '<div class="tot" style="border-bottom:0"><span>Gestión, garantía y respaldo ('+ (Number(emp.gestion)||0) +' %)</span><b>'+money(rp.gestion)+'</b></div>'
+      + '<div class="hint" style="margin-top:4px">El total no cambia: solo se muestra de qué está hecho el precio.</div>'
+    ) : '';
+  }
 }
 
 /* ---------------- Modales ---------------- */
@@ -658,7 +899,7 @@ function pintarListaCat(alta){
     if(s && (p.descripcion+" "+p.codigo).toLowerCase().indexOf(s)<0) return;
     n++;
     h+='<div class="li" onclick="'+(alta?("formPartida('"+p.codigo+"')"):("addPartida('"+p.codigo+"')"))+'">'
-      + '<div><div class="d">'+esc(p.descripcion)+'</div><div class="c">'+esc(p.codigo)+' · '+esc(p.capitulo)+'</div></div>'
+      + '<div><div class="d">'+esc(p.descripcion)+(esInterno(p)?' <span class="pill ambar">uso interno</span>':'')+'</div><div class="c">'+esc(p.codigo)+' · '+esc(p.capitulo)+'</div></div>'
       + '<div class="p">'+money(p.precio)+'<div class="c" style="text-align:right">/'+esc(p.unidad)+'</div></div></div>';
   });
   $("m_lista").innerHTML = n? h : '<div class="empty">Sin resultados.</div>';
@@ -666,7 +907,8 @@ function pintarListaCat(alta){
 function addPartida(cod){
   var p=null; catalogo.forEach(function(x){ if(x.codigo===cod) p=x; });
   if(!p) return;
-  q.items.push({codigo:p.codigo,descripcion:p.descripcion,unidad:p.unidad,cantidad:1,precio:p.precio,capitulo:p.capitulo});
+  q.items.push({codigo:p.codigo,descripcion:p.descripcion,unidad:p.unidad,cantidad:1,precio:p.precio,
+                capitulo:p.capitulo,mat:p.mat,incl:p.incl,no:p.no});
   cerrarModal(); pintarItems(); calc();
   aviso("Partida agregada. Ajusta la cantidad con las medidas de la obra.","ok");
 }
@@ -675,30 +917,38 @@ function agregarLibre(){
    +'<label>Descripción del trabajo</label><input id="f_d" placeholder="Ej.: Cambio de tubería en baño principal">'
    +'<div class="row"><div><label>Unidad</label><select id="f_u"><option>servicio</option><option>m2</option><option>m3</option><option>m</option><option>punto</option><option>unidad</option><option>hora</option><option>jornal</option><option>global</option><option>mes</option></select></div>'
    +'<div><label>Cantidad</label><input id="f_c" type="number" step="0.01" value="1"></div></div>'
-   +'<label>Precio unitario (USD)</label><input id="f_p" type="number" step="0.01" value="0">'
+   +'<div class="row"><div><label>Precio unitario (USD)</label><input id="f_p" type="number" step="0.01" value="0"></div>'
+   +'<div><label>Material incluido (USD)</label><input id="f_m" type="number" step="0.01" value="0"></div></div>'
    +'<div class="row" style="margin-top:12px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button>'
    +'<button class="btn ambar" onclick="guardarLibre()">Agregar</button></div>');
 }
 function guardarLibre(){
   var d=$("f_d").value.trim(); if(!d){ aviso("Escribe la descripción.","err"); return; }
-  q.items.push({codigo:"",descripcion:d,unidad:$("f_u").value,cantidad:Number($("f_c").value)||1,precio:Number($("f_p").value)||0,capitulo:"Otras"});
+  q.items.push({codigo:"",descripcion:d,unidad:$("f_u").value,cantidad:Number($("f_c").value)||1,
+                precio:Number($("f_p").value)||0,capitulo:"Otras",mat:Number($("f_m").value)||0,incl:"",no:""});
   cerrarModal(); pintarItems(); calc();
 }
 function formPartida(cod){
   var p = cod? catalogo.filter(function(x){return x.codigo===cod;})[0] : {codigo:"",descripcion:"",unidad:"unidad",precio:0,capitulo:filtroCat==="Todas"?"Otras":filtroCat};
+  var mo=reparto(p, emp.gestion).manoObra;
   abrirModal('<h2>'+(cod?"Editar partida":"Nueva partida del catálogo")+'</h2>'
    +'<label>Código</label><input id="p_c" value="'+esc(p.codigo)+'">'
    +'<label>Descripción</label><input id="p_d" value="'+esc(p.descripcion)+'">'
    +'<div class="row"><div><label>Unidad</label><input id="p_u" value="'+esc(p.unidad)+'"></div>'
    +'<div><label>Precio (USD)</label><input id="p_p" type="number" step="0.01" value="'+p.precio+'"></div></div>'
    +'<label>Capítulo</label><input id="p_k" value="'+esc(p.capitulo)+'">'
+   +'<div class="row"><div><label>Material incluido (USD)</label><input id="p_m" type="number" step="0.01" value="'+(esMaterial(p)?p.precio:(p.mat||0))+'" '+(esMaterial(p)?'readonly':'')+'></div>'
+   +'<div><label>Mano de obra + gestión (calculado)</label><input id="p_mo" value="'+mo.toFixed(2)+'" readonly></div></div>'
+   +'<label>Lo que INCLUYE (se imprime en la cotización)</label><textarea id="p_i" rows="2">'+esc(p.incl||"")+'</textarea>'
+   +'<label>Lo que NO incluye</label><textarea id="p_n" rows="2">'+esc(p.no||"")+'</textarea>'
    +'<div class="row" style="margin-top:12px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button>'
    +'<button class="btn ambar" onclick="guardarPartida('+(cod?"'"+cod+"'":"null")+')">Guardar</button></div>'
    +(cod?'<button class="btn rojo full" style="margin-top:8px" onclick="borrarPartida(\''+cod+'\')">Eliminar del catálogo</button>':''));
 }
 function guardarPartida(orig){
   var o={codigo:$("p_c").value.trim(),descripcion:$("p_d").value.trim(),unidad:$("p_u").value.trim()||"unidad",
-         precio:Number($("p_p").value)||0,capitulo:$("p_k").value.trim()||"Otras"};
+         precio:Number($("p_p").value)||0,capitulo:$("p_k").value.trim()||"Otras",
+         mat:Number($("p_m").value)||0, incl:$("p_i").value.trim(), no:$("p_n").value.trim(), v:CATALOGO_VERSION};
   if(!o.descripcion){ aviso("La descripción es obligatoria.","err"); return; }
   if(orig){ catalogo = catalogo.map(function(x){ return x.codigo===orig? o : x; }); }
   else { catalogo.push(o); }
@@ -824,6 +1074,9 @@ function pintarEmpresa(){
   $("e_tel").value=emp.tel||""; $("e_mail").value=emp.mail||""; $("e_dir").value=emp.dir||"";
   $("e_banco").value=emp.banco||""; $("e_qrtext").value=emp.qrtext||"";
   $("e_cond").value=(emp.cond||[]).join("\n");
+  $("e_gestion").value=(emp.gestion===undefined?10:emp.gestion);
+  $("e_desglose").value=emp.desglose===false?"0":"1";
+  $("e_incluye").value=emp.incluye===false?"0":"1";
 }
 function guardarEmpresa(){
   emp.nombre=$("e_nombre").value.trim()||"Mi Casa Soluciones";
@@ -832,6 +1085,9 @@ function guardarEmpresa(){
   emp.mail=$("e_mail").value.trim(); emp.dir=$("e_dir").value.trim(); emp.banco=$("e_banco").value.trim();
   emp.qrtext=$("e_qrtext").value.trim();
   emp.cond=$("e_cond").value.split("\n").filter(function(x){return x.trim();});
+  emp.gestion=Number($("e_gestion").value); if(isNaN(emp.gestion)) emp.gestion=10;
+  emp.desglose=$("e_desglose").value==="1";
+  emp.incluye=$("e_incluye").value==="1";
   LS.set("empresa",emp); aviso("Datos de la empresa guardados.","ok");
 }
 function restaurarDemo(){
@@ -877,10 +1133,14 @@ function enviarWhatsApp(){
 function imprimir(){ calc(); pintarPrint(); window.print(); }
 function pintarPrint(){
   var t=calcTotales(q.items,q.descuento,q.iva,q.anticipo);
+  var rp=repartoCotizacion(q.items, emp.gestion);
   var anio=new Date().getFullYear();
   var filas="";
   q.items.forEach(function(it,i){
-    filas+='<tr><td class="c">'+(i+1)+'</td><td>'+esc(it.descripcion)+(it.detalle?' <i>('+esc(it.detalle)+')</i>':'')+'</td>'
+    filas+='<tr><td class="c">'+(i+1)+'</td><td>'+esc(it.descripcion)+(it.detalle?' <i>('+esc(it.detalle)+')</i>':'')
+      +(emp.incluye && it.incl? '<div class="pinc"><b>Incluye:</b> '+esc(it.incl)+'</div>':'')
+      +(emp.incluye && it.no? '<div class="pexc"><b>No incluye:</b> '+esc(it.no)+'</div>':'')
+      +'</td>'
       +'<td class="c">'+esc(it.unidad)+'</td><td class="n">'+it.cantidad+'</td>'
       +'<td class="n">'+money(it.precio)+'</td><td class="n">'+money((Number(it.cantidad)||0)*(Number(it.precio)||0))+'</td></tr>';
   });
@@ -901,7 +1161,12 @@ function pintarPrint(){
    +'<th class="n" style="width:48px">Cant.</th><th class="n" style="width:62px">V. Unit.</th><th class="n" style="width:70px">V. Total</th></tr></thead>'
    +'<tbody>'+filas+'</tbody></table>'
    +'<div class="tt"><table>'
-   +'<tr><td>Subtotal</td><td class="n">'+money(t.subtotal)+'</td></tr>'
+   +(emp.desglose ? (
+        '<tr><td class="dg">Materiales</td><td class="n dg">'+money(rp.material)+'</td></tr>'
+      + '<tr><td class="dg">Mano de obra</td><td class="n dg">'+money(rp.manoObra)+'</td></tr>'
+      + '<tr><td class="dg">Gestión, garantía y respaldo</td><td class="n dg">'+money(rp.gestion)+'</td></tr>'
+      + '<tr><td colspan="2" style="border-top:1px solid #C9C4BE"></td></tr>') : '')
+   +'<tr><td>SUBTOTAL</td><td class="n">'+money(t.subtotal)+'</td></tr>'
    +(t.descuento>0?'<tr><td>Descuento</td><td class="n">-'+money(t.descuento)+'</td></tr>':'')
    +'<tr><td>Subtotal neto</td><td class="n">'+money(t.neto)+'</td></tr>'
    +'<tr><td>IVA '+q.iva+'%</td><td class="n">'+money(t.iva)+'</td></tr>'
