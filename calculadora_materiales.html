@@ -328,6 +328,126 @@ const ACTIVIDADES = [
   cotiza:function(v,r){ return {descripcion:v.tipo+" en gypsum con estructura metálica",unidad:"m2",cantidad:Number(v.area)||0}; }
 },
 /* ---------------------------------------------------------------- 9 */
+{ id:"agua", nombre:"Agua potable", icono:"🚰",
+  campos:[
+    {k:"tipo",e:"Tipo de tubería",t:"sel",v:"PPR termofusión",op:["PPR termofusión","PVC presión (roscable)","CPVC","PEX"]},
+    {k:"puntos",e:"Salidas de agua (puntos)",t:"num",v:8},
+    {k:"rec",e:"Recorrido promedio por punto (m)",t:"num",v:6},
+    {k:"mat",e:"Metros de matriz o acometida (m)",t:"num",v:12},
+    {k:"dr",e:"Diámetro de los ramales",t:"sel",v:'1/2"',op:['1/2"','3/4"']},
+    {k:"dm",e:"Diámetro de la matriz",t:"sel",v:'3/4"',op:['1/2"','3/4"','1"']},
+    {k:"llaves",e:"Llaves de paso",t:"num",v:3},
+    {k:"codos",e:"Codos por punto (estimado)",t:"num",v:3},
+    {k:"tees",e:"Tees por punto (estimado)",t:"num",v:1},
+    {k:"unica",e:"Una unión universal cada X m",t:"num",v:6},
+    {k:"desp",e:"Desperdicio (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var f=1+v.desp/100;
+    var Lr=v.puntos*v.rec*f, Lm=v.mat*f, L=Lr+Lm;
+    var codos=arriba(v.puntos*v.codos), tees=arriba(v.puntos*v.tees), uni=arriba(L/v.unica);
+    var totalUni=codos+tees+uni+(Number(v.llaves)||0);
+    var pegada=/PVC|CPVC/.test(v.tipo);
+    var pegamento=pegada? arriba(totalUni/25) : 0;
+    var teflon=arriba(((Number(v.llaves)||0)+v.puntos)/10);
+    return {filas:[
+      ["Tubería de ramales "+v.dr,M(Lr,1),"m"],
+      ["Tubería de matriz "+v.dm,M(Lm,1),"m"],
+      ["TOTAL de tubería de agua",M(L,1),"m"],
+      ["Codos "+v.dr,codos,"unidades"],
+      ["Tees "+v.dr,tees,"unidades"],
+      ["Uniones universales "+v.dr,uni,"unidades"],
+      ["Llaves de paso",v.llaves,"unidades"],
+      ["Total de conexiones",totalUni,"unidades"],
+      ["Pegamento PVC (envase de 125 cc)",pegamento,pegada?"envases (≈25 uniones cada uno)":"no aplica: la termofusión no usa pegamento"],
+      ["Teflón (rollo)",teflon,"rollos"],
+      ["Cinta de fibra o sellador para roscas",1,"unidad"],
+      ["Prueba de presión y purga",1,"servicio"]
+    ],
+    nota:"Método por punto y por recorrido. Las conexiones son una ESTIMACIÓN con factores que puedes ajustar (codos por punto, tees por punto, una unión universal cada X m): cámbialos según como instalas tú. El recorrido promedio sirve para cotizar antes de medir en obra. La PRUEBA DE PRESIÓN es obligatoria antes de cerrar paredes: es lo que respalda la garantía.",
+    fuente:"No venía en las plantillas peruanas (no incluyen instalaciones sanitarias). Construido con práctica estándar de instalación de agua potable, solo para calcular cantidades."};
+  },
+  cotiza:function(v,r){ return {descripcion:"Instalación de agua potable en "+v.tipo+" ("+v.puntos+" salidas, ramales "+v.dr+")",unidad:"punto",cantidad:Number(v.puntos)||1}; }
+},
+/* --------------------------------------------------------------- 10 */
+{ id:"desague", nombre:"Desagüe", icono:"🚽",
+  campos:[
+    {k:"n2",e:"Salidas de 2 pulg (lavabo, ducha, fregadero)",t:"num",v:5},
+    {k:"n3",e:"Salidas de 3 pulg (inodoro)",t:"num",v:2},
+    {k:"n4",e:"Salidas de 4 pulg (ramal o colector)",t:"num",v:1},
+    {k:"rec",e:"Recorrido promedio por salida (m)",t:"num",v:5},
+    {k:"lcolector",e:"Longitud del colector hasta la calle o caja (m)",t:"num",v:15},
+    {k:"cajas",e:"Cajas de revisión",t:"num",v:2},
+    {k:"vent",e:"Tubería de ventilación (m)",t:"num",v:10},
+    {k:"codos",e:"Codos por salida (estimado)",t:"num",v:2},
+    {k:"yees",e:"Yees por salida (estimado)",t:"num",v:1},
+    {k:"pend",e:"Pendiente del colector (%)",t:"num",v:1.5},
+    {k:"desp",e:"Desperdicio (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var f=1+v.desp/100;
+    var n=(Number(v.n2)||0)+(Number(v.n3)||0)+(Number(v.n4)||0);
+    var L2=v.n2*v.rec*f, L3=v.n3*v.rec*f, L4=((Number(v.n4)||0)*v.rec+Number(v.lcolector))*f;
+    var L=L2+L3+L4;
+    var codos=arriba(n*v.codos), yees=arriba(n*v.yees), trampas=Number(v.n2)||0;
+    var pegamento=arriba((codos+yees+trampas+(Number(v.cajas)||0))/20);
+    var desnivel=Number(v.lcolector)*v.pend;
+    return {filas:[
+      ['Tubería PVC 2 pulg',M(L2,1),"m"],
+      ['Tubería PVC 3 pulg',M(L3,1),"m"],
+      ['Tubería PVC 4 pulg',M(L4,1),"m"],
+      ["TOTAL de tubería de desagüe",M(L,1),"m"],
+      ["Codos PVC (90 y 45 grados)",codos,"unidades"],
+      ["Yees PVC",yees,"unidades"],
+      ['Trampas o sifones (salidas de 2 pulg)',trampas,"unidades"],
+      ["Cajas de revisión",v.cajas,"unidades"],
+      ['Tubería de ventilación 2 pulg',M(v.vent,1),"m"],
+      ["Pegamento PVC (envase de 125 cc)",pegamento,"envases"],
+      ["Reducciones y adaptadores",arriba(n),"unidades"],
+      ["Desnivel del colector al "+v.pend+" %",M(desnivel,1),"cm de caída en "+v.lcolector+" m"]
+    ],
+    nota:"Pendiente mínima: 1 % para 4 pulg, 1,5 % para 3 pulg y 2 % para 2 pulg. Cada salida lleva su trampa o sifón (el inodoro ya la trae incorporada). Las conexiones son estimación con factores ajustables. Antes de tapar se prueba con agua: si no drena, se corrige la pendiente.",
+    fuente:"No venía en las plantillas peruanas. Construido con práctica estándar de instalación sanitaria, solo para calcular cantidades."};
+  },
+  cotiza:function(v,r){ var n=(Number(v.n2)||0)+(Number(v.n3)||0)+(Number(v.n4)||0);
+    return {descripcion:"Instalación de desagüe sanitario ("+n+" salidas y colector de "+v.lcolector+" m)",unidad:"punto",cantidad:n||1}; }
+},
+/* --------------------------------------------------------------- 11 */
+{ id:"canalizacion", nombre:"Canalización", icono:"🔌",
+  campos:[
+    {k:"tipo",e:"Tipo de canalización",t:"sel",v:"PVC conduit (eléctrico)",op:["PVC conduit (eléctrico)","EMT (metálico)","Corrugado plástico","Bandeja portacables"]},
+    {k:"puntos",e:"Salidas o puntos totales",t:"num",v:19},
+    {k:"rec",e:"Recorrido promedio por punto (m)",t:"num",v:10},
+    {k:"diam",e:"Diámetro de la tubería",t:"sel",v:'3/4" (20 mm)',op:['1/2" (16 mm)','3/4" (20 mm)','1" (25 mm)']},
+    {k:"cocto",e:"Cajas octogonales (alumbrado)",t:"num",v:8},
+    {k:"crect",e:"Cajas rectangulares (tomas e interruptores)",t:"num",v:11},
+    {k:"curv",e:"Curvas por punto (estimado)",t:"num",v:2},
+    {k:"abraz",e:"Abrazaderas por metro",t:"num",v:1},
+    {k:"desp",e:"Desperdicio (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var rec=v.puntos*v.rec*(1+v.desp/100);
+    var L=rec*1.05;
+    var curvas=arriba(v.puntos*v.curv), uniones=arriba(L/3), abraz=arriba(L*v.abraz);
+    var cajas=(Number(v.cocto)||0)+(Number(v.crect)||0);
+    return {filas:[
+      ["Recorrido total de canalización",M(rec,1),"m"],
+      ["Tubería "+v.diam+" — "+v.tipo,M(L,1),"m (incluye 5 % por curvas)"],
+      ["Curvas o codos",curvas,"unidades"],
+      ["Uniones o coplas (una cada 3 m)",uniones,"unidades"],
+      ["Cajas octogonales",v.cocto,"unidades"],
+      ["Cajas rectangulares",v.crect,"unidades"],
+      ["TOTAL de cajas",cajas,"unidades"],
+      ["Abrazaderas o amarres",abraz,"unidades"],
+      ["Cable aproximado (2 conductores + tierra)",M(rec*3,0),"m  — el detalle está en la pestaña Eléctrico"],
+      ["Cinta aislante y varios",1,"global"]
+    ],
+    nota:"La canalización se mide por el recorrido real de los ductos: el recorrido promedio por punto sirve para cotizar antes de medir. Se agrega 5 % por las curvas y el desperdicio. Las cajas se cuentan una por salida (octogonal para alumbrado, rectangular para tomas e interruptores). El CABLEADO se calcula en la pestaña Eléctrico: usa las dos juntas.",
+    fuente:"Método por punto derivado de la estructura de la plantilla de metrados de IIEE, ampliado con los materiales de canalización."};
+  },
+  cotiza:function(v,r){ return {descripcion:"Canalización eléctrica en "+v.tipo+" "+v.diam+" ("+v.puntos+" puntos)",unidad:"punto",cantidad:Number(v.puntos)||1}; }
+},
+/* --------------------------------------------------------------- 12 */
 { id:"electrico", nombre:"Eléctrico", icono:"💡",
   campos:[
     {k:"alum",e:"Puntos de alumbrado",t:"num",v:8},
@@ -355,7 +475,7 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ var P=(Number(v.alum)||0)+(Number(v.toma)||0)+(Number(v.inte)||0); return {descripcion:"Instalación eléctrica: "+P+" punto(s) y "+(v.circ||0)+" circuito(s)",unidad:"punto",cantidad:P}; }
 },
-/* ---------------------------------------------------------------- 10 */
+/* --------------------------------------------------------------- 13 */
 { id:"movtierra", nombre:"Mov. tierra", icono:"⛏",
   campos:[
     {k:"l",e:"Largo de la excavación (m)",t:"num",v:1.2},
@@ -377,7 +497,7 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ return {descripcion:"Excavación manual en terreno normal",unidad:"m3",cantidad:n3(v.l*v.a*v.p*v.c)}; }
 },
-/* ---------------------------------------------------------------- 11 */
+/* --------------------------------------------------------------- 14 */
 { id:"equivalencias", nombre:"Equivalencias", icono:"⇄",
   campos:[
     {k:"m3",e:"Volumen (m³)",t:"num",v:1},
@@ -404,7 +524,7 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ return {descripcion:"Suministro y traslado de material (equivalencia de volumen)",unidad:"m3",cantidad:n3(Number(v.m3)||Number(v.pie3)*0.02831685)}; }
 },
-/* ---------------------------------------------------------------- 12 */
+/* --------------------------------------------------------------- 15 */
 { id:"ratios", nombre:"Ratios", icono:"⚡",
   campos:[
     {k:"area",e:"Área construida (m²)",t:"num",v:120},
