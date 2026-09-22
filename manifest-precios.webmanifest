@@ -1,0 +1,16 @@
+{
+  "name": "Precios de mercado Mi Casa Soluciones",
+  "short_name": "Precios MCS",
+  "description": "Encuesta telefonica de precios a ferreterias y empresas del sector",
+  "start_url": "encuesta_precios.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F1EC",
+  "theme_color": "#393536",
+  "lang": "es-EC",
+  "icons": [
+    {"src": "icono-precios-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icono-precios-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

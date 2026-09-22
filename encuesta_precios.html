@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#393536">
+<title>Encuesta de precios de mercado — Mi Casa Soluciones</title>
+<link rel="manifest" href="manifest-precios.webmanifest">
+<style>
+:root{--ambar:#FFB000;--carbon:#393536;--negro:#100F0D;--blanco:#FFFFFF;--arena:#F4F1EC;
+  --gris:#8A8580;--verde:#1E7B4F;--rojo:#C0392B;--borde:#DCD7D0;--sombra:0 2px 10px rgba(16,15,13,.10)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Lato,Arial,sans-serif;background:var(--arena);
+  color:var(--carbon);font-size:16px;line-height:1.45;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+h1,h2,h3{margin:0 0 8px}h1{font-size:20px}h2{font-size:16.5px}h3{font-size:14.5px}
+.hdr{background:var(--carbon);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;
+  position:sticky;top:0;z-index:30;box-shadow:var(--sombra)}
+.hdr .t{font-weight:800;font-size:15px}.hdr .s{font-size:11px;opacity:.75}
+.wrap{padding:12px;max-width:900px;margin:0 auto}
+.card{background:#fff;border-radius:14px;padding:13px;box-shadow:var(--sombra);margin-bottom:12px}
+label{display:block;font-size:11.5px;font-weight:700;color:var(--gris);margin:9px 0 3px;
+  text-transform:uppercase;letter-spacing:.3px}
+input,select,textarea,button{font-family:inherit;font-size:16px}
+input,select,textarea{width:100%;padding:9px 10px;border:1.5px solid var(--borde);border-radius:9px;background:#fff;color:var(--carbon)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ambar);box-shadow:0 0 0 3px rgba(255,176,0,.2)}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;
+  padding:11px 13px;font-weight:800;background:var(--carbon);color:#fff;cursor:pointer;text-decoration:none;
+  white-space:normal;text-align:center;line-height:1.25}
+.btn.ambar{background:var(--ambar);color:var(--carbon)}.btn.verde{background:var(--verde)}
+.btn.gris{background:#fff;color:var(--carbon);border:1.5px solid var(--borde)}
+.btn.rojo{background:#fff;color:var(--rojo);border:1.5px solid #E7C0BA}
+.btn.sm{padding:8px 10px;font-size:14px;border-radius:9px}.btn.full{width:100%}
+.row.acciones>*{min-width:150px}
+@media(max-width:560px){.row.acciones>*{flex:1 1 100%}}
+.pill{display:inline-block;background:var(--arena);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700;color:var(--gris)}
+.pill.ambar{background:#FFF3D6;color:#8A5E00}.pill.verde{background:#E4F3EA;color:var(--verde)}
+.pill.rojo{background:#FBEAE7;color:var(--rojo)}
+.hint{font-size:12px;color:var(--gris);margin:6px 0}
+.ok{background:#E4F3EA;border-left:4px solid var(--verde);padding:9px 11px;border-radius:8px;font-size:13px;margin:8px 0}
+.warn{background:#FFF3D6;border-left:4px solid var(--ambar);padding:9px 11px;border-radius:8px;font-size:13px;margin:8px 0}
+.err{background:#FBEAE7;border-left:4px solid var(--rojo);padding:9px 11px;border-radius:8px;font-size:13px;margin:8px 0}
+.prov{border:1.5px solid var(--borde);border-radius:12px;padding:10px;margin-bottom:8px;background:#fff}
+.prov .nm{font-weight:800;font-size:14.5px;line-height:1.25;overflow-wrap:anywhere}
+.prov .meta,.pfila .pn,td,.hint{overflow-wrap:anywhere}
+.prov .meta{font-size:12px;color:var(--gris);margin:2px 0 7px}
+.prov .acc{display:flex;gap:6px;flex-wrap:wrap}
+.prov .acc>*{flex:1;min-width:118px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--ambar);color:#000;text-align:left;padding:6px;border:1px solid #C9C4BE;font-size:11px;text-transform:uppercase}
+td{border:1px solid var(--borde);padding:5px 6px}
+td.n{text-align:right;white-space:nowrap}
+tr.tot td{font-weight:900;background:var(--arena)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:6px 0 10px}
+.chip{border:1.5px solid var(--borde);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;
+  white-space:nowrap;cursor:pointer;background:#fff;color:var(--gris)}
+.chip.on{background:var(--carbon);color:#fff;border-color:var(--carbon)}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--borde);display:flex;z-index:40}
+.tabs button{flex:1;border:0;background:none;padding:9px 2px 8px;font-size:10px;font-weight:700;color:var(--gris);
+  display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.tabs button.on{color:var(--carbon)}.tabs .ic{width:25px;height:25px;border-radius:8px;background:var(--arena);display:grid;place-items:center;font-size:13px}
+.tabs button.on .ic{background:var(--ambar)}
+.view{display:none}.view.on{display:block}
+.mask{position:fixed;inset:0;background:rgba(16,15,13,.45);display:none;z-index:50;align-items:flex-end}
+.mask.on{display:flex}
+.sheet{background:#fff;width:100%;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:14px}
+@media(min-width:700px){.mask{align-items:center;justify-content:center}.sheet{max-width:720px;border-radius:18px}}
+.pcat{background:var(--arena);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.4px;color:var(--carbon);margin:12px 0 6px}
+.pfila{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--borde);padding:7px 0}
+.pfila .pn{flex:1;min-width:0;font-size:13.5px}
+.pfila .pu{font-size:11.5px;color:var(--gris)}
+.pfila input{width:104px;flex:0 0 auto;text-align:right;padding:8px}
+.vacio{text-align:center;color:var(--gris);padding:22px 10px;font-size:14px;line-height:1.7}
+@media(max-width:620px){
+  table.resp,table.resp tbody,table.resp tr,table.resp td{display:block;width:100%}
+  table.resp tr{border:1px solid var(--borde);border-radius:10px;padding:8px 10px;margin-bottom:7px;background:#fff}
+  table.resp td{border:0;padding:0}
+  table.resp td:nth-child(1){font-size:11px;color:var(--gris);text-transform:uppercase;font-weight:700}
+  table.resp td:nth-child(2){font-size:18px;font-weight:900;color:var(--negro);text-align:left;white-space:normal}
+  table.resp td:nth-child(3){font-size:12.5px;color:var(--gris);text-align:left;white-space:normal}
+}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <span id="hdrlogo"></span>
+  <span><span class="t">PRECIOS DE MERCADO</span><br><span class="s">Mi Casa Soluciones · encuesta telefónica · v1.0</span></span>
+</div>
+<div class="wrap">
+  <div id="aviso"></div>
+
+  <section class="view on" id="v-llamar">
+    <div class="card">
+      <h2>Llamadas pendientes</h2>
+      <p class="hint">Llama desde el teléfono con el botón <b>Llamar</b> y registra los precios en el momento.
+      Cada llamada queda guardada en tu base de datos.</p>
+      <div class="row">
+        <div><label>Mostrar</label><select id="f_estado" onchange="pintarLlamar()">
+          <option value="pendiente">Solo pendientes</option>
+          <option value="todos">Todos</option>
+          <option value="llamado">Ya llamados</option>
+          <option value="no contesta">No contestaron</option></select></div>
+        <div><label>Ciudad</label><select id="f_ciudad" onchange="pintarLlamar()"></select></div>
+      </div>
+      <div id="resumen_llamar" class="hint"></div>
+    </div>
+    <div id="lista_llamar"></div>
+  </section>
+
+  <section class="view" id="v-precios">
+    <div class="card">
+      <h2>Base de datos de precios</h2>
+      <div class="row">
+        <div><label>Buscar</label><input id="b_precio" placeholder="Producto o proveedor…" oninput="pintarPrecios()"></div>
+      </div>
+      <div id="lista_precios"></div>
+      <div class="row acciones" style="margin-top:10px">
+        <button class="btn ambar" onclick="exportarPrecios()">Exportar a Excel (CSV)</button>
+        <button class="btn gris" onclick="exportarTodo()">Respaldar todo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-prov">
+    <div class="card">
+      <h2>Proveedores</h2>
+      <p class="hint">Estos son los contactos del sector. Puedes agregar los que falten y cambiar el estado.</p>
+      <div class="row">
+        <div><label>Buscar</label><input id="b_prov" placeholder="Nombre o ciudad…" oninput="pintarProveedores()"></div>
+      </div>
+      <div id="lista_prov"></div>
+      <button class="btn ambar full" style="margin-top:10px" onclick="formProveedor()">+ Agregar proveedor</button>
+    </div>
+  </section>
+
+  <section class="view" id="v-analisis">
+    <div class="card">
+      <h2>Análisis de precios</h2>
+      <p class="hint">Con lo que ya registraste: precio más bajo, más alto, promedio y mediana por producto.
+      La <b>mediana</b> es el mejor dato para decidir, porque no la distorsiona un precio raro.</p>
+      <div class="row">
+        <div><label>Producto</label><select id="a_prod" onchange="pintarAnalisis()"></select></div>
+        <div><label>Margen para tu precio de venta (%)</label><input id="a_margen" type="number" step="1" value="25" oninput="pintarAnalisis()"></div>
+      </div>
+      <div id="analisis"></div>
+    </div>
+    <div class="card">
+      <h2>Ranking de proveedores (canasta básica)</h2>
+      <p class="hint">Suma de los precios de la canasta en cada proveedor. Sirve para saber a quién comprarle cada grupo de material.</p>
+      <div id="ranking"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-guion">
+    <div class="card">
+      <h2>Guion para la llamada</h2>
+      <div class="ok">
+        <b>Preséntate así:</b> «Buenos días, mi nombre es Nelson Ojeda, de <b>Mi Casa Soluciones</b>, estoy
+        haciendo un trabajo en [sector] y quiero trabajar con ustedes de forma continua. ¿Me puede dar el
+        precio de unos materiales y si tienen entrega a domicilio?»
+      </div>
+      <p class="hint">Preguntas que conviene hacer en la misma llamada (así no hay que volver a llamar):</p>
+      <table class="resp"><tbody>
+        <tr><td>Precio de cada producto de la lista</td><td class="n"><b>dato principal</b></td><td></td></tr>
+        <tr><td>¿Venden a precio de gremio o con descuento por volumen?</td><td class="n"><b>Sí / No</b></td><td>desde qué cantidad</td></tr>
+        <tr><td>¿Hacen entrega a domicilio?</td><td class="n"><b>Sí / No</b></td><td>costo y zona</td></tr>
+        <tr><td>¿Emiten factura electrónica?</td><td class="n"><b>Sí / No</b></td><td>requisito para tus clientes</td></tr>
+        <tr><td>¿Cuánto demoran en entregar?</td><td class="n"><b>días</b></td><td></td></tr>
+        <tr><td>¿Forma de pago y si dan crédito?</td><td class="n"><b>contado / crédito</b></td><td></td></tr>
+        <tr><td>¿Quién es el vendedor de mostrador y su número?</td><td class="n"><b>nombre</b></td><td>tu contacto directo</td></tr>
+      </tbody></table>
+      <p class="hint">Anota todo en <b>Observaciones</b> al registrar los precios: esa información vale tanto como el precio.</p>
+    </div>
+    <div class="card">
+      <h2>Datos y respaldo</h2>
+      <div id="estado_db" class="hint"></div>
+      <div class="row acciones" style="margin-top:10px">
+        <button class="btn gris" onclick="exportarTodo()">Respaldar todo (JSON)</button>
+        <button class="btn gris" onclick="importarTodo()">Restaurar respaldo</button>
+      </div>
+      <input type="file" id="f_imp" accept=".json" style="display:none" onchange="leerRespaldo(event)">
+      <div class="row acciones" style="margin-top:8px">
+        <button class="btn rojo" onclick="borrarPrecios()">Borrar los precios registrados</button>
+      </div>
+      <p class="hint">Los datos se guardan <b>solo en este dispositivo</b>. Haz el respaldo cada vez que termines
+      una ronda de llamadas.</p>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs">
+  <button class="on" data-v="llamar" onclick="tab('llamar',this)"><span class="ic">📞</span>Llamar</button>
+  <button data-v="precios" onclick="tab('precios',this)"><span class="ic">🗄️</span>Precios</button>
+  <button data-v="prov" onclick="tab('prov',this)"><span class="ic">🏪</span>Proveedores</button>
+  <button data-v="analisis" onclick="tab('analisis',this)"><span class="ic">📊</span>Análisis</button>
+  <button data-v="guion" onclick="tab('guion',this)"><span class="ic">📋</span>Guion</button>
+</nav>
+
+<div class="mask" id="mask" onclick="if(event.target===this)cerrarModal()">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+/* =====================================================================
+   ENCUESTA DE PRECIOS DE MERCADO — Mi Casa Soluciones
+   Base de datos local: proveedores, productos y precios registrados.
+   Todo queda guardado en este dispositivo.
+   ===================================================================== */
+const PLATE_D = "M 79.09375 132.964844 C 64.039062 132.964844 51.832031 145.171875 51.832031 160.226562 L 51.832031 214.75 C 51.832031 229.804688 64.039062 242.007812 79.09375 242.007812 L 133.617188 242.007812 C 148.671875 242.007812 160.878906 229.804688 160.878906 214.75 L 160.878906 160.226562 C 160.878906 145.171875 148.671875 132.964844 133.617188 132.964844 Z M 79.09375 132.964844";
+const CHECK_D = "M 152.566406 171.191406 L 110.160156 140.382812 C 107.867188 138.71875 104.703125 138.734375 102.460938 140.425781 L 60.113281 171.191406 C 57.214844 173.300781 56.566406 177.375 58.667969 180.273438 C 59.6875 181.683594 61.195312 182.609375 62.914062 182.882812 C 64.628906 183.152344 66.347656 182.742188 67.753906 181.722656 L 71.042969 179.332031 L 71.042969 221.601562 C 71.042969 224.6875 73.554688 227.199219 76.640625 227.199219 L 93.195312 227.199219 L 105.445312 236.003906 C 105.710938 236.195312 106.027344 236.292969 106.339844 236.292969 C 106.652344 236.292969 106.96875 236.195312 107.234375 236.003906 L 119.484375 227.199219 L 136.035156 227.199219 C 139.125 227.199219 141.636719 224.6875 141.636719 221.601562 L 141.636719 179.332031 L 144.925781 181.722656 C 146.046875 182.535156 147.367188 182.964844 148.730469 182.964844 C 149.074219 182.964844 149.421875 182.9375 149.765625 182.882812 C 151.484375 182.609375 152.992188 181.683594 154.011719 180.273438 C 156.113281 177.375 155.464844 173.300781 152.566406 171.191406 Z M 94.660156 217.859375 C 90.6875 215.003906 88.671875 211.078125 88.671875 206.183594 L 88.671875 188.996094 C 101.9375 181.839844 110.742188 181.839844 124.007812 188.996094 L 124.007812 206.183594 C 124.007812 211.078125 121.992188 215.003906 118.019531 217.859375 L 106.339844 226.253906 Z M 138.566406 221.601562 C 138.566406 222.996094 137.429688 224.132812 136.035156 224.132812 L 123.71875 224.132812 C 129.429688 219.695312 132.445312 213.511719 132.445312 206.183594 L 132.445312 184.976562 C 132.445312 184.433594 132.160156 183.933594 131.695312 183.65625 C 121.796875 177.785156 113.976562 175.167969 106.339844 175.167969 C 98.703125 175.167969 90.882812 177.785156 80.984375 183.65625 C 80.519531 183.933594 80.234375 184.433594 80.234375 184.976562 L 80.234375 206.183594 C 80.234375 213.511719 83.246094 219.699219 88.957031 224.132812 L 76.640625 224.132812 C 75.246094 224.132812 74.113281 222.996094 74.113281 221.601562 L 74.113281 177.101562 L 106.339844 153.6875 L 138.566406 177.101562 Z M 119.546875 197.945312 L 105.164062 212.328125 C 104.308594 213.183594 103.164062 213.652344 101.972656 213.652344 C 101.839844 213.652344 101.707031 213.648438 101.570312 213.636719 C 100.25 213.519531 99.054688 212.835938 98.285156 211.761719 L 92.113281 203.992188 C 91.363281 203.046875 91.023438 201.867188 91.160156 200.667969 C 91.296875 199.472656 91.894531 198.398438 92.839844 197.648438 C 93.78125 196.894531 94.960938 196.558594 96.160156 196.695312 C 97.359375 196.832031 98.433594 197.425781 99.183594 198.371094 L 102.347656 202.355469 L 113.152344 191.550781 C 114.914062 189.789062 117.78125 189.789062 119.546875 191.550781 C 121.308594 193.316406 121.308594 196.183594 119.546875 197.945312 Z M 119.546875 197.945312";
+function logoSVG(w,plate,check){
+  return '<svg width="'+w+'" height="'+w+'" viewBox="47 128 119 119" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+    +'<path d="'+PLATE_D+'" fill="'+plate+'"/><path d="'+CHECK_D+'" fill="'+check+'"/></svg>';
+}
+
+/* ---------- Productos a cotizar: codigo|nombre|unidad|categoria|canasta ---------- */
+const PRODUCTOS_TXT = `
+CEM-01|Cemento Portland (saco 50 kg)|saco|Cemento y áridos|1
+CEM-02|Arena gruesa|m3|Cemento y áridos|1
+CEM-03|Arena fina|m3|Cemento y áridos|0
+CEM-04|Piedra chancada o ripio|m3|Cemento y áridos|1
+CEM-05|Hormigón premezclado f'c 210|m3|Cemento y áridos|0
+MAM-01|Bloque de hormigón 15x20x40|unidad|Mampostería|1
+MAM-02|Bloque de hormigón 10x20x40|unidad|Mampostería|0
+MAM-03|Ladrillo de arcilla King Kong|unidad|Mampostería|0
+MAM-04|Varilla de hierro 3/8" x 12 m|unidad|Mampostería|0
+MAM-05|Varilla de hierro 1/2" x 12 m|unidad|Mampostería|0
+MAM-06|Alambre de amarre|kg|Mampostería|0
+MAM-07|Aligerante o caballete para losa|unidad|Mampostería|0
+AGU-01|Tubería PPR 1/2" x 5 m|unidad|Agua potable|1
+AGU-02|Tubería PPR 3/4" x 5 m|unidad|Agua potable|0
+AGU-03|Tubería PVC presión 1/2" x 6 m|unidad|Agua potable|0
+AGU-04|Codo PPR 1/2" de 90 grados|unidad|Agua potable|0
+AGU-05|Tee PPR 1/2"|unidad|Agua potable|0
+AGU-06|Unión universal PPR 1/2"|unidad|Agua potable|0
+AGU-07|Llave de paso 1/2"|unidad|Agua potable|0
+AGU-08|Teflón (rollo)|unidad|Agua potable|0
+AGU-09|Pegamento PVC 125 cc|unidad|Agua potable|0
+DES-01|Tubería PVC desagüe 2" x 6 m|unidad|Desagüe|1
+DES-02|Tubería PVC desagüe 3" x 6 m|unidad|Desagüe|0
+DES-03|Tubería PVC desagüe 4" x 6 m|unidad|Desagüe|0
+DES-04|Codo PVC 2" de 90 grados|unidad|Desagüe|0
+DES-05|Yee PVC 3"|unidad|Desagüe|0
+DES-06|Trampa o sifón 2"|unidad|Desagüe|0
+DES-07|Caja de revisión|unidad|Desagüe|0
+ELE-01|Cable THHN 12 AWG|m|Eléctrico|1
+ELE-02|Cable THHN 14 AWG|m|Eléctrico|0
+ELE-03|Tubería conduit PVC 3/4"|tubo|Eléctrico|0
+ELE-04|Tubería EMT metálica 1/2"|tubo|Eléctrico|0
+ELE-05|Caja octogonal|unidad|Eléctrico|0
+ELE-06|Caja rectangular|unidad|Eléctrico|0
+ELE-07|Tomacorriente doble con placa|unidad|Eléctrico|0
+ELE-08|Interruptor simple|unidad|Eléctrico|0
+ELE-09|Breaker 1x20 A|unidad|Eléctrico|0
+ELE-10|Tablero de 8 circuitos|unidad|Eléctrico|0
+ELE-11|Foco LED 9 W|unidad|Eléctrico|0
+ELE-12|Cinta aislante|rollo|Eléctrico|0
+GYP-01|Plancha de gypsum 1,20 x 2,40 x 12,5 mm|plancha|Gypsum|1
+GYP-02|Paral de steel framing 3,60 m|unidad|Gypsum|0
+GYP-03|Canal de steel framing 3,00 m|unidad|Gypsum|0
+GYP-04|Tornillo para gypsum (caja de 1000)|caja|Gypsum|0
+GYP-05|Cinta para juntas (rollo 90 m)|rollo|Gypsum|0
+GYP-06|Masilla para gypsum (saco 20 kg)|saco|Gypsum|0
+GYP-07|Lana de vidrio|m2|Gypsum|0
+PIN-01|Pintura interior blanca (cubeta 19 L)|cubeta|Pintura|1
+PIN-02|Pintura para exteriores (cubeta 19 L)|cubeta|Pintura|0
+PIN-03|Sellador (cubeta 19 L)|cubeta|Pintura|0
+PIN-04|Masilla o enduido (saco 20 kg)|saco|Pintura|0
+PIN-05|Lija para pared (pliego)|pliego|Pintura|0
+PIS-01|Cerámica 45 x 45 cm|m2|Pisos|1
+PIS-02|Porcelanato 60 x 60 cm|m2|Pisos|0
+PIS-03|Adhesivo para cerámica (saco 20 kg)|saco|Pisos|0
+PIS-04|Fragua (bolsa 2 kg)|bolsa|Pisos|0
+PIS-05|Zócalo|m|Pisos|0
+MET-01|Perfil cuadrado 40x40x2 mm x 6 m|unidad|Metal|0
+MET-02|Tubo galvanizado 2" x 6 m|unidad|Metal|0
+MET-03|Electrodo 6013|kg|Metal|0
+MET-04|Disco de corte 7"|unidad|Metal|0
+MET-05|Anticorrosivo (galón)|galón|Metal|0
+SER-01|Corte de tablero de melamina|tablero|Servicios|1
+SER-02|Pegado de canto PVC|m|Servicios|0
+SER-03|Entrega o flete dentro de La Libertad|servicio|Servicios|1
+SER-04|Entrega o flete a Salinas|servicio|Servicios|0
+SER-05|Alquiler de andamio (día)|día|Servicios|0
+SER-06|Alquiler de mezcladora (día)|día|Servicios|0
+`;
+
+/* ---------- Proveedores del sector (n|tipo|ciudad|direccion|telefono) ---------- */
+const PROVEEDORES_TXT = `
+Artipesca S. A.|(sin categoria en la fuente)|La Libertad|Sector La 7 esquinas, Santa Elena, La Libertad, Ecuador|04-2784971
+Bazar Musical Sandra|(sin categoria en la fuente)|La Libertad|3era Avenida y Calle Guayaquil, Santa Elena, La Libertad, |+593 4 278 3109
+Casber|(sin categoria en la fuente)|La Libertad|Barrio Mariscal Sucre Calle 21 E/ La 3era y 4ta Avenida, S|04-2785247
+Centro Ferretero ECONOVA|Ferretería|La Libertad|Q3FM+3RF Centro Ferretero ECONOVA, y, Av. Onceava, La Libe|+593 4-278-3027
+Centro Ferretero Yugcha|Ferretería|La Libertad|Q3GQ+R2P Centro Ferretero Yugcha, La Libertad, Ecuador|+593 4-278-6993
+Ciber Entertainment Pc|(sin categoria en la fuente)|La Libertad|Calle 20 E/ la 6ta y 7ma frente a Ferretería Barzola, Sant|04-2780481
+Comercial Buenaventura|(sin categoria en la fuente)|La Libertad|Calle Guayaquil y Av 6ta, Santa Elena, La Libertad, Ecuado|04-2786411
+Comisariato del Constructor|tienda de materiales de construcción|La Libertad|Av. Eleodoro Solorzano, La Libertad, Ecuador|+593 98 494 8837
+Compañía de Transporte Liberpesa S.A.|(sin categoria en la fuente)|La Libertad|Santa Elena, Ballenita, Terminal Terrestre Sumpa, La Liber|04-2772118
+Compraventa La Península|(sin categoria en la fuente)|La Libertad|Av 9 de Octubre 515 y Guayaquil, Santa Elena, La Libertad,|04-2782501
+Comunal Banco del Pichincha|(sin categoria en la fuente)|La Libertad|Barrio Rocafuerte 4ta Avenida E/ Calle 23 y 24, Santa Elen|04-2782207
+Cooperativa de Transportes Occidentales|(sin categoria en la fuente)|La Libertad|Av 9 de Octubre y Av 18, Santa Elena, La Libertad, Ecuador|04-2781845
+Cooperativa Interprovincial Costa Azul (C.I.C.A)|(sin categoria en la fuente)|La Libertad|Av Segunda s/n y Calle 18, Santa Elena, La Libertad, Ecuad|04-2786503
+Copicentro Poveda|(sin categoria en la fuente)|La Libertad|Barrio San Francisco Sector 7 Esquinas Av 6ta y Montecrist|04-2784780
+Deposito De Madera Y Ferreteria Ruta Del Sol|Ferreteria|La Libertad|La Libertad, Ecuador|
+Distribuidora de Gas Cedeño|Ferretería|La Libertad|Q3FQ+R4R Distribuidora de Gas Cedeño, Calle 17, La Liberta|
+El Mundo Del Perno|Ferretería|La Libertad|Av. Eleodoro Solorzano, La Libertad 240202, Ecuador|+593 99 200 5531
+Enterprises|(sin categoria en la fuente)|La Libertad|Av. 7ma y Calle 12, Santa Elena, La Libertad, Ecuador|04-2781875
+FERREFRANK|Ferretería|La Libertad|Av. Eleodoro Solorzano, La Libertad 240350, Av. Eleodoro S|+593 93 963 6956
+Ferretaria Chalen|Ferretería|La Libertad|Q3FW+2GH Ferretaria Chalen, La Libertad, Ecuador|
+Ferreteria Aguirre|Ferretería|La Libertad|Q3GM+976 Ferreteria Aguirre, La Libertad, Ecuador|
+Ferreteria Avila|tienda de artículos para el hogar|La Libertad|Q466+2G2 Ferreteria Avila, Unnamed Road, La Libertad, Ecua|+593 97 896 0127
+FERRETERIA BARRIO CHIQUITO|Ferretería|La Libertad|Q4C2+MGG FERRETERIA BARRIO CHIQUITO, La Libertad, Ecuador|
+Ferreteria Dinkletsa S.A|Ferretería|La Libertad|La Libertad, Ecuador|+593 96 010 2251
+Ferreteria Hnos Cuenca|Ferretería|La Libertad|P3WR+FWJ Ferreteria Hnos Cuenca, La Libertad, Ecuador|
+Ferreteria Ivan Y Celso Solis|Ferretería|La Libertad|La Libertad, Ecuador|+593 4-278-3065
+Ferreteria Jacome|Almacenar|La Libertad|Av. Eleodoro Solórzano y Calle 22 Santa Elena Ecuador, Ecu|+593 4-278-2972
+Ferreteria LA PROPICIA|tienda de artículos para el hogar|La Libertad|Q476+5G6 Ferreteria LA PROPICIA, C. 46, La Libertad, Ecuad|+593 98 243 7578
+Ferreteria Ventas Express HERMANOS PIN|Ferretería|La Libertad|P3XP+QV9 Ferreteria Ventas Express HERMANOS PIN, La Libert|+593 98 081 0166
+Ferreteria zavala|Ferretería|La Libertad|Q3FQ+X84 Ferreteria zavala, Av. Séptima, La Libertad, Ecua|
+FERRETERÍA BENJAMIN E.J.R.|Ferretería|La Libertad|La Libertad, Ecuador|+593 95 968 3133
+Ferretería KEVIN|Ferretería|La Libertad|Q3CR+GC2 Ferretería KEVIN, C. 20-A, La Libertad, Ecuador|+593 99 078 1662
+Ferretería La Libertad|Ferretería|La Libertad|Av. Octava 240, La Libertad 240350, Ecuador|+593 97 943 1248
+Ferretería Mejía|Almacenar|La Libertad|La Libertad, Ecuador|+593 4-278-3875
+Ferretería Naval e Industrial SEatec S.A.|(sin categoria en la fuente)|La Libertad|Av Eleodoro Solorzano y Calle 12 Fte al Cementerio, Santa |04-2781835
+Ferretería Pilay.|Ferretería|La Libertad|Avenida 27 Y Calle 13, La Libertad, Ecuador|
+Ferretería Regalo de Dios|Ferretería|La Libertad|Avenida 18 Y Calle 41 Cdla. Gral.Enrique Gallo, La Liberta|+593 4-293-4138
+Ferretería Solis|tienda de herramientas|La Libertad|Eleodoro Solorzano y, Alfonso Cobos Moscoso, La Libertad, |+593 99 217 4571
+Ferreterías Ortega|Ferretería|La Libertad|Q3CR+G9V Ferreterías Ortega, Av. Doceava, La Libertad, Ecu|
+FERROTTO Art. De Ferretería|Ferretería|La Libertad|Q37H+HJJ «FERROTTO» Art. De Ferretería, La Libertad, Ecuad|+593 4-451-0156
+GLOWPOINT LA LIBERTAD|Ferretería|La Libertad|Q3CR+J5C GLOWPOINT LA LIBERTAD, La Libertad, Ecuador|+593 98 507 2831
+Hostería Cuna Luna|(sin categoria en la fuente)|La Libertad|San José Km 700 Ruta del Spondylus, Santa Elena, La Libert|04-2780735
+Innaval La Libertad|tienda de herramientas|La Libertad|Calle 29 S/N entre Ave. Eleodoro Solórzano, y, La Libertad|+593 98 991 2465
+La Casa Del Oring|Ferretería|La Libertad|Av. Novena, y, Av. 14, La Libertad, Ecuador|+593 668286159
+Maderera y Ferreteria Virgen de Monserrate|tienda de madera|La Libertad|Barrio 5 de Junio AVDA 38 S/N Y CALLE 20A Y 21 La Libertad|+593 99 339 0852
+Materiales de construccion PILAY|Ferretería|La Libertad|Q474+W7H Materiales de construccion PILAY, La Libertad, Ec|
+MEGA ACERO SOLIS S.A.|Ferretería|La Libertad|La Libertad, Ecuador|+593 95 993 7191
+Montanita Estates Yoga|(sin categoria en la fuente)|La Libertad|Montanita, Provincia Santa Elena, Ecuador, La Libertad|
+Mundillantas|(sin categoria en la fuente)|La Libertad|Barrio 6 de Diciembre Av 12 E/ Calle 28 y 29, Santa Elena,|04-2782427
+Perniacero Herramientas|Ferretería|La Libertad|Av Eleodoro Solórzano, y, La Libertad, Ecuador|+593 93 932 8106
+Pinturas Gonzales|Ferretería|La Libertad|Av. Eleodoro Solorzano 719, La Libertad 240350, Ecuador|
+Pinturas Solis|Ferretería|La Libertad|A vei 10 929, La Libertad, Ecuador|+593 4-278-4229
+Radio Taxi Centro Radio Club "CANAL 40"|(sin categoria en la fuente)|La Libertad|Vía a Ballenita Cdla La Previsora Avenida 2 Solar 1 y Call|04-2781479
+SEATEC S. A.|tienda de herramientas|La Libertad|Av. Doceava, La Libertad, Ecuador|+593 4-278-1835
+Serigrafía Carlin|(sin categoria en la fuente)|La Libertad|Calle 21 E/ Av 8 y Av 9, Santa Elena, La Libertad, Ecuador|04-2785848
+Super Hierro Mejia|Ferretería|La Libertad|Q3FM+4QG Super Hierro Mejia, C. 15, La Libertad 240350, Ec|
+Universidad Estatal Península de Santa Elena|(sin categoria en la fuente)|La Libertad|Cdla. Universitaria Vía La Libertad, Santa Elena, Ecuador|04-2780018
+{"name":"Ferreterias en Ecuador","description":"Directorio de las Mejores Ferreterias en Ecuador","url":"https:\/\/ferreteriasec.com","home":"https:\/\/ferreteriasec.com","gmt_offset":"0","timezone_string":"","page_for_posts":603,"page_on_front":7838,"show_on_front":"page","namespaces":["oembed\/1.0","contact-form-7\/v1","generatepress-pro\/v1","litespeed\/v1","litespeed\/v3","rankmath\/v1","rankm|Ferretería|La Libertad||
+Óptica Luz|(sin categoria en la fuente)|La Libertad|9 de Octubre 414, Santa Elena, La Libertad, Ecuador|04-2786363
+Comercial Ramírez|tienda de herramientas|Salinas|Ciudadela Italiana, AV #38, Ecuador|
+Disensa|tienda de materiales de construcción|Salinas|Avenida Undecima Y Calle 43 Esquina, Construdismat S.a., S|+593 4-277-6176
+Fabrica de Bloques EJR|tienda de artículos para el hogar|Salinas|Unnamed Road,, Salinas, Ecuador|+593 99 540 5916
+Ferrenova 2|Ferretería|Salinas|Q379+R8G Ferrenova 2, Salinas, Ecuador|
+Ferreteria Italiana|Ferretería|Salinas|Q2PR+RP3 Ferreteria Italiana, Salinas, Ecuador|
+Ferreteria Lascano|Ferretería|Salinas|Q379+W9W Ferreteria Lascano, Salinas, Ecuador|+593 99 407 4168
+Ferreteria Molina|Centro comercial|Salinas|Q2QV+FJQ Ferreteria Molina, Salinas, Ecuador|
+Ferretería El capitán|tienda de herramientas|Salinas|240209, Salinas, Ecuador|+593 99 875 2317
+Ferretería hnos Cuenca 2|Ferretería|Salinas|Q33C+9P9 Ferretería hnos Cuenca 2, Salinas, Ecuador|+593 96 934 8849
+Ferretería Macofesa|Ferretería|Salinas|Av. Carlos Espinoza, Salinas 240203, Ecuador|+593 97 882 3367
+Ferriplast|Ferretería|Salinas|P3RP+H75 Ferriplast, La Libertad, Salinas, Ecuador|
+FERROCERAMICA|tienda de materiales de construcción|Salinas|Q3FM+4MM FERROCERAMICA, LA LIBERTAD, Salinas, Ecuador|+593 98 956 3279
+VENTA DE MATERIALES DE CONSTRUCCION Y FERRETERIA OVIEDO GUTIERREZ|tienda de materiales de construcción|Salinas|Q357+5J7 VENTA DE MATERIALES DE CONSTRUCCION Y FERRETERIA |+593 4-290-2319
+{"name":"Ferreterias en Ecuador","description":"Directorio de las Mejores Ferreterias en Ecuador","url":"https:\/\/ferreteriasec.com","home":"https:\/\/ferreteriasec.com","gmt_offset":"0","timezone_string":"","page_for_posts":603,"page_on_front":7838,"show_on_front":"page","namespaces":["oembed\/1.0","contact-form-7\/v1","generatepress-pro\/v1","litespeed\/v1","litespeed\/v3","rankmath\/v1","rankm|Ferretería|Salinas||
+DEPOSITO DE MADERA ATAHUALPA|Ferretería|Santa Elena|Santa Elena, Ecuador|+593 99 195 9345
+Disensa|tienda de materiales de construcción|Santa Elena|Via Principal A La Libertad S/n – Parroquia Santa Elena, C|+593 4-294-3289
+FERRETERIA ANGIE|Ferretería|Santa Elena|Q4FR+P7M FERRETERIA ANGIE, C. 9 de Octubre, Santa Elena, E|+593 4-294-2785
+Ferreteria El Triunfador|Ferretería|Santa Elena|Q43V+R33 Ferreteria El Triunfador, Vía Ancón, Santa Elena,|+593 96 994 5042
+Ferreteria Villón|Ferretería|Santa Elena|C. 9 de Octubre, Santa Elena, Ecuador|+593 98 849 8059
+Ferretería|Ferretería|Santa Elena|240104, Ecuador|+593 93 901 3737
+FERRETERÍA C Y M|Ferretería|Santa Elena|Q4FR+Q43 FERRETERÍA C Y M, Simón Bolivar, Santa Elena, Ecu|
+Ferretería el ahorro|Compañía de construcción|Santa Elena|Sucre 824, Santa Elena, Ecuador|
+Hierro Mejia|Ferretería|Santa Elena|Q4CQ+25J Hierro Mejia, Santa Elena, Ecuador|
+Materiales de construcción Bolaños|tienda de herramientas|Santa Elena|Q49G+9C8 Materiales de construcción Bolaños, Santa Elena, |+593 99 750 1308
+Omnisariato|Centro comercial|Santa Elena|Manglaralto, calle Guayaquil y, C. 10 de Agosto, Santa Ele|+593 99 153 5096
+{"name":"Ferreterias en Ecuador","description":"Directorio de las Mejores Ferreterias en Ecuador","url":"https:\/\/ferreteriasec.com","home":"https:\/\/ferreteriasec.com","gmt_offset":"0","timezone_string":"","page_for_posts":603,"page_on_front":7838,"show_on_front":"page","namespaces":["oembed\/1.0","contact-form-7\/v1","generatepress-pro\/v1","litespeed\/v1","litespeed\/v3","rankmath\/v1","rankm|Ferretería|Santa Elena||
+`;
+
+/* =====================================================================
+   MOTOR DE CÁLCULO Y DE DATOS (funciones puras, verificables)
+   ===================================================================== */
+//==ENGINE-START==
+function r2(n){ return Math.round((Number(n)||0)*100)/100; }
+
+function parsearProductos(txt){
+  var out=[];
+  String(txt||"").split("\n").forEach(function(l){
+    l=l.trim(); if(!l) return;
+    var p=l.split("|"); if(p.length<4) return;
+    out.push({codigo:p[0].trim(), nombre:p[1].trim(), unidad:p[2].trim(),
+              categoria:p[3].trim(), canasta:p[4]==="1"});
+  });
+  return out;
+}
+function parsearProveedores(txt){
+  var out=[]; var i=0;
+  String(txt||"").split("\n").forEach(function(l){
+    l=l.trim(); if(!l) return;
+    var p=l.split("|"); if(p.length<2) return;
+    var nombre=p[0].trim();
+    if(!nombre || nombre.indexOf('{"')>=0) return;   /* filas con metadatos, no con el nombre */
+    if(nombre.length>80) nombre=nombre.slice(0,77)+"...";
+    i++;
+    out.push({id:"p"+i, nombre:nombre, tipo:(p[1]||"Ferretería").trim(),
+              ciudad:(p[2]||"").trim(), direccion:(p[3]||"").trim(),
+              telefono:(p[4]||"").trim(), estado:"pendiente", notas:""});
+  });
+  return out;
+}
+/* Estadisticas de una lista de precios */
+function estadisticas(valores){
+  var v=(valores||[]).map(Number).filter(function(x){ return isFinite(x) && x>0; })
+          .sort(function(a,b){ return a-b; });
+  if(!v.length) return {n:0, min:0, max:0, prom:0, mediana:0};
+  var s=0; v.forEach(function(x){ s+=x; });
+  var med = (v.length%2) ? v[(v.length-1)/2] : (v[v.length/2-1]+v[v.length/2])/2;
+  return {n:v.length, min:v[0], max:v[v.length-1], prom:s/v.length, mediana:med};
+}
+/* Analisis de un producto: estadisticas y detalle por proveedor */
+function analisisProducto(precios, prodCodigo, provs){
+  var det=[];
+  (precios||[]).forEach(function(p){
+    if(p.prod!==prodCodigo) return;
+    var pr=(provs||[]).filter(function(x){ return x.id===p.prov; })[0];
+    det.push({prov:p.prov, nombre:pr?pr.nombre:"(proveedor borrado)", ciudad:pr?pr.ciudad:"",
+              precio:Number(p.precio)||0, fecha:p.fecha, obs:p.obs||""});
+  });
+  var st=estadisticas(det.map(function(d){ return d.precio; }));
+  det.sort(function(a,b){ return a.precio-b.precio; });
+  return {stats:st, detalle:det, masBarato:det[0]||null, masCaro:det[det.length-1]||null,
+          ahorro: (det.length>1 ? r2(det[det.length-1].precio-det[0].precio) : 0)};
+}
+/* Ranking de proveedores por la canasta basica */
+function rankingProveedores(precios, provs, prods){
+  var canasta=(prods||[]).filter(function(p){ return p.canasta; });
+  var out=[];
+  (provs||[]).forEach(function(pr){
+    var total=0, n=0, faltan=[];
+    canasta.forEach(function(pd){
+      var m=(precios||[]).filter(function(x){ return x.prov===pr.id && x.prod===pd.codigo; });
+      if(m.length){ total+=Number(m[m.length-1].precio)||0; n++; } else { faltan.push(pd.codigo); }
+    });
+    if(n>0) out.push({id:pr.id, nombre:pr.nombre, ciudad:pr.ciudad, telefono:pr.telefono,
+                      total:r2(total), items:n, de:canasta.length, faltan:faltan});
+  });
+  out.sort(function(a,b){ return (b.items-a.items) || (a.total-b.total); });
+  return out;
+}
+/* Precio de venta sugerido a partir del costo de mercado */
+function precioSugerido(costo, margenPct){
+  return r2((Number(costo)||0) * (1 + (Number(margenPct)||0)/100));
+}
+/* Resumen por producto (para exportar y para llenar el catalogo) */
+function resumenPorProducto(precios, provs, prods){
+  return (prods||[]).map(function(pd){
+    var a=analisisProducto(precios, pd.codigo, provs);
+    return {codigo:pd.codigo, nombre:pd.nombre, unidad:pd.unidad, categoria:pd.categoria,
+            n:a.stats.n, min:a.stats.min, prom:a.stats.prom, mediana:a.stats.mediana, max:a.stats.max,
+            masBarato: a.masBarato? a.masBarato.nombre : "", ahorro:a.ahorro};
+  }).filter(function(x){ return x.n>0; });
+}
+/* Exporta a CSV listo para Excel (dos secciones) */
+function exportarPreciosCSV(precios, provs, prods){
+  var L=[];
+  var res=resumenPorProducto(precios, provs, prods);
+  L.push("RESUMEN POR PRODUCTO (lo que ya averiguaste)");
+  L.push("Codigo;Producto;Unidad;Categoria;N de precios;Minimo;Promedio;Mediana;Maximo;Proveedor mas barato;Ahorro posible");
+  res.forEach(function(x){
+    L.push([x.codigo,x.nombre,x.unidad,x.categoria,x.n,r2(x.min),r2(x.prom),r2(x.mediana),r2(x.max),x.masBarato,r2(x.ahorro)].join(";"));
+  });
+  L.push("");
+  L.push("DETALLE DE CADA PRECIO REGISTRADO");
+  L.push("Codigo;Producto;Unidad;Proveedor;Ciudad;Precio;Fecha;Observacion");
+  (precios||[]).slice().sort(function(a,b){
+    return a.prod===b.prod ? String(a.prov).localeCompare(String(b.prov)) : String(a.prod).localeCompare(String(b.prod));
+  }).forEach(function(p){
+    var pd=(prods||[]).filter(function(x){ return x.codigo===p.prod; })[0]||{nombre:p.prod,unidad:""};
+    var pr=(provs||[]).filter(function(x){ return x.id===p.prov; })[0]||{nombre:"(borrado)",ciudad:""};
+    L.push([p.prod,pd.nombre,pd.unidad,pr.nombre,pr.ciudad,r2(p.precio),p.fecha||"",(p.obs||"").replace(/;/g,",")].join(";"));
+  });
+  return L.join("\n");
+}
+/* Numero limpio para el enlace de llamada */
+function telLimpio(t){ return String(t||"").replace(/[^0-9+]/g,""); }
+//==ENGINE-END==
+
+/* =====================================================================
+   ALMACENAMIENTO
+   ===================================================================== */
+var LS={
+  get:function(k,d){ try{ var v=localStorage.getItem("mcs_ep_"+k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set:function(k,v){ try{ localStorage.setItem("mcs_ep_"+k, JSON.stringify(v)); }catch(e){ aviso("No se pudo guardar en este navegador.","err"); } }
+};
+var productos = LS.get("prod", null) || parsearProductos(PRODUCTOS_TXT);
+var proveedores = LS.get("prov", null) || parsearProveedores(PROVEEDORES_TXT);
+var precios = LS.get("precios", []) || [];
+var filtroPrecioABuscar = "";
+
+/* =====================================================================
+   INTERFAZ
+   ===================================================================== */
+function $(i){ return document.getElementById(i); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function money(n){ return "$"+(Number(n)||0).toFixed(2); }
+function hoyISO(){ var d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function fLatina(iso){ if(!iso) return ""; var p=iso.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
+function aviso(m,t){ var c=t==="err"?"err":(t==="ok"?"ok":"warn");
+  $("aviso").innerHTML='<div class="'+c+'">'+m+'</div>';
+  if(t!=="err") setTimeout(function(){ $("aviso").innerHTML=""; },6000); }
+function cerrarModal(){ $("mask").classList.remove("on"); }
+function abrirModal(html){ $("sheet").innerHTML=html; $("mask").classList.add("on"); }
+function tab(v,btn){
+  var vs=document.querySelectorAll(".view"); for(var i=0;i<vs.length;i++) vs[i].classList.remove("on");
+  $("v-"+v).classList.add("on");
+  var bs=document.querySelectorAll(".tabs button"); for(var j=0;j<bs.length;j++) bs[j].classList.remove("on");
+  if(btn) btn.classList.add("on");
+  if(v==="llamar") pintarLlamar();
+  if(v==="precios") pintarPrecios();
+  if(v==="prov") pintarProveedores();
+  if(v==="analisis") pintarAnalisis();
+  if(v==="guion") pintarEstado();
+  window.scrollTo(0,0);
+}
+function prov(id){ return proveedores.filter(function(p){ return p.id===id; })[0]; }
+function prod(c){ return productos.filter(function(p){ return p.codigo===c; })[0]; }
+
+/* ---------- 1. LLAMAR ---------- */
+function pintarLlamar(){
+  var f=$("f_estado").value, ciudad=$("f_ciudad").value;
+  var l=proveedores.filter(function(p){
+    if(f!=="todos" && p.estado!==f) return false;
+    if(ciudad && p.ciudad!==ciudad) return false;
+    return true;
+  });
+  var total=proveedores.length, conTel=proveedores.filter(function(p){ return p.telefono; }).length;
+  var llamados=proveedores.filter(function(p){ return p.estado==="llamado"; }).length;
+  var regs=precios.length;
+  $("resumen_llamar").innerHTML="<b>"+llamados+"</b> de "+total+" proveedores llamados · "+
+    conTel+" con teléfono · <b>"+regs+"</b> precios registrados";
+  var h="";
+  if(!l.length) h='<div class="card"><div class="vacio">No hay proveedores en esta lista.<br>Cambia el filtro de arriba.</div></div>';
+  l.forEach(function(p){
+    var n=precios.filter(function(x){ return x.prov===p.id; }).length;
+    var col = p.estado==="llamado"?"verde":(p.estado==="no contesta"?"rojo":"ambar");
+    h+='<div class="prov">'
+      +'<div class="nm">'+esc(p.nombre)+'</div>'
+      +'<div class="meta">'+esc(p.tipo)+(p.ciudad?" · "+esc(p.ciudad):"")+(p.telefono?" · "+esc(p.telefono):" · sin teléfono")+'</div>'
+      +'<div class="meta"><span class="pill '+col+'">'+esc(p.estado)+'</span>'
+      +(n?' <span class="pill verde">'+n+' precio(s) registrados</span>':' <span class="pill">sin precios</span>')
+      +(p.direccion?'<br>'+esc(p.direccion):'')+'</div>'
+      +'<div class="acc">'
+      +(p.telefono?'<a class="btn verde sm" href="tel:'+telLimpio(p.telefono)+'">📞 Llamar</a>':'')
+      +'<button class="btn ambar sm" onclick="abrirRegistro(\''+p.id+'\')">Registrar precios</button>'
+      +'<button class="btn gris sm" onclick="formProveedor(\''+p.id+'\')">Editar</button>'
+      +'</div></div>';
+  });
+  $("lista_llamar").innerHTML=h;
+}
+function abrirRegistro(id){
+  var p=prov(id); if(!p) return;
+  var cats=[]; productos.forEach(function(x){ if(cats.indexOf(x.categoria)<0) cats.push(x.categoria); });
+  var h='<h2>'+esc(p.nombre)+'</h2>'
+   +'<p class="hint">'+(p.telefono?'Teléfono '+esc(p.telefono)+' · ':'')+esc(p.ciudad)+'</p>'
+   +'<div class="row"><div><label>Buscar producto</label><input id="m_buscar" placeholder="Escribe para filtrar…" oninput="pintarProductosModal(\''+id+'\')"></div>'
+   +'<div><label>Mostrar</label><select id="m_filtro" onchange="pintarProductosModal(\''+id+'\')">'
+   +'<option value="todos">Todos los productos</option><option value="canasta">Solo la canasta básica</option></select></div></div>'
+   +'<label>¿Preguntaron algo más? Observaciones de la llamada</label>'
+   +'<textarea id="m_obs" rows="2" placeholder="Ej.: dan 10 % de descuento desde 50 sacos. Entregan gratis. Vendedor: Luis."></textarea>'
+   +'<div id="m_prods"></div>'
+   +'<div class="row acciones" style="margin-top:12px">'
+   +'<button class="btn gris" onclick="cerrarModal()">Cerrar</button>'
+   +'<button class="btn verde" onclick="guardarRegistro(\''+id+'\')">Guardar precios</button></div>';
+  abrirModal(h);
+  pintarProductosModal(id);
+}
+function pintarProductosModal(id){
+  var bus=($("m_buscar")?$("m_buscar").value:"").toLowerCase();
+  var fil=$("m_filtro")?$("m_filtro").value:"todos";
+  var catAct="", h="";
+  productos.forEach(function(pd){
+    if(fil==="canasta" && !pd.canasta) return;
+    if(bus && (pd.nombre+" "+pd.codigo).toLowerCase().indexOf(bus)<0) return;
+    if(pd.categoria!==catAct){ catAct=pd.categoria; h+='<div class="pcat">'+esc(catAct)+'</div>'; }
+    var ya=precios.filter(function(x){ return x.prov===id && x.prod===pd.codigo; }).pop();
+    h+='<div class="pfila"><div class="pn">'+esc(pd.nombre)+
+       (pd.canasta?' <span class="pill ambar">canasta</span>':'')+
+       '<div class="pu">'+esc(pd.codigo)+' · por '+esc(pd.unidad)+(ya?' · antes '+money(ya.precio):'')+'</div></div>'
+      +'<input type="number" step="0.01" min="0" inputmode="decimal" id="pr_'+pd.codigo+'" '
+      +(ya?'value="'+ya.precio+'"':'placeholder="0.00"')+'></div>';
+  });
+  $("m_prods").innerHTML=h||'<div class="vacio">Ningún producto coincide con la búsqueda.</div>';
+}
+function guardarRegistro(id){
+  var obs=($("m_obs")?$("m_obs").value.trim():"");
+  var n=0, hoy=hoyISO();
+  productos.forEach(function(pd){
+    var el=$("pr_"+pd.codigo); if(!el) return;
+    var v=Number(el.value);
+    if(!(v>0)) return;
+    var idx=-1;
+    for(var i=0;i<precios.length;i++){ if(precios[i].prov===id && precios[i].prod===pd.codigo) idx=i; }
+    var reg={id:(idx>=0?precios[idx].id:("r"+Date.now()+Math.floor(Math.random()*1000))),
+             prov:id, prod:pd.codigo, precio:r2(v), fecha:hoy, obs:obs};
+    if(idx>=0) precios[idx]=reg; else precios.push(reg);
+    n++;
+  });
+  if(obs){
+    var p=prov(id);
+    if(p && (!p.notas || p.notas.indexOf(obs)<0)) p.notas=(p.notas?p.notas+" | ":"")+obs;
+  }
+  var p2=prov(id); if(p2 && (n>0 || obs)) p2.estado="llamado";
+  LS.set("precios",precios); LS.set("prov",proveedores);
+  cerrarModal();
+  if(n) aviso("Se guardaron <b>"+n+"</b> precio(s) de "+esc(prov(id).nombre)+".","ok");
+  else aviso("No escribiste ningún precio. El proveedor queda como está.");
+  pintarLlamar();
+}
+
+/* ---------- 2. PRECIOS ---------- */
+function pintarPrecios(){
+  var b=($("b_precio").value||"").toLowerCase();
+  var l=precios.slice().sort(function(a,b2){ return String(b2.fecha).localeCompare(String(a.fecha)); });
+  if(b) l=l.filter(function(x){
+    var pd=prod(x.prod)||{nombre:x.prod}, pr=prov(x.prov)||{nombre:""};
+    return (pd.nombre+" "+pr.nombre+" "+x.prod).toLowerCase().indexOf(b)>=0;
+  });
+  var h="";
+  if(!l.length) h='<div class="vacio">Todavía no hay precios registrados.<br>Entra a <b>Llamar</b> y registra el primero.</div>';
+  else {
+    h='<div class="hint">'+l.length+' registro(s)</div>';
+    l.forEach(function(x){
+      var pd=prod(x.prod)||{nombre:x.prod,unidad:""}, pr=prov(x.prov)||{nombre:"(borrado)",ciudad:""};
+      h+='<div class="prov"><div class="nm">'+esc(pd.nombre)+'</div>'
+        +'<div class="meta">'+esc(pr.nombre)+(pr.ciudad?' · '+esc(pr.ciudad):'')+' · '+fLatina(x.fecha)
+        +(x.obs?'<br>'+esc(x.obs):'')+'</div>'
+        +'<div class="row" style="align-items:center">'
+        +'<div style="flex:1"><b style="font-size:17px">'+money(x.precio)+'</b> <span class="hint">por '+esc(pd.unidad)+'</span></div>'
+        +'<button class="btn rojo sm" style="flex:0 0 auto" onclick="borrarPrecio(\''+x.id+'\')">Borrar</button>'
+        +'</div></div>';
+    });
+  }
+  $("lista_precios").innerHTML=h;
+}
+function borrarPrecio(id){
+  if(!confirm("¿Borrar este precio?")) return;
+  precios=precios.filter(function(x){ return x.id!==id; });
+  LS.set("precios",precios); pintarPrecios();
+}
+
+/* ---------- 3. PROVEEDORES ---------- */
+function pintarProveedores(){
+  var b=($("b_prov").value||"").toLowerCase();
+  var l=proveedores.filter(function(p){
+    return !b || (p.nombre+" "+p.ciudad+" "+p.tipo).toLowerCase().indexOf(b)>=0;
+  });
+  var h='<div class="hint">'+l.length+' de '+proveedores.length+' proveedores</div>';
+  l.forEach(function(p){
+    var n=precios.filter(function(x){ return x.prov===p.id; }).length;
+    h+='<div class="prov"><div class="nm">'+esc(p.nombre)+'</div>'
+      +'<div class="meta">'+esc(p.tipo)+(p.ciudad?" · "+esc(p.ciudad):"")+(p.telefono?" · "+esc(p.telefono):"")+'</div>'
+      +'<div class="meta"><span class="pill">'+esc(p.estado)+'</span> '+(n?n+' precio(s)':'sin precios')
+      +(p.notas?'<br>'+esc(p.notas):'')+'</div>'
+      +'<div class="acc"><button class="btn gris sm" onclick="formProveedor(\''+p.id+'\')">Editar</button>'
+      +(p.telefono?'<a class="btn verde sm" href="tel:'+telLimpio(p.telefono)+'">📞 Llamar</a>':'')
+      +'<button class="btn rojo sm" onclick="borrarProveedor(\''+p.id+'\')">Borrar</button></div></div>';
+  });
+  $("lista_prov").innerHTML=h;
+}
+function formProveedor(id){
+  var p=id?prov(id):{id:"",nombre:"",tipo:"Ferretería",ciudad:"",direccion:"",telefono:"",estado:"pendiente",notas:""};
+  abrirModal('<h2>'+(id?"Editar proveedor":"Nuevo proveedor")+'</h2>'
+   +'<label>Nombre</label><input id="pv_n" value="'+esc(p.nombre)+'">'
+   +'<div class="row"><div><label>Tipo</label><input id="pv_t" value="'+esc(p.tipo)+'"></div>'
+   +'<div><label>Ciudad</label><input id="pv_c" value="'+esc(p.ciudad)+'"></div></div>'
+   +'<label>Teléfono</label><input id="pv_tel" value="'+esc(p.telefono)+'" inputmode="tel">'
+   +'<label>Dirección</label><input id="pv_d" value="'+esc(p.direccion)+'">'
+   +'<label>Estado</label><select id="pv_e">'
+   +["pendiente","llamado","no contesta","no vende"].map(function(e){
+      return '<option value="'+e+'"'+(p.estado===e?" selected":"")+'>'+e+'</option>'; }).join("")
+   +'</select>'
+   +'<label>Notas</label><textarea id="pv_no" rows="2">'+esc(p.notas)+'</textarea>'
+   +'<div class="row acciones" style="margin-top:12px">'
+   +'<button class="btn gris" onclick="cerrarModal()">Cancelar</button>'
+   +'<button class="btn ambar" onclick="guardarProveedor('+(id?"'"+id+"'":"null")+')">Guardar</button></div>');
+}
+function guardarProveedor(id){
+  var n=$("pv_n").value.trim(); if(!n){ aviso("Escribe el nombre.","err"); return; }
+  var o={nombre:n, tipo:$("pv_t").value.trim()||"Ferretería", ciudad:$("pv_c").value.trim(),
+         telefono:$("pv_tel").value.trim(), direccion:$("pv_d").value.trim(),
+         estado:$("pv_e").value, notas:$("pv_no").value.trim()};
+  if(id){ var p=prov(id); for(var k in o) p[k]=o[k]; }
+  else { o.id="p"+(Date.now()); proveedores.push(o); }
+  LS.set("prov",proveedores); cerrarModal(); pintarProveedores(); pintarLlamar();
+  aviso("Proveedor guardado.","ok");
+}
+function borrarProveedor(id){
+  if(!confirm("¿Borrar el proveedor y sus precios registrados?")) return;
+  proveedores=proveedores.filter(function(p){ return p.id!==id; });
+  precios=precios.filter(function(x){ return x.prov!==id; });
+  LS.set("prov",proveedores); LS.set("precios",precios); pintarProveedores();
+}
+
+/* ---------- 4. ANÁLISIS ---------- */
+function pintarAnalisis(){
+  var sel=$("a_prod"); var antes=sel.value;
+  var conDatos=resumenPorProducto(precios, proveedores, productos);
+  sel.innerHTML='<option value="">— Elige un producto —</option>'+conDatos.map(function(x){
+    return '<option value="'+x.codigo+'"'+(antes===x.codigo?" selected":"")+'>'+esc(x.nombre)+'</option>'; }).join("");
+  if(antes) sel.value=antes;
+  var cod=sel.value;
+  var h="";
+  if(!cod){
+    if(!conDatos.length){ h='<div class="vacio">Todavía no hay precios para analizar.<br>Registra algunos en <b>Llamar</b>.</div>'; }
+    else {
+      h='<table class="resp"><thead><tr><th>Producto</th><th class="n">Mínimo</th><th class="n">Mediana</th></tr></thead><tbody>';
+      conDatos.sort(function(a,b){ return b.n-a.n; }).forEach(function(x){
+        h+='<tr><td>'+esc(x.nombre)+'<div class="hint">'+x.n+' precio(s) · por '+esc(x.unidad)+'</div></td>'
+          +'<td class="n"><b>'+money(x.min)+'</b></td><td class="n">'+money(x.mediana)+'</td></tr>';
+      });
+      h+='</tbody></table>';
+    }
+  } else {
+    var pd=prod(cod), a=analisisProducto(precios, cod, proveedores), mg=Number($("a_margen").value)||0;
+    h='<h3>'+esc(pd.nombre)+'</h3><div class="hint">por '+esc(pd.unidad)+' · '+a.stats.n+' precio(s) · '+esc(pd.categoria)+'</div>';
+    h+='<table><tbody>'
+      +'<tr><td>Precio más bajo</td><td class="n"><b>'+money(a.stats.min)+'</b></td><td class="n">'+esc(a.masBarato?a.masBarato.nombre:"")+'</td></tr>'
+      +'<tr><td>Precio más alto</td><td class="n">'+money(a.stats.max)+'</td><td class="n">'+esc(a.masCaro?a.masCaro.nombre:"")+'</td></tr>'
+      +'<tr><td>Promedio</td><td class="n">'+money(a.stats.prom)+'</td><td class="n"></td></tr>'
+      +'<tr class="tot"><td>Mediana (usa este dato)</td><td class="n">'+money(a.stats.mediana)+'</td><td class="n"></td></tr>'
+      +'<tr><td>Diferencia entre el más caro y el más barato</td><td class="n">'+money(a.ahorro)+'</td><td class="n">ahorro posible</td></tr>'
+      +'<tr><td>Tu precio de venta con '+mg+' % de margen (sobre la mediana)</td><td class="n"><b>'+money(precioSugerido(a.stats.mediana,mg))+'</b></td><td class="n">por '+esc(pd.unidad)+'</td></tr>'
+      +'<tr><td>Tu precio de venta con '+mg+' % de margen (sobre el mínimo)</td><td class="n">'+money(precioSugerido(a.stats.min,mg))+'</td><td class="n">si compras al más barato</td></tr>'
+      +'</tbody></table>';
+    h+='<h3 style="margin-top:12px">Todos los precios registrados</h3>';
+    h+='<table class="resp"><thead><tr><th>Proveedor</th><th class="n">Precio</th><th class="n">Fecha</th></tr></thead><tbody>';
+    a.detalle.forEach(function(d){
+      h+='<tr><td>'+esc(d.nombre)+(d.ciudad?'<div class="hint">'+esc(d.ciudad)+'</div>':'')
+        +(d.obs?'<div class="hint">'+esc(d.obs)+'</div>':'')+'</td>'
+        +'<td class="n"><b>'+money(d.precio)+'</b></td><td class="n">'+fLatina(d.fecha)+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  $("analisis").innerHTML=h;
+  pintarRanking();
+}
+function pintarRanking(){
+  var r=rankingProveedores(precios, proveedores, productos);
+  var h="";
+  if(!r.length){ h='<div class="vacio">Todavía no hay suficientes precios de la canasta básica.</div>'; }
+  else {
+    h='<table class="resp"><thead><tr><th>Proveedor</th><th class="n">Total canasta</th><th class="n">Productos</th></tr></thead><tbody>';
+    r.slice(0,25).forEach(function(x,i){
+      h+='<tr><td>'+(i===0?'<span class="pill verde">mejor</span> ':'')+esc(x.nombre)
+        +(x.ciudad?'<div class="hint">'+esc(x.ciudad)+(x.telefono?' · '+esc(x.telefono):'')+'</div>':'')
+        +(x.faltan.length?'<div class="hint">faltan: '+esc(x.faltan.join(", "))+'</div>':'')+'</td>'
+        +'<td class="n"><b>'+money(x.total)+'</b></td><td class="n">'+x.items+' de '+x.de+'</td></tr>';
+    });
+    h+='</tbody></table>';
+    h+='<p class="hint">Se ordena por cantidad de productos de la canasta que ya averiguaste y, entre esos, por el total más bajo. Un proveedor con pocos productos no se puede comparar todavía.</p>';
+  }
+  $("ranking").innerHTML=h;
+}
+
+/* ---------- 5. GUION Y DATOS ---------- */
+function pintarEstado(){
+  $("estado_db").innerHTML="<b>"+proveedores.length+"</b> proveedores · <b>"+productos.length+
+    "</b> productos · <b>"+precios.length+"</b> precios registrados · "+
+    resumenPorProducto(precios,proveedores,productos).length+" producto(s) con datos";
+}
+function descargar(nombre, texto){
+  var b=new Blob(["\ufeff"+texto],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=nombre; a.click();
+}
+function exportarPrecios(){
+  if(!precios.length){ aviso("Todavía no hay precios para exportar.","err"); return; }
+  descargar("precios_de_mercado_"+hoyISO()+".csv", exportarPreciosCSV(precios, proveedores, productos));
+  aviso("Archivo generado: ábrelo con Excel o LibreOffice.","ok");
+}
+function exportarTodo(){
+  var d={v:1, productos:productos, proveedores:proveedores, precios:precios};
+  var b=new Blob([JSON.stringify(d,null,1)],{type:"application/json"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(b);
+  a.download="respaldo_precios_"+hoyISO()+".json"; a.click();
+}
+function importarTodo(){ $("f_imp").click(); }
+function leerRespaldo(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var d=JSON.parse(r.result);
+      if(!confirm("Esto reemplaza los datos actuales. ¿Continuar?")) return;
+      if(d.productos) productos=d.productos;
+      if(d.proveedores) proveedores=d.proveedores;
+      if(d.precios) precios=d.precios;
+      LS.set("prod",productos); LS.set("prov",proveedores); LS.set("precios",precios);
+      pintarLlamar(); pintarEstado(); aviso("Respaldo restaurado.","ok");
+    }catch(err){ aviso("El archivo no es un respaldo válido.","err"); }
+  };
+  r.readAsText(f);
+}
+function borrarPrecios(){
+  if(!confirm("¿Borrar TODOS los precios registrados? Los proveedores se mantienen.")) return;
+  precios=[]; LS.set("precios",precios); pintarPrecios(); pintarEstado();
+  aviso("Se borraron los precios registrados.");
+}
+
+/* ---------- ARRANQUE ---------- */
+function init(){
+  $("hdrlogo").innerHTML=logoSVG(34,"#FFB000","#393538");
+  var ciudades=[]; proveedores.forEach(function(p){ if(p.ciudad && ciudades.indexOf(p.ciudad)<0) ciudades.push(p.ciudad); });
+  ciudades.sort();
+  $("f_ciudad").innerHTML='<option value="">Todas</option>'+ciudades.map(function(c){
+    return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join("");
+  $("hdrlogo").innerHTML=logoSVG(34,"#FFB000","#393538");
+  pintarLlamar(); pintarEstado();
+  if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(function(){}); }
+}
+init();
+</script>
+</body>
+</html>
