@@ -1,5 +1,5 @@
 /* Service worker: permite usar las aplicaciones sin internet Y que se actualicen solas.
-   Version 6 — estrategia "red primero" para las paginas: cuando hay internet siempre
+   Version 7 — estrategia "red primero" para las paginas: cuando hay internet siempre
    carga la version mas reciente; sin internet usa la copia guardada. */
 var CACHE = "mcs-sistema-v7";
 var ARCHIVOS = [
