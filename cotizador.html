@@ -377,6 +377,41 @@ const CATALOGO_DEF = [
  ["DIS-08","Diseño y montaje de iluminación decorativa","punto",45,"Mi Casa Diseño"],
  ["DIS-09","Decoración de interiores (color, materiales y mobiliario)","servicio",80,"Mi Casa Diseño"],
  ["DIS-10","Colocación de cerámica en pared de baño o cocina","m2",16,"Mi Casa Diseño"],
+ // ===== MI CASA MADERA — carpintería =====
+ ["CAR-01","Restauración de puerta de madera (lijado, resane, sellado y barnizado)","unidad",45,"Mi Casa Madera"],
+ ["CAR-02","Ajuste de puerta de madera (cepillado, alineación y bisagras)","unidad",20,"Mi Casa Madera"],
+ ["CAR-03","Cambio de bisagras y picaporte","unidad",18,"Mi Casa Madera"],
+ ["CAR-04","Instalación de puerta de madera con marco y tapajuntas","unidad",55,"Mi Casa Madera"],
+ ["CAR-05","Fabricación de puerta de madera (cedro o laurel, 0,90 x 2,10 m)","unidad",250,"Mi Casa Madera"],
+ ["CAR-06","Puerta de tambor o tallada a medida","unidad",380,"Mi Casa Madera"],
+ ["CAR-07","Fabricación de ventana de madera con vidrio","m2",110,"Mi Casa Madera"],
+ ["CAR-08","Marcos, tapajuntas y mochetas de madera","m",6,"Mi Casa Madera"],
+ ["CAR-09","Barnizado o lacado de puertas y ventanas","m2",10,"Mi Casa Madera"],
+ ["CAR-10","Closet empotrado con puertas corredizas y herrajes","m",260,"Mi Casa Madera"],
+ ["CAR-11","Armario o ropero a medida en madera","unidad",620,"Mi Casa Madera"],
+ ["CAR-12","Vestidor completo (walk-in) con repisas y gaveteros","m2",300,"Mi Casa Madera"],
+ ["CAR-13","Interiores de closet: repisas, gaveteros y tubo de colgar","m",95,"Mi Casa Madera"],
+ ["CAR-14","Puertas de closet corredizas o abatibles","m2",170,"Mi Casa Madera"],
+ ["CAR-15","Mueble de baño o vanity a medida","m",190,"Mi Casa Madera"],
+ ["CAR-16","Centro de entretenimiento o mueble de TV","unidad",340,"Mi Casa Madera"],
+ ["CAR-17","Escritorio o mesa de trabajo a medida","unidad",250,"Mi Casa Madera"],
+ ["CAR-18","Litera o cama a medida (plaza y media o dos plazas)","unidad",450,"Mi Casa Madera"],
+ ["CAR-19","Mesa de comedor para 6 puestos en madera","unidad",520,"Mi Casa Madera"],
+ ["CAR-20","Repisa, estantería o librero a medida","m",90,"Mi Casa Madera"],
+ ["CAR-21","Mueble de lavandería o de patio","m",165,"Mi Casa Madera"],
+ ["CAR-22","Mostrador o mueble de recepción para local","m",230,"Mi Casa Madera"],
+ ["CAR-23","Pérgola, cubierta o celosía de madera","m2",95,"Mi Casa Madera"],
+ ["CAR-24","Cielo raso de madera (duela o entablado)","m2",34,"Mi Casa Madera"],
+ ["CAR-25","Piso de duela o entablado de madera","m2",30,"Mi Casa Madera"],
+ ["CAR-26","Pasamanos de madera","m",40,"Mi Casa Madera"],
+ ["CAR-27","Rodapié o zócalo de madera","m",6,"Mi Casa Madera"],
+ ["CAR-28","Restauración de mueble antiguo (decapado, resane y barnizado)","unidad",190,"Mi Casa Madera"],
+ ["CAR-29","Pulido y barnizado de piso de madera","m2",12,"Mi Casa Madera"],
+ ["CAR-30","Lacado de muebles (puertas y frentes)","m2",14,"Mi Casa Madera"],
+ ["CAR-31","Diseño y planos del mueble con despiece","servicio",40,"Mi Casa Madera"],
+ ["CAR-32","Despiece, corte y canteado de tableros","tablero",12,"Mi Casa Madera"],
+ ["CAR-33","Instalación de herrajes (bisagras, correderas y pistones)","unidad",12,"Mi Casa Madera"],
+ ["CAR-34","Empotrado, nivelación y ajuste final de muebles","servicio",60,"Mi Casa Madera"],
  // ===== MI CASA COLOR — pintura y acabados =====
  ["COL-01","Pintura interior, 1 a 2 manos (pared en buen estado)","m2",4.5,"Mi Casa Color"],
  ["COL-02","Pintura interior con masillado y estucado","m2",8.5,"Mi Casa Color"],
@@ -590,9 +625,43 @@ SER-03|0|Visitas semanales, informe con fotos, respuesta en 24 horas, prioridad 
 SER-04|0|Revisión mensual del departamento entre huéspedes: fugas, tomacorrientes, grifería, cerraduras y pintura, con informe y fotos.|Los materiales y las reparaciones.
 SER-05|0|Visita técnica, informe escrito con fotos, lista de trabajos recomendados por prioridad y presupuesto estimado.|La ejecución de los trabajos.
 SER-06|0|Movilización y mano de obra de un trabajo mínimo de hasta una hora, dentro de La Libertad y Salinas.|Los trabajos que superen la hora y el material.
+CAR-01|8|Lijado, resane de grietas, sellado, barnizado o lacado y ajuste de la puerta en el marco.|La puerta nueva, el cambio de marco y los herrajes.
+CAR-02|2|Cepillado del canto, ajuste de bisagras, alineación y prueba de cierre.|El cambio de la puerta o del marco.
+CAR-03|8|Bisagras y picaporte nuevos, ajuste y prueba de cierre.|Cerraduras de seguridad o manijas de diseño especial.
+CAR-04|8|Instalación, aplomado, nivelación, espuma o sellado y tapajuntas.|La puerta, el marco y los herrajes (los puede comprar el cliente).
+CAR-05|150|Madera de cedro o laurel, armado, encolado, lijado, herrajes básicos y acabado.|Vidrios, tallados especiales y cerraduras de seguridad.
+CAR-06|230|Madera seleccionada, armado, tallado o tambor, lijado, herrajes y acabado.|Vidrios, espejos y herrajes importados.
+CAR-07|65|Madera, armado, vidrio, sellado, herrajes y acabado.|Rejas, mosquiteros y vidrios de seguridad.
+CAR-08|3|Madera, corte a inglete, instalación y masillado de juntas.|La pintura o el barnizado final.
+CAR-09|3|Lijado, sellador, barniz o laca y limpieza.|El decapado profundo o la restauración de la madera dañada.
+CAR-10|145|Melamina o MDF, estructura, puertas corredizas, rieles, herrajes y armado.|Espejos, iluminación interior y cajoneras adicionales.
+CAR-11|340|Madera o MDF, estructura, puertas, entrepaños, herrajes, armado y acabado.|Espejos y accesorios decorativos.
+CAR-12|165|Estructura, repisas, gaveteros, tubo de colgar, herrajes y armado completo.|Iluminación, espejos y organización interna adicional.
+CAR-13|50|Repisas, gaveteros, tubo de colgar, herrajes y armado.|Las puertas del closet y la estructura exterior.
+CAR-14|95|Puertas, rieles o bisagras, jaladores, instalación y ajuste.|La estructura del closet y sus interiores.
+CAR-15|100|Melamina o madera, estructura, puertas, mesón básico, herrajes y armado.|Grifería, lavabo, espejo e iluminación.
+CAR-16|180|Estructura, puertas, repisas, herrajes, armado y acabado.|El televisor, los equipos de sonido y la iluminación.
+CAR-17|130|Estructura, cajoneras, tablero de trabajo, herrajes y armado.|La silla y los equipos de cómputo.
+CAR-18|250|Estructura reforzada, barandas, escalera, herrajes y acabado.|Colchones, ropa de cama y cajoneras adicionales.
+CAR-19|300|Madera seleccionada, estructura, acabado y nivelación.|Las sillas y el vidrio del mesón si lleva.
+CAR-20|45|Estructura, repisas, soportes, anclaje a la pared y acabado.|Los libros y los objetos decorativos.
+CAR-21|85|Estructura, puertas, mesón básico, herrajes y armado.|La lavadora, la secadora y las conexiones de agua.
+CAR-22|125|Estructura, frentes, mesón, herrajes y armado.|El vidrio del mesón y la iluminación.
+CAR-23|55|Madera tratada, estructura, anclajes, armado y sellado.|La cubierta (policarbonato, teja o lona) y la pintura.
+CAR-24|20|Duela o entablado, estructura de soporte, clavado y acabado.|La pintura o el barnizado final y la iluminación.
+CAR-25|18|Duela o entablado, clavado, lijado y acabado básico.|La nivelación del contrapiso y el barnizado final.
+CAR-26|22|Madera, anclajes, armado y lijado.|El barnizado o lacado final.
+CAR-27|3|Rodapié de madera, corte, clavado y masillado.|La pintura o el barnizado final.
+CAR-28|35|Decapado, resane, encolado de piezas sueltas, lijado y barnizado.|El tapizado, los vidrios y los herrajes especiales.
+CAR-29|4|Lijado, decapado, sellador y barniz en dos capas.|La reparación de tablas dañadas o hundidas.
+CAR-30|4.5|Lijado, sellador, laca y limpieza.|El desarmado del mueble y el cambio de herrajes.
+CAR-31|0|Levantamiento de medidas, propuesta, planos y despiece de corte.|La ejecución del mueble. Si no se ejecuta, se cobra como servicio.
+CAR-32|2|Corte de los tableros según el despiece, canteado y rotulado de las piezas.|Los tableros y la melamina (los puede poner el cliente).
+CAR-33|2|Instalación, alineación y regulación de bisagras, correderas y pistones.|Los herrajes (los puede comprar el cliente).
+CAR-34|3|Empotrado, nivelación, fijación a la pared y ajuste final de puertas y cajones.|Los trabajos de albañilería del empotrado.
 `;
 const DETALLE = parsearDetalle(DETALLE_TXT);
-const CATALOGO_VERSION = 2;
+const CATALOGO_VERSION = 3;
 
 /* =====================================================================
    MOTOR DE CÁLCULO (funciones puras — no dependen de la interfaz)
