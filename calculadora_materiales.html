@@ -115,6 +115,40 @@ const PIEZAS = {
 };
 const DENS_CEMENTO = 1450; /* kg/m3 — densidad del cemento suelto, de uso corriente */
 
+/* ================== CARPINTERÍA (Mi Casa Madera) ================== */
+/* Tableros que se venden en Ecuador: la plancha estándar es de 1,83 x 2,44 m
+   y también se encuentra la de 2,15 x 2,44 m. El espesor va en milímetros. */
+const TABLEROS = {
+  "Melamina 18 mm (1,83 x 2,44 m)":{l:1.83,a:2.44,e:18},
+  "Melamina 15 mm (1,83 x 2,44 m)":{l:1.83,a:2.44,e:15},
+  "MDF 18 mm (1,83 x 2,44 m)":{l:1.83,a:2.44,e:18},
+  "MDF 15 mm (1,83 x 2,44 m)":{l:1.83,a:2.44,e:15},
+  "Melamina 18 mm (2,15 x 2,44 m)":{l:2.15,a:2.44,e:18}
+};
+const TABLERO_FONDO = {l:1.83,a:2.44};   /* tablero de 4 a 6 mm para fondos y respaldos */
+const PIE_TABLAR = 0.002359737;          /* m³ que tiene un pie tablar (1" x 12" x 12") */
+const PULG = 0.0254;                     /* metros que tiene una pulgada */
+const SECCIONES = {
+  '1" x 2" (2,5 x 5,1 cm)':{e:1,a:2},
+  '1" x 3" (2,5 x 7,6 cm)':{e:1,a:3},
+  '1" x 4" (2,5 x 10,2 cm)':{e:1,a:4},
+  '1 1/2" x 4" (3,8 x 10,2 cm)':{e:1.5,a:4},
+  '2" x 2" (5,1 x 5,1 cm)':{e:2,a:2},
+  '2" x 3" (5,1 x 7,6 cm)':{e:2,a:3},
+  '2" x 4" (5,1 x 10,2 cm)':{e:2,a:4},
+  '2" x 6" (5,1 x 15,2 cm)':{e:2,a:6}
+};
+const DURAS = {
+  "Cedro (suave, puertas y muebles)":{tr:'Cedro',du:0.45},
+  "Laurel (duro, muebles y pisos)":{tr:'Laurel',du:0.60},
+  "Chanul (duro, estructura y pisos)":{tr:'Chanul',du:0.70},
+  "Teca (muy durable, exterior)":{tr:'Teca',du:0.65},
+  "Pino (económico, encofrado y cielo raso)":{tr:'Pino',du:0.50}
+};
+function tableroDe(t){ return TABLEROS[t] || TABLEROS["Melamina 18 mm (1,83 x 2,44 m)"]; }
+function seccionM2(s){ var x=SECCIONES[s]||SECCIONES['1" x 4" (2,5 x 10,2 cm)']; return x.e*PULG*x.a*PULG; }
+function m3aPieTablar(m3){ return (Number(m3)||0)/PIE_TABLAR; }
+
 const ACTIVIDADES = [
 /* ---------------------------------------------------------------- 1 */
 { id:"concreto", nombre:"Concreto", icono:"🧱",
@@ -352,6 +386,292 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ return {descripcion:v.tipo+" en gypsum con estructura metálica",unidad:"m2",cantidad:Number(v.area)||0}; }
 },
+/* ---------------------------------------------------------------- */
+{ id:"melamina", nombre:"Mueble de melamina", icono:"🗄",
+  campos:[
+    {k:"tipo",e:"Tipo de mueble",t:"sel",v:"Closet o armario",op:["Closet o armario","Mueble de cocina bajo","Mueble de cocina alto","Vanity de baño","Escritorio o mesa de trabajo","Centro de entretenimiento"]},
+    {k:"l",e:"Largo (m)",t:"num",v:2.40},
+    {k:"h",e:"Alto (m)",t:"num",v:2.40},
+    {k:"p",e:"Profundidad (m)",t:"num",v:0.60},
+    {k:"ent",e:"Entrepaños (repisas)",t:"num",v:4},
+    {k:"div",e:"Divisiones verticales",t:"num",v:1},
+    {k:"puer",e:"Puertas",t:"sel",v:"Corredizas",op:["Sin puertas","Abatibles","Corredizas"]},
+    {k:"caj",e:"Cajones",t:"num",v:0},
+    {k:"af",e:"Alto del frente de cajón (m)",t:"num",v:0.20},
+    {k:"tab",e:"Tablero",t:"sel",v:"Melamina 18 mm (1,83 x 2,44 m)",op:Object.keys(TABLEROS)},
+    {k:"d",e:"Desperdicio por cortes (%)",t:"num",v:18}
+  ],
+  calc:function(v){
+    var T=tableroDe(v.tab), e=T.e/1000, AT=T.l*T.a;
+    var L=Math.max(0,v.l), H=Math.max(0,v.h), P=Math.max(0,v.p);
+    var ent=Math.max(0,Math.floor(v.ent)), dv=Math.max(0,Math.floor(v.div)), nc=Math.max(0,Math.floor(v.caj));
+    var Li=Math.max(0,L-2*e), Pi=Math.max(0,P-0.02), Hi=Math.max(0,H-2*e);
+    var laterales=2*P*H, baseTecho=2*L*P, plinto=L*0.10, repisas=ent*Li*Pi, divisiones=dv*Hi*Pi;
+    var est=laterales+baseTecho+plinto+repisas+divisiones;
+    var np=0, puer=0;
+    if(v.puer==="Abatibles"){ np=Math.max(1,arriba(L/(v.tipo.indexOf("Closet")===0?0.50:0.60))); puer=L*H; }
+    else if(v.puer==="Corredizas"){ np=2; puer=2*(L/2+0.05)*H; }
+    var anchoC= nc? (L-0.02)/nc : 0, af=Math.max(0,v.af);
+    var frentes=nc*anchoC*af, cajas=nc*(2*Math.max(0,P-0.05)*0.12+Math.max(0,anchoC-0.06)*0.12);
+    var area18=est+puer+frentes+cajas, area18d=area18*(1+v.d/100);
+    var planchas=arriba(area18d/AT);
+    var areaFondo=(L*H+nc*Math.max(0,anchoC-0.06)*Math.max(0,P-0.06))*(1+v.d/100);
+    var planchasFondo=arriba(areaFondo/(TABLERO_FONDO.l*TABLERO_FONDO.a));
+    var tcLat=2*(H+2*P), tcBT=2*(L+2*P), tcRep=ent*(Li+2*Pi), tcDiv=dv*(Hi+2*Pi);
+    var tcPuer=(v.puer==="Abatibles")?(2*L+2*np*H):((v.puer==="Corredizas")?(2*(L+0.10)+4*H):0);
+    var tc=tcLat+tcBT+tcRep+tcDiv+tcPuer+nc*2*(anchoC+af)+L;
+    var rollos=arriba(tc/50);
+    var bisagras=(v.puer==="Abatibles")? np*(H>1.20?3:2) : 0;
+    var rieles=(v.puer==="Corredizas")? 1 : 0;
+    var jaladores=((v.puer==="Sin puertas")?0:np)+nc;
+    var esCloset=v.tipo.indexOf("Closet")===0;
+    var esBajo=(v.tipo.indexOf("cocina bajo")>=0)||(v.tipo.indexOf("Vanity")===0);
+    var patas=esBajo? (arriba(L/0.50)+1) : 0;
+    var tubo=esCloset? Li : 0;
+    return {filas:[
+      ["PLANCHAS de "+T.e+" mm ("+T.l+" x "+T.a+" m = "+M(AT,2)+" m²)",planchas,"planchas"],
+      ["Área de tablero de "+T.e+" mm (sin desperdicio)",M(area18,2),"m²"],
+      ["Área con desperdicio de "+v.d+"%",M(area18d,2),"m²"],
+      ["Planchas de fondo de 4 mm (1,83 x 2,44 m)",planchasFondo,"planchas"],
+      ["Estructura: laterales, base, techo, plinto",M(est,2),"m²"],
+      ["Entrepaños ("+ent+") y divisiones ("+dv+")",M(repisas+divisiones,2),"m²"],
+      ["Puertas ("+(np||0)+")",M(puer,2),"m²"],
+      ["Cajones ("+nc+"): frentes y cajas",M(frentes+cajas,2),"m²"],
+      ["Tapacanto o canteado de PVC",M(tc,1),"m"],
+      ["Rollos de tapacanto de 50 m",rollos,"rollos"],
+      ["Bisagras de cazoleta de 35 mm",bisagras,"unidades"],
+      ["Juegos de riel para puerta corrediza",rieles,"juegos"],
+      ["Correderas telescópicas para cajón",nc,"pares"],
+      ["Jaladores o tiradores",jaladores,"unidades"],
+      ["Tubo de colgar de closet",M(tubo,2),"m"],
+      ["Patas o niveladores (una cada 50 cm)",patas,"unidades"],
+      ["Tornillos 3,5 x 16 mm (bisagras)",bisagras*2,"unidades"],
+      ["Tornillos 4 x 40 mm de armado (20 por m²)",arriba(area18*20),"unidades"],
+      ["Tornillos para aglomerado (cajones)",nc*8,"unidades"],
+      ["Cola blanca para madera (0,15 kg por m²)",M(area18*0.15,2),"kg"]
+    ],
+    nota:"Cuenta las piezas de un mueble recto: 2 laterales, base y techo, plinto, entrepaños, divisiones, puertas, frentes y cajas de cajón. La plancha estándar en Ecuador mide 1,83 x 2,44 m (4,47 m²); el fondo de 4 mm se pide aparte. El desperdicio del 18 % es lo normal porque las piezas no calzan exactas en la plancha: para el despiece optimizado usa la aplicación Despiece y Corte, que reparte las piezas con el menor sobrante.",
+    fuente:"Medidas comerciales de los tableros de melamina y MDF en Ecuador (plancha 1,83 x 2,44 m), espesores de 15 y 18 mm, y práctica del oficio para el armado de muebles"};  },
+  cotiza:function(v,r){ return {descripcion:"Fabricación de "+v.tipo.toLowerCase()+" en melamina de "+tableroDe(v.tab).e+" mm ("+v.l+" x "+v.h+" x "+v.p+" m)",unidad:"unidad",cantidad:1}; }
+},
+/* ---------------------------------------------------------------- */
+{ id:"puerta", nombre:"Puerta de madera", icono:"🚪",
+  campos:[
+    {k:"an",e:"Ancho del vano (m)",t:"num",v:0.90},
+    {k:"al",e:"Alto del vano (m)",t:"num",v:2.10},
+    {k:"tipo",e:"Tipo de hoja",t:"sel",v:"Tambor (hueca, bastidor y tapas)",op:["Tambor (hueca, bastidor y tapas)","Maciza (tablas)","Tablero de MDF o melamina"]},
+    {k:"esp",e:"Espesor de la hoja (cm)",t:"num",v:4.5},
+    {k:"sec",e:"Sección del marco",t:"sel",v:'1" x 4" (2,5 x 10,2 cm)',op:Object.keys(SECCIONES)},
+    {k:"mad",e:"Madera",t:"sel",v:"Cedro (suave, puertas y muebles)",op:Object.keys(DURAS)},
+    {k:"n",e:"Cantidad de puertas",t:"num",v:1},
+    {k:"manos",e:"Manos de acabado",t:"num",v:2},
+    {k:"d",e:"Desperdicio y ajuste (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var an=Math.max(0,v.an), al=Math.max(0,v.al), n=Math.max(1,Math.floor(v.n)), d=v.d/100;
+    var S=SECCIONES[v.sec]||SECCIONES['1" x 4" (2,5 x 10,2 cm)'], secM2=seccionM2(v.sec);
+    var hojaAn=Math.max(0,an-0.10), hojaAl=Math.max(0,al-0.05), esp=Math.max(0,v.esp)/100;
+    /* marco: 2 jambas + cabecera + umbral */
+    var lMarco=(2*al+2*an)*(1+d);
+    var vMarco=lMarco*secM2;
+    /* hoja */
+    var lHoja=0, vHoja=0, tapasM2=0;
+    if(v.tipo.indexOf("Tambor")===0){
+      lHoja=(2*hojaAl+2*hojaAn+3*hojaAn)*(1+d);
+      vHoja=lHoja*PULG*Math.max(0.02,esp-0.006);
+      tapasM2=2*hojaAn*hojaAl*n;
+    } else {
+      lHoja=(2*hojaAl+2*hojaAn)*(1+d);
+      vHoja=(v.tipo.indexOf("Tablero")===0)? (hojaAn*hojaAl*esp*n) : (hojaAn*hojaAl*esp*n*0.75);
+    }
+    var vTotal=(vMarco+vHoja)*n, pt=m3aPieTablar(vTotal);
+    var areaAcab=2*(hojaAn*hojaAl+ (2*al+2*an)*(S.a*PULG))*n;
+    var tapajuntas=(2*al+an)*2*n, espuma=(2*al+an)*n;
+    var galones=arriba(areaAcab*v.manos/12);
+    var esTablero=(v.tipo.indexOf("Tablero")===0), esTambor=(v.tipo.indexOf("Tambor")===0);
+    var F=[["PUERTAS terminadas",n,"unidades"],
+      ["Medida de la hoja",M(hojaAn,2)+" x "+M(hojaAl,2),"m"],
+      ["Madera para el marco ("+v.sec+")",M(lMarco*n,2),"m lineales"]];
+    if(esTablero){
+      F.push(["Tablero de MDF o melamina de "+M(v.esp,1)+" cm",M(hojaAn*hojaAl*n,2),"m²"]);
+      F.push(["Madera para el marco en pie tablar ("+DURAS[v.mad].tr+")",M(m3aPieTablar(vMarco*n),1),"pt"]);
+    } else {
+      F.push(["Madera para las hojas",M(lHoja*n,2),"m lineales"]);
+      F.push(["Volumen de madera con desperdicio de "+v.d+"%",M(vTotal,4),"m³"]);
+      F.push(["MADERA en pie tablar ("+DURAS[v.mad].tr+")",M(pt,1),"pt"]);
+      if(esTambor) F.push(["Tablero de 3 mm para tapas de la hoja",M(tapasM2,2),"m²"]);
+    }
+    F.push(["Bisagras de 3\" x 3\"",3*n,"unidades"]);
+    F.push(["Cerradura de embutir con picaporte",n,"juegos"]);
+    F.push(["Tapajuntas (dos caras)",M(tapajuntas,2),"m"]);
+    F.push(["Espuma de poliuretano expansiva",M(espuma,1),"m de vano"]);
+    F.push(["Tornillos para bisagras y herrajes",18*n,"unidades"]);
+    F.push(["Cola blanca para madera (0,15 kg por m²)",M(areaAcab*0.15,2),"kg"]);
+    F.push(["Lija (1 pliego por cada 4 m²)",arriba(areaAcab/4),"pliegos"]);
+    F.push(["Barniz o laca (12 m² por galón y por mano)",galones,"galones"]);
+    F.push(["Área a barnizar (dos caras de la hoja y el marco)",M(areaAcab,2),"m²"]);
+    return {filas:F,
+    nota:"La hoja se calcula 10 cm más angosta y 5 cm más baja que el vano, que es la holgura normal para que abra y cierre. La puerta de tambor es la más común en Ecuador: bastidor de madera de 1\" con tapas de 3 mm por las dos caras; la maciza se cobra por el volumen completo de las tablas. La madera aserrada se vende por pie tablar (pt), que es 1\" x 12\" x 12\".",
+    fuente:"Medidas de vano y holguras de uso corriente en Ecuador, secciones comerciales de madera aserrada vendidas por pie tablar, y rendimiento del barniz de 10 a 14 m² por galón"};  },
+  cotiza:function(v,r){ return {descripcion:"Fabricación de puerta de madera "+v.tipo.split(" (")[0].toLowerCase()+" con marco, de "+v.an+" x "+v.al+" m",unidad:"unidad",cantidad:Math.max(1,Math.floor(v.n))}; }
+},
+/* ---------------------------------------------------------------- */
+{ id:"ventana", nombre:"Ventana de madera", icono:"🪟",
+  campos:[
+    {k:"an",e:"Ancho del vano (m)",t:"num",v:1.20},
+    {k:"al",e:"Alto del vano (m)",t:"num",v:1.10},
+    {k:"nh",e:"Número de hojas",t:"num",v:2},
+    {k:"tipo",e:"Tipo de apertura",t:"sel",v:"Corrediza",op:["Corrediza","Abatible","Fija (no abre)"]},
+    {k:"vid",e:"Espesor del vidrio",t:"sel",v:"4 mm",op:["3 mm","4 mm","6 mm","Vidrio doble (6+6)"]},
+    {k:"sec",e:"Sección del marco y las hojas",t:"sel",v:'1" x 3" (2,5 x 7,6 cm)',op:Object.keys(SECCIONES)},
+    {k:"mad",e:"Madera",t:"sel",v:"Cedro (suave, puertas y muebles)",op:Object.keys(DURAS)},
+    {k:"n",e:"Cantidad de ventanas",t:"num",v:1},
+    {k:"d",e:"Desperdicio y ajuste (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var an=Math.max(0,v.an), al=Math.max(0,v.al), nh=Math.max(1,Math.floor(v.nh)), n=Math.max(1,Math.floor(v.n)), d=v.d/100;
+    var S=SECCIONES[v.sec]||SECCIONES['1" x 3" (2,5 x 7,6 cm)'], secM2=seccionM2(v.sec);
+    var anH=Math.max(0,an/nh-0.04), alH=Math.max(0,al-0.08);
+    var lMarco=(2*an+2*al)*(1+d);
+    var lHojas=nh*(2*(anH+alH)+anH)*(1+d);
+    var vTotal=(lMarco+lHojas)*secM2*n, pt=m3aPieTablar(vTotal);
+    var vidrio=nh*anH*alH*(1+0.08)*n;
+    var sellador=nh*2*(anH+alH)*n;
+    var herrajes=(v.tipo.indexOf("Corrediza")===0)? 2*nh*n : ((v.tipo.indexOf("Abatible")===0)? 2*nh*n : 0);
+    var areaAcab=2*(an*al+ (2*an+2*al)*(S.a*PULG))*n;
+    return {filas:[
+      ["VENTANAS terminadas",n,"unidades"],
+      ["Medida de cada hoja",M(anH,2)+" x "+M(alH,2),"m"],
+      ["Madera para el marco ("+v.sec+")",M(lMarco*n,2),"m lineales"],
+      ["Madera para las hojas y travesaños",M(lHojas*n,2),"m lineales"],
+      ["MADERA en pie tablar",M(pt,1),"pt"],
+      ["Vidrio de "+v.vid,M(vidrio,2),"m²"],
+      ["Sellador o silicona para el vidrio",M(sellador,1),"m de junta"],
+      ["Herrajes de "+v.tipo.toLowerCase(),herrajes,"unidades"],
+      ["Seguro o cerradura de ventana",n,"unidades"],
+      ["Jaladores",nh*n,"unidades"],
+      ["Tornillos y clavos de armado",arriba(24*n),"unidades"],
+      ["Cola blanca para madera",M(areaAcab*0.12,2),"kg"],
+      ["Lija (1 pliego por cada 4 m²)",arriba(areaAcab/4),"pliegos"],
+      ["Barniz o laca (12 m² por galón y por mano)",arriba(areaAcab*2/12),"galones"],
+      ["Área a barnizar",M(areaAcab,2),"m²"]
+    ],
+    nota:"El vidrio se pide un poco menor que la hoja para dejar la holgura del sellador, y se agrega 8 % por rotura. La ventana corrediza lleva rodines o carretillas y guías; la abatible lleva bisagras y brazo o pistón de retención. En la costa conviene madera tratada o teca y sellador por la humedad y la sal.",
+    fuente:"Secciones comerciales de madera aserrada en Ecuador, espesores de vidrio de 3, 4 y 6 mm de uso corriente, y holguras normales de carpintería de ventanas"};  },
+  cotiza:function(v,r){ return {descripcion:"Fabricación de ventana de madera "+v.tipo.toLowerCase()+" con vidrio de "+v.vid+" ("+v.an+" x "+v.al+" m)",unidad:"unidad",cantidad:Math.max(1,Math.floor(v.n))}; }
+},
+/* ---------------------------------------------------------------- */
+{ id:"duela", nombre:"Piso de duela", icono:"🪵",
+  campos:[
+    {k:"l",e:"Largo del área (m)",t:"num",v:4.00},
+    {k:"a",e:"Ancho del área (m)",t:"num",v:3.00},
+    {k:"que",e:"Qué se va a instalar",t:"sel",v:"Piso sobre rastras de madera",op:["Piso sobre rastras de madera","Piso encolado sobre contrapiso","Cielo raso de madera (duela)"]},
+    {k:"du",e:"Medida de la duela",t:"sel",v:"10 x 2 x 60 cm",op:["10 x 2 x 60 cm","12 x 2 x 90 cm","7 x 1,5 x 45 cm","20 x 2 x 90 cm (tabla ancha)"]},
+    {k:"sep",e:"Separación entre rastras (m)",t:"num",v:0.40},
+    {k:"mad",e:"Madera",t:"sel",v:"Laurel (duro, muebles y pisos)",op:Object.keys(DURAS)},
+    {k:"manos",e:"Manos de acabado",t:"num",v:3},
+    {k:"d",e:"Desperdicio (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var l=Math.max(0,v.l), a=Math.max(0,v.a), area=l*a, areaD=area*(1+v.d/100);
+    var p=v.du.split(" x ");
+    var anD=(parseFloat(p[0])||10)/100, espD=(parseFloat(p[1])||2)/100, lgD=(parseFloat(p[2])||60)/100;
+    var piezas=arriba(areaD/(anD*lgD));
+    var metros=piezas*lgD;
+    var m3=metros*anD*espD, pt=m3aPieTablar(m3);
+    var esPiso=v.que.indexOf("Piso")===0, conRastras=v.que.indexOf("rastras")>=0;
+    var hileras=conRastras? arriba(a/Math.max(0.10,v.sep))+1 : 0;
+    var mRastras=hileras*l*(1+v.d/100);
+    var clavos=area*(esPiso?0.06:0.04);
+    var lija=arriba(areaD/3*v.manos/2);
+    var galones=arriba(areaD*v.manos/12);
+    var cola=(v.que.indexOf("encolado")>=0)? area*0.35 : 0;   /* encolado sobre contrapiso; clavado no lleva cola */
+    return {filas:[
+      ["ÁREA a cubrir",M(area,2),"m²"],
+      ["Área con desperdicio de "+v.d+"%",M(areaD,2),"m²"],
+      ["Piezas de duela de "+v.du,piezas,"piezas"],
+      ["Duela en metros lineales",M(metros,1),"m"],
+      ["DUELA en pie tablar ("+DURAS[v.mad].tr+")",M(pt,1),"pt"],
+      ["Rastras o listones de 2\" x 2\" para el soporte",M(mRastras,1),"m lineales"],
+      ["Clavos de 1 1/2\" a 2\"",M(clavos,2),"kg"],
+      ["Cola blanca para madera",M(cola,2),"kg"],
+      ["Lija (1 pliego por cada 3 m² y por mano)",lija,"pliegos"],
+      ["Sellador para madera",arriba(areaD/14),"galones"],
+      ["Barniz o laca ("+v.manos+" manos, 12 m² por galón)",galones,"galones"],
+      ["Masilla o pasta para madera (0,05 kg por m²)",M(area*0.05,2),"kg"]
+    ],
+    nota:"Para el piso sobre rastras se clava la duela sobre listones de 2\" x 2\" separados unos 40 cm, que van anclados al contrapiso; ese es el sistema tradicional en Ecuador y deja ventilado el entablado. El cielo raso usa la misma duela pero se clava por debajo de la estructura. Cuenta 10 % de desperdicio porque los tramos se cortan a la medida del ambiente.",
+    fuente:"Medidas comerciales de la duela y del entablado que se vende en Ecuador, separación de rastras de 40 cm de la práctica del oficio y rendimiento del barniz de 10 a 14 m² por galón"};  },
+  cotiza:function(v,r){ return {descripcion:v.que+" en "+DURAS[v.mad].tr.toLowerCase()+" ("+v.l+" x "+v.a+" m)",unidad:"m2",cantidad:n2(v.l*v.a)}; }
+},
+/* ---------------------------------------------------------------- */
+{ id:"pergola", nombre:"Pérgola o celosía", icono:"⛱",
+  campos:[
+    {k:"tipo",e:"Tipo de obra",t:"sel",v:"Pérgola con columnas",op:["Pérgola con columnas","Celosía sobre muro","Cubierta de madera con estructura"]},
+    {k:"l",e:"Largo (m)",t:"num",v:4.00},
+    {k:"a",e:"Ancho (m)",t:"num",v:3.00},
+    {k:"sep",e:"Separación entre correas (m)",t:"num",v:0.60},
+    {k:"sec",e:"Sección de correas y vigas",t:"sel",v:'2" x 4" (5,1 x 10,2 cm)',op:Object.keys(SECCIONES)},
+    {k:"ncol",e:"Número de columnas",t:"num",v:4},
+    {k:"hcol",e:"Alto de la columna (m)",t:"num",v:2.40},
+    {k:"mad",e:"Madera",t:"sel",v:"Chanul (duro, estructura y pisos)",op:Object.keys(DURAS)},
+    {k:"d",e:"Desperdicio (%)",t:"num",v:10}
+  ],
+  calc:function(v){
+    var l=Math.max(0,v.l), a=Math.max(0,v.a), d=v.d/100;
+    var ncor=arriba(l/Math.max(0.20,v.sep))+1;
+    var mCorreas=ncor*a, mVigas=2*l, mCol=Math.max(0,Math.floor(v.ncol))*Math.max(0,v.hcol);
+    var mTotal=(mCorreas+mVigas+mCol)*(1+d);
+    var secM2=seccionM2(v.sec), m3=mTotal*secM2, pt=m3aPieTablar(m3);
+    var base=Math.max(0,Math.floor(v.ncol));
+    var areaAcab=(l*a*2.2);
+    return {filas:[
+      ["Correas o viguetas ("+ncor+" a cada "+M(v.sep,2)+" m)",M(mCorreas,1),"m lineales"],
+      ["Vigas principales (2)",M(mVigas,1),"m lineales"],
+      ["Columnas ("+base+")",M(mCol,1),"m lineales"],
+      ["TOTAL de madera ("+v.sec+")",M(mTotal,1),"m lineales"],
+      ["MADERA en pie tablar ("+DURAS[v.mad].tr+")",M(pt,1),"pt"],
+      ["Placas y pernos de anclaje (1 por columna)",base,"juegos"],
+      ["Tornillos o tirafondos de armado",arriba(mTotal*2),"unidades"],
+      ["Sellador o protector de madera para exterior",arriba(areaAcab/10),"galones"],
+      ["Barniz o lasur exterior (2 manos)",arriba(areaAcab*2/12),"galones"],
+      ["Lija (1 pliego por cada 4 m²)",arriba(areaAcab/4),"pliegos"]
+    ],
+    nota:"Las correas se reparten cada 60 cm, que es lo normal para una pérgola que va a llevar algo encima; si queda a la vista y sin carga se pueden separar hasta 80 cm. Para el exterior se usa chanul, teca o madera tratada, siempre con protector y lasur porque en la costa la humedad y la sal castigan la madera.",
+    fuente:"Práctica del oficio para pérgolas y celosías en la costa ecuatoriana (correas cada 60 cm), secciones comerciales de madera aserrada y tratamiento de madera para exterior"};  },
+  cotiza:function(v,r){ return {descripcion:v.tipo+" en madera de "+DURAS[v.mad].tr.toLowerCase()+" ("+v.l+" x "+v.a+" m)",unidad:"m2",cantidad:n2(v.l*v.a)}; }
+},
+/* ---------------------------------------------------------------- */
+{ id:"acabado_madera", nombre:"Acabado de madera", icono:"🖌",
+  campos:[
+    {k:"area",e:"Área a cubrir (m²)",t:"num",v:20},
+    {k:"caras",e:"Número de caras",t:"num",v:2},
+    {k:"tipo",e:"Tipo de acabado",t:"sel",v:"Barniz transparente",op:["Barniz transparente","Laca catalizada","Esmalte sintético","Solo sellador o lasur"]},
+    {k:"manos",e:"Manos o capas",t:"num",v:2},
+    {k:"d",e:"Desperdicio (%)",t:"num",v:8}
+  ],
+  calc:function(v){
+    var areaT=Math.max(0,v.area)*Math.max(1,Math.floor(v.caras))*(1+v.d/100);
+    var manos=Math.max(1,Math.floor(v.manos));
+    var rend=(v.tipo.indexOf("sellador")>=0)? 14 : 12;
+    var galones=arriba(areaT*manos/rend);
+    var sellador=(v.tipo.indexOf("Solo")===0)? 0 : arriba(areaT/14);
+    var thinner=M(galones*0.10,2);
+    return {filas:[
+      ["ÁREA total a cubrir (con las caras y el desperdicio)",M(areaT,2),"m²"],
+      [v.tipo+" ("+manos+" mano(s), "+rend+" m² por galón)",galones,"galones"],
+      ["Sellador o fijador de la primera mano",sellador,"galones"],
+      ["Thinner o diluyente (10 % del producto)",thinner,"galones"],
+      ["Lija (1 pliego por cada 3 m² y por mano)",arriba(areaT*manos/3),"pliegos"],
+      ["Masilla o pasta para madera (0,05 kg por m²)",M(areaT*0.05,2),"kg"],
+      ["Brochas o rodillos (1 por cada 15 m²)",arriba(areaT/15),"unidades"],
+      ["Trapos o estopa para limpiar",arriba(areaT/25),"unidades"],
+      ["Cinta de enmascarar y plástico de protección",arriba(areaT/20),"rollos"]
+    ],
+    nota:"El barniz y la laca rinden de 10 a 14 m² por galón en cada mano, según lo chupadora que esté la madera: la primera mano siempre gasta más. El sellador o fijador se da antes para que el acabado no salga desparejo. El thinner se agrega solo si el fabricante lo pide, nunca más del 10 %.",
+    fuente:"Rendimiento de barnices, lacas y esmaltes de 10 a 14 m² por galón por mano, según las fichas técnicas de las pinturas que se venden en Ecuador"};  },
+  cotiza:function(v,r){ return {descripcion:v.tipo+" en madera, "+v.manos+" mano(s) sobre "+v.area+" m² ("+v.caras+" caras)",unidad:"m2",cantidad:n2(v.area*Math.max(1,Math.floor(v.caras)))}; }
+},
 /* ---------------------------------------------------------------- 9 */
 { id:"agua", nombre:"Agua potable", icono:"🚰",
   campos:[
@@ -394,7 +714,7 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ return {descripcion:"Instalación de agua potable en "+v.tipo+" ("+v.puntos+" salidas, ramales "+v.dr+")",unidad:"punto",cantidad:Number(v.puntos)||1}; }
 },
-/* --------------------------------------------------------------- 10 */
+/* ---------------------------------------------------------------- 10 */
 { id:"desague", nombre:"Desagüe", icono:"🚽",
   campos:[
     {k:"n2",e:"Salidas de 2 pulg (lavabo, ducha, fregadero)",t:"num",v:5},
@@ -437,7 +757,7 @@ const ACTIVIDADES = [
   cotiza:function(v,r){ var n=(Number(v.n2)||0)+(Number(v.n3)||0)+(Number(v.n4)||0);
     return {descripcion:"Instalación de desagüe sanitario ("+n+" salidas y colector de "+v.lcolector+" m)",unidad:"punto",cantidad:n||1}; }
 },
-/* --------------------------------------------------------------- 11 */
+/* ---------------------------------------------------------------- 11 */
 { id:"canalizacion", nombre:"Canalización", icono:"🔌",
   campos:[
     {k:"tipo",e:"Tipo de canalización",t:"sel",v:"PVC conduit (eléctrico)",op:["PVC conduit (eléctrico)","EMT (metálico)","Corrugado plástico","Bandeja portacables"]},
@@ -472,7 +792,7 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ return {descripcion:"Canalización eléctrica en "+v.tipo+" "+v.diam+" ("+v.puntos+" puntos)",unidad:"punto",cantidad:Number(v.puntos)||1}; }
 },
-/* --------------------------------------------------------------- 12 */
+/* ---------------------------------------------------------------- 12 */
 { id:"electrico", nombre:"Eléctrico", icono:"💡",
   campos:[
     {k:"alum",e:"Puntos de alumbrado",t:"num",v:8},
@@ -500,7 +820,7 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ var P=(Number(v.alum)||0)+(Number(v.toma)||0)+(Number(v.inte)||0); return {descripcion:"Instalación eléctrica: "+P+" punto(s) y "+(v.circ||0)+" circuito(s)",unidad:"punto",cantidad:P}; }
 },
-/* --------------------------------------------------------------- 13 */
+/* ---------------------------------------------------------------- 13 */
 { id:"movtierra", nombre:"Mov. tierra", icono:"⛏",
   campos:[
     {k:"l",e:"Largo de la excavación (m)",t:"num",v:1.2},
@@ -522,7 +842,7 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ return {descripcion:"Excavación manual en terreno normal",unidad:"m3",cantidad:n3(v.l*v.a*v.p*v.c)}; }
 },
-/* --------------------------------------------------------------- 14 */
+/* ---------------------------------------------------------------- 14 */
 { id:"equivalencias", nombre:"Equivalencias", icono:"⇄",
   campos:[
     {k:"m3",e:"Volumen (m³)",t:"num",v:1},
@@ -549,7 +869,7 @@ const ACTIVIDADES = [
   },
   cotiza:function(v,r){ return {descripcion:"Suministro y traslado de material (equivalencia de volumen)",unidad:"m3",cantidad:n3(Number(v.m3)||Number(v.pie3)*0.02831685)}; }
 },
-/* --------------------------------------------------------------- 15 */
+/* ---------------------------------------------------------------- 15 */
 { id:"ratios", nombre:"Ratios", icono:"⚡",
   campos:[
     {k:"area",e:"Área construida (m²)",t:"num",v:120},
