@@ -777,6 +777,29 @@ function repartoCotizacion(items, gestionPct){
   t.material=r2(t.material); t.manoObra=r2(t.manoObra); t.gestion=r2(t.gestion); t.total=r2(t.total);
   return t;
 }
+/* Agrega al catalogo del telefono las partidas nuevas que traiga la aplicacion,
+   sin tocar las que el usuario ya tiene ni los precios que haya editado.
+   Las partidas que el usuario borro a proposito no vuelven. */
+function fusionarCatalogo(guardado, base, borrados){
+  var tengo={}, nuevos=[];
+  (guardado||[]).forEach(function(p){ tengo[p.codigo]=true; });
+  (borrados||[]).forEach(function(c){ tengo[c]=true; });
+  (base||[]).forEach(function(p){
+    if(p.codigo && !tengo[p.codigo]){
+      var copia=JSON.parse(JSON.stringify(p));
+      guardado.push(copia); tengo[p.codigo]=true; nuevos.push(copia);
+    }
+  });
+  return nuevos;   /* devuelve las partidas que se agregaron, para poder avisar cuales son */
+}
+/* Completa los datos de la empresa que falten (telefonos con datos de una version anterior) */
+function completarEmpresa(e, base){
+  var cambio=false;
+  Object.keys(base||{}).forEach(function(k){
+    if(e[k]===undefined){ e[k]=base[k]; cambio=true; }
+  });
+  return cambio;
+}
 /* Agrega a cada partida del catalogo su detalle y su material */
 function enriquecerCatalogo(lista){
   var cambiado=false;
@@ -800,13 +823,17 @@ var LS = {
   set:function(k,v){ try{ localStorage.setItem("mcs_"+k, JSON.stringify(v)); }catch(e){ aviso("No se pudo guardar en este navegador.","err"); } }
 };
 var emp = LS.get("empresa", null) || JSON.parse(JSON.stringify(EMPRESA_DEF));
+if(completarEmpresa(emp, EMPRESA_DEF)) LS.set("empresa", emp);
 var catalogo = LS.get("catalogo", null) || JSON.parse(JSON.stringify(CATALOGO_DEF));
+var borrados = LS.get("borrados", []) || [];
 var clientes = LS.get("clientes", []) || [];
 var cotizaciones = LS.get("cotizaciones", []) || [];
 var contador = LS.get("contador", 0) || 0;
 /* Completa el detalle (material, incluye, no incluye) en las partidas que vengan
    de un catalogo guardado antes de esta version */
-if(enriquecerCatalogo(catalogo)) LS.set("catalogo", catalogo);
+/* Las partidas nuevas que trae la aplicacion se agregan al catalogo del telefono */
+var nuevasPartidas = fusionarCatalogo(catalogo, CATALOGO_DEF, borrados);
+if(nuevasPartidas.length || enriquecerCatalogo(catalogo)) LS.set("catalogo", catalogo);
 var q = null;           // cotización en edición
 var filtroCat = "Todas";
 </script>
@@ -1032,7 +1059,8 @@ function guardarPartida(orig){
 function borrarPartida(cod){
   if(!confirm("¿Eliminar esta partida del catálogo?")) return;
   catalogo = catalogo.filter(function(x){ return x.codigo!==cod; });
-  LS.set("catalogo",catalogo); cerrarModal(); pintarCatalogo();
+  if(borrados.indexOf(cod)<0) borrados.push(cod);
+  LS.set("borrados",borrados); LS.set("catalogo",catalogo); cerrarModal(); pintarCatalogo();
 }
 function abrirMedidas(i){
   var it=q.items[i];
@@ -1167,7 +1195,8 @@ function guardarEmpresa(){
 }
 function restaurarDemo(){
   if(!confirm("Esto reemplaza el catálogo por la lista base. ¿Continuar?")) return;
-  catalogo=JSON.parse(JSON.stringify(CATALOGO_DEF)); LS.set("catalogo",catalogo); pintarCatalogo();
+  catalogo=JSON.parse(JSON.stringify(CATALOGO_DEF)); borrados=[]; LS.set("borrados",[]);
+  LS.set("catalogo",catalogo); pintarCatalogo();
   aviso("Catálogo base restaurado.","ok");
 }
 function exportarTodo(){
@@ -1279,6 +1308,13 @@ function init(){
   var borr=LS.get("borrador",null);
   if(borr && borr.items){ q=borr; } else { nuevaCotizacion(); }
   pintarCotizacion();
+  if(nuevasPartidas.length){
+    var caps=[]; nuevasPartidas.forEach(function(p){ if(caps.indexOf(p.capitulo)<0) caps.push(p.capitulo); });
+    setTimeout(function(){
+      aviso("Se agregaron <b>"+nuevasPartidas.length+"</b> partidas nuevas al catálogo ("+caps.join(", ")+
+            "). Tus precios se mantienen igual.","ok");
+    },800);
+  }
   leerPendiente();
   $("q_cliente").addEventListener("change",cambiarCliente);
   $("q_fecha").addEventListener("change",calc);
