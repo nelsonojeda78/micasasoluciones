@@ -71,6 +71,15 @@ tr.tot td{font-weight:900;background:var(--arena)}
 .pfila{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--borde);padding:7px 0}
 .pfila .pn{flex:1;min-width:0;font-size:13.5px}
 .pfila .pu{font-size:11.5px;color:var(--gris)}
+details.guion{margin:8px 0;border:1.5px solid var(--borde);border-radius:10px;background:#fff}
+details.guion>summary{padding:9px 11px;font-weight:800;font-size:13px;cursor:pointer}
+details.guion[open]>summary{border-bottom:1px solid var(--borde)}
+details.guion .cuerpo{padding:4px 11px 11px}
+details.guion label{font-size:11px}
+.pfila.falta{background:#FFFDF5}
+.pfila .meta2{font-size:11px;color:var(--ambar);font-weight:800}
+.barra{height:10px;background:var(--arena);border-radius:999px;overflow:hidden;margin:6px 0}
+.barra>i{display:block;height:100%;background:var(--verde)}
 .pfila input{width:104px;flex:0 0 auto;text-align:right;padding:8px}
 .vacio{text-align:center;color:var(--gris);padding:22px 10px;font-size:14px;line-height:1.7}
 @media(max-width:620px){
@@ -81,13 +90,21 @@ tr.tot td{font-weight:900;background:var(--arena)}
   table.resp td:nth-child(2){font-size:18px;font-weight:900;color:var(--negro);text-align:left;white-space:normal}
   table.resp td:nth-child(3){font-size:12.5px;color:var(--gris);text-align:left;white-space:normal}
 }
+
+/* La marca de la cabecera lleva a la pantalla principal: en la computadora no hay
+   botones de navegacion entre herramientas, asi que el logo es el camino de vuelta. */
+.hdr a.marca{display:flex;gap:10px;align-items:center;color:inherit;text-decoration:none;cursor:pointer}
+.hdr a.marca:hover{opacity:.82}
+.hdr a.marca:focus-visible{outline:2px solid var(--ambar);outline-offset:3px;border-radius:8px}
+.hdr .ir{font-size:11px;font-weight:700;opacity:.6;margin-left:auto;white-space:nowrap}
+@media(max-width:430px){.hdr .ir{display:none}}
 </style>
 </head>
 <body>
-<div class="hdr">
+<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas">
   <span id="hdrlogo"></span>
-  <span><span class="t">PRECIOS DE MERCADO</span><br><span class="s">Mi Casa Soluciones · encuesta telefónica · v1.0</span></span>
-</div>
+  <span><span class="t">PRECIOS DE MERCADO</span><br><span class="s">Mi Casa Soluciones · encuesta telefónica · v1.1</span></span>
+<span class="ir">⌂ Inicio</span></a></div>
 <div class="wrap">
   <div id="aviso"></div>
 
@@ -522,6 +539,40 @@ function prov(id){ return proveedores.filter(function(p){ return p.id===id; })[0
 function prod(c){ return productos.filter(function(p){ return p.codigo===c; })[0]; }
 
 /* ---------- 1. LLAMAR ---------- */
+/* ====== META DE LA BASE ======
+   Para poder comparar precios hacen falta al menos 3 proveedores por producto
+   (la mediana con menos datos no es confiable). El formulario de la llamada
+   muestra solo lo que todavia falta para llegar a esa meta, asi una sola
+   llamada avanza la base en vez de repetir lo que ya esta. */
+var META_PRECIOS = 3;
+function cuantosPrecios(cod){ return precios.filter(function(x){ return x.prod===cod; }).length; }
+function estadoBase(){
+  var listos=productos.filter(function(pd){ return cuantosPrecios(pd.codigo)>=META_PRECIOS; }).length;
+  var canasta=productos.filter(function(pd){ return pd.canasta && cuantosPrecios(pd.codigo)<META_PRECIOS; }).length;
+  return {listos:listos, total:productos.length, faltan:productos.length-listos, canasta:canasta,
+          pct: productos.length? Math.round(listos*100/productos.length):0};
+}
+/* Productos que le faltan al proveedor y ademas le hacen falta a la base */
+function productosQueFaltan(id,filtro){
+  var out=productos.filter(function(pd){
+    var ya=precios.some(function(x){ return x.prov===id && x.prod===pd.codigo; });
+    var n=cuantosPrecios(pd.codigo);
+    if(filtro==="canasta") return !!pd.canasta;
+    if(filtro==="canasta_falta") return !!pd.canasta && n<META_PRECIOS && !ya;
+    if(filtro==="todos") return true;
+    return n<META_PRECIOS && !ya;                  /* "falta": ni este proveedor ni la base */
+  });
+  out.sort(function(a,b){                          /* primero los que no tienen ningun precio */
+    var na=cuantosPrecios(a.codigo), nb=cuantosPrecios(b.codigo);
+    if(na!==nb) return na-nb;
+    if(!!a.canasta!==!!b.canasta) return a.canasta?-1:1;
+    return a.nombre.localeCompare(b.nombre);
+  });
+  return out;
+}
+function opcs(lista,valor){
+  return lista.map(function(o){ return '<option'+(String(o)===String(valor)?" selected":"")+'>'+o+'</option>'; }).join("");
+}
 function pintarLlamar(){
   var f=$("f_estado").value, ciudad=$("f_ciudad").value;
   var l=proveedores.filter(function(p){
@@ -544,6 +595,8 @@ function pintarLlamar(){
       +'<div class="meta">'+esc(p.tipo)+(p.ciudad?" · "+esc(p.ciudad):"")+(p.telefono?" · "+esc(p.telefono):" · sin teléfono")+'</div>'
       +'<div class="meta"><span class="pill '+col+'">'+esc(p.estado)+'</span>'
       +(n?' <span class="pill verde">'+n+' precio(s) registrados</span>':' <span class="pill">sin precios</span>')
+      +' <span class="pill ambar">le faltan '+productosQueFaltan(p.id,"falta").length+'</span>'
+      +(p.vendedor?' <span class="pill">👤 '+esc(p.vendedor)+(p.vtel?' '+esc(p.vtel):'')+'</span>':'')
       +(p.direccion?'<br>'+esc(p.direccion):'')+'</div>'
       +'<div class="acc">'
       +(p.telefono?'<a class="btn verde sm" href="tel:'+telLimpio(p.telefono)+'">📞 Llamar</a>':'')
@@ -555,41 +608,85 @@ function pintarLlamar(){
 }
 function abrirRegistro(id){
   var p=prov(id); if(!p) return;
-  var cats=[]; productos.forEach(function(x){ if(cats.indexOf(x.categoria)<0) cats.push(x.categoria); });
+  var eb=estadoBase();
   var h='<h2>'+esc(p.nombre)+'</h2>'
    +'<p class="hint">'+(p.telefono?'Teléfono '+esc(p.telefono)+' · ':'')+esc(p.ciudad)+'</p>'
+   +'<div class="ok" style="font-size:12.5px"><b>Preséntate:</b> «Buenos días, mi nombre es Nelson Ojeda, de '
+   +'<b>Mi Casa Soluciones</b>, estoy haciendo un trabajo en [sector] y quiero trabajar con ustedes de forma '
+   +'continua. ¿Me puede dar el precio de unos materiales y si tienen entrega a domicilio?»</div>'
+   /* -------- el guion, para no tener que volver a llamar -------- */
+   +'<details class="guion"'+(p.estado==="llamado"?"":" open")+'><summary>📋 Las 7 preguntas de la llamada (anótalas aquí mismo)</summary>'
+   +'<div class="cuerpo">'
+   +'<div class="row"><div><label>1. ¿Descuento por volumen o precio de gremio?</label><select id="g_desc">'+opcs(["No","Sí"],p.desde?"Sí":"No")+'</select></div>'
+   +'<div><label>Desde qué cantidad</label><input id="g_desde" value="'+esc(p.desde||"")+'" placeholder="Ej.: desde 50 sacos"></div></div>'
+   +'<div class="row"><div><label>2. ¿Entrega a domicilio?</label><select id="g_ent">'+opcs(["No","Sí"],p.entrega||"No")+'</select></div>'
+   +'<div><label>Costo de la entrega y zona</label><input id="g_costo" value="'+esc(p.costo||"")+'" placeholder="Ej.: $5 o gratis sobre $80"></div></div>'
+   +'<div class="row"><div><label>3. ¿Emiten factura electrónica?</label><select id="g_fac">'+opcs(["Sí","No"],p.factura||"Sí")+'</select></div>'
+   +'<div><label>4. ¿Cuánto demoran en entregar?</label><input id="g_dem" value="'+esc(p.demora||"")+'" placeholder="Ej.: 2 días"></div></div>'
+   +'<div class="row"><div><label>5. Forma de pago</label><select id="g_pag">'+opcs(["contado","crédito","ambos"],p.pago||"contado")+'</select></div>'
+   +'<div><label>6. Vendedor de mostrador</label><input id="g_vend" value="'+esc(p.vendedor||"")+'" placeholder="Nombre"></div></div>'
+   +'<div><label>7. Teléfono directo del vendedor</label><input id="g_vtel" value="'+esc(p.vtel||"")+'" inputmode="tel"></div>'
+   +'</div></details>'
+   /* -------- los productos que faltan -------- */
    +'<div class="row"><div><label>Buscar producto</label><input id="m_buscar" placeholder="Escribe para filtrar…" oninput="pintarProductosModal(\''+id+'\')"></div>'
-   +'<div><label>Mostrar</label><select id="m_filtro" onchange="pintarProductosModal(\''+id+'\')">'
-   +'<option value="todos">Todos los productos</option><option value="canasta">Solo la canasta básica</option></select></div></div>'
+   +'<div><label>Qué mostrar</label><select id="m_filtro" onchange="pintarProductosModal(\''+id+'\')">'
+   +'<option value="falta">Solo lo que falta (recomendado)</option>'
+   +'<option value="canasta_falta">Lo que falta de la canasta básica</option>'
+   +'<option value="canasta">Toda la canasta básica</option>'
+   +'<option value="todos">Todos los productos</option>'
+   +'</select></div></div>'
+   +'<div id="m_resumen" class="hint"></div>'
    +'<label>¿Preguntaron algo más? Observaciones de la llamada</label>'
-   +'<textarea id="m_obs" rows="2" placeholder="Ej.: dan 10 % de descuento desde 50 sacos. Entregan gratis. Vendedor: Luis."></textarea>'
+   +'<textarea id="m_obs" rows="2" placeholder="Ej.: el saco sube en enero. Atiende hasta las 5. Vendedor: Luis."></textarea>'
    +'<div id="m_prods"></div>'
    +'<div class="row acciones" style="margin-top:12px">'
    +'<button class="btn gris" onclick="cerrarModal()">Cerrar</button>'
-   +'<button class="btn verde" onclick="guardarRegistro(\''+id+'\')">Guardar precios</button></div>';
+   +'<button class="btn verde" onclick="guardarRegistro(\''+id+'\')">Guardar precios y respuestas</button></div>';
   abrirModal(h);
   pintarProductosModal(id);
 }
 function pintarProductosModal(id){
   var bus=($("m_buscar")?$("m_buscar").value:"").toLowerCase();
-  var fil=$("m_filtro")?$("m_filtro").value:"todos";
+  var fil=$("m_filtro")?$("m_filtro").value:"falta";
+  var eb=estadoBase();
+  if($("m_resumen")){
+    $("m_resumen").innerHTML="Base de precios: <b>"+eb.listos+"</b> de "+eb.total+" productos con "+META_PRECIOS+
+      " precios o más ("+eb.pct+" %). Faltan <b>"+eb.faltan+"</b>, de los cuales <b>"+eb.canasta+"</b> son de la canasta básica.";
+  }
+  var lista=productosQueFaltan(id,fil);
+  if(bus) lista=lista.filter(function(pd){ return (pd.nombre+" "+pd.codigo).toLowerCase().indexOf(bus)>=0; });
+  if($("m_resumen")) $("m_resumen").innerHTML+=" Abajo hay <b>"+lista.length+"</b> producto(s) para preguntar.";
   var catAct="", h="";
-  productos.forEach(function(pd){
-    if(fil==="canasta" && !pd.canasta) return;
-    if(bus && (pd.nombre+" "+pd.codigo).toLowerCase().indexOf(bus)<0) return;
+  lista.forEach(function(pd){
     if(pd.categoria!==catAct){ catAct=pd.categoria; h+='<div class="pcat">'+esc(catAct)+'</div>'; }
-    var ya=precios.filter(function(x){ return x.prov===id && x.prod===pd.codigo; }).pop();
-    h+='<div class="pfila"><div class="pn">'+esc(pd.nombre)+
+    var mios=precios.filter(function(x){ return x.prov===id && x.prod===pd.codigo; }).pop();
+    var n=cuantosPrecios(pd.codigo);
+    h+='<div class="pfila'+(n===0?' falta':'')+'"><div class="pn">'+esc(pd.nombre)+
        (pd.canasta?' <span class="pill ambar">canasta</span>':'')+
-       '<div class="pu">'+esc(pd.codigo)+' · por '+esc(pd.unidad)+(ya?' · antes '+money(ya.precio):'')+'</div></div>'
+       '<div class="pu">'+esc(pd.codigo)+' · por '+esc(pd.unidad)+
+       ' · <span class="meta2">'+(n===0?'sin ningún precio en la base':n+' de '+META_PRECIOS+' precios en la base')+'</span>'+
+       (mios?' · antes '+money(mios.precio):'')+'</div></div>'
       +'<input type="number" step="0.01" min="0" inputmode="decimal" id="pr_'+pd.codigo+'" '
-      +(ya?'value="'+ya.precio+'"':'placeholder="0.00"')+'></div>';
+      +(mios?'value="'+mios.precio+'"':'placeholder="0.00"')+'></div>';
   });
-  $("m_prods").innerHTML=h||'<div class="vacio">Ningún producto coincide con la búsqueda.</div>';
+  $("m_prods").innerHTML=h||'<div class="vacio">No queda nada pendiente con este filtro.<br>Cambia a «Todos los productos» o a «Toda la canasta básica».</div>';
 }
 function guardarRegistro(id){
   var obs=($("m_obs")?$("m_obs").value.trim():"");
   var n=0, hoy=hoyISO();
+  /* las respuestas del guion se guardan en el proveedor, no solo en una nota */
+  var p0=prov(id);
+  if(p0){
+    if($("g_desc")) p0.descuento=$("g_desc").value;
+    if($("g_desde")) p0.desde=$("g_desde").value.trim();
+    if($("g_ent")) p0.entrega=$("g_ent").value;
+    if($("g_costo")) p0.costo=$("g_costo").value.trim();
+    if($("g_fac")) p0.factura=$("g_fac").value;
+    if($("g_dem")) p0.demora=$("g_dem").value.trim();
+    if($("g_pag")) p0.pago=$("g_pag").value;
+    if($("g_vend")) p0.vendedor=$("g_vend").value.trim();
+    if($("g_vtel")) p0.vtel=$("g_vtel").value.trim();
+  }
   productos.forEach(function(pd){
     var el=$("pr_"+pd.codigo); if(!el) return;
     var v=Number(el.value);
@@ -610,7 +707,7 @@ function guardarRegistro(id){
   cerrarModal();
   if(n) aviso("Se guardaron <b>"+n+"</b> precio(s) de "+esc(prov(id).nombre)+".","ok");
   else aviso("No escribiste ningún precio. El proveedor queda como está.");
-  pintarLlamar();
+  pintarLlamar(); pintarProveedores(); pintarEstado();
 }
 
 /* ---------- 2. PRECIOS ---------- */
@@ -675,6 +772,15 @@ function formProveedor(id){
    +["pendiente","llamado","no contesta","no vende"].map(function(e){
       return '<option value="'+e+'"'+(p.estado===e?" selected":"")+'>'+e+'</option>'; }).join("")
    +'</select>'
+   +'<div class="row"><div><label>Descuento por volumen</label><select id="pv_desc">'+opcs(["No","Sí"],p.descuento||"No")+'</select></div>'
+   +'<div><label>Desde qué cantidad</label><input id="pv_desde" value="'+esc(p.desde||"")+'"></div></div>'
+   +'<div class="row"><div><label>Entrega a domicilio</label><select id="pv_ent">'+opcs(["No","Sí"],p.entrega||"No")+'</select></div>'
+   +'<div><label>Costo de la entrega</label><input id="pv_costo" value="'+esc(p.costo||"")+'"></div></div>'
+   +'<div class="row"><div><label>Factura electrónica</label><select id="pv_fac">'+opcs(["Sí","No"],p.factura||"Sí")+'</select></div>'
+   +'<div><label>Demora de entrega</label><input id="pv_dem" value="'+esc(p.demora||"")+'"></div></div>'
+   +'<div class="row"><div><label>Forma de pago</label><select id="pv_pag">'+opcs(["contado","crédito","ambos"],p.pago||"contado")+'</select></div>'
+   +'<div><label>Vendedor</label><input id="pv_vend" value="'+esc(p.vendedor||"")+'"></div></div>'
+   +'<label>Teléfono del vendedor</label><input id="pv_vtel" value="'+esc(p.vtel||"")+'" inputmode="tel">'
    +'<label>Notas</label><textarea id="pv_no" rows="2">'+esc(p.notas)+'</textarea>'
    +'<div class="row acciones" style="margin-top:12px">'
    +'<button class="btn gris" onclick="cerrarModal()">Cancelar</button>'
@@ -684,7 +790,11 @@ function guardarProveedor(id){
   var n=$("pv_n").value.trim(); if(!n){ aviso("Escribe el nombre.","err"); return; }
   var o={nombre:n, tipo:$("pv_t").value.trim()||"Ferretería", ciudad:$("pv_c").value.trim(),
          telefono:$("pv_tel").value.trim(), direccion:$("pv_d").value.trim(),
-         estado:$("pv_e").value, notas:$("pv_no").value.trim()};
+         estado:$("pv_e").value, notas:$("pv_no").value.trim(),
+         descuento:$("pv_desc").value, desde:$("pv_desde").value.trim(),
+         entrega:$("pv_ent").value, costo:$("pv_costo").value.trim(),
+         factura:$("pv_fac").value, demora:$("pv_dem").value.trim(),
+         pago:$("pv_pag").value, vendedor:$("pv_vend").value.trim(), vtel:$("pv_vtel").value.trim()};
   if(id){ var p=prov(id); for(var k in o) p[k]=o[k]; }
   else { o.id="p"+(Date.now()); proveedores.push(o); }
   LS.set("prov",proveedores); cerrarModal(); pintarProveedores(); pintarLlamar();
@@ -760,9 +870,12 @@ function pintarRanking(){
 
 /* ---------- 5. GUION Y DATOS ---------- */
 function pintarEstado(){
+  var eb=estadoBase();
   $("estado_db").innerHTML="<b>"+proveedores.length+"</b> proveedores · <b>"+productos.length+
-    "</b> productos · <b>"+precios.length+"</b> precios registrados · "+
-    resumenPorProducto(precios,proveedores,productos).length+" producto(s) con datos";
+    "</b> productos · <b>"+precios.length+"</b> precios registrados<br>"
+    +'<div class="barra"><i style="width:'+eb.pct+'%"></i></div>'
+    +"<b>"+eb.listos+"</b> de "+eb.total+" productos ya tienen "+META_PRECIOS+" precios o más ("+eb.pct+
+    " %). Faltan <b>"+eb.faltan+"</b> productos, "+eb.canasta+" de la canasta básica.";
 }
 function descargar(nombre, texto){
   var b=new Blob(["\ufeff"+texto],{type:"text/csv;charset=utf-8"});

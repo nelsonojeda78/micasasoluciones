@@ -67,11 +67,19 @@ td,th{overflow-wrap:anywhere}
 .tabs button{flex:1;border:0;background:none;padding:9px 2px;font-size:10px;font-weight:700;color:var(--gris);display:flex;flex-direction:column;align-items:center;gap:2px}
 .tabs button.on{color:var(--carbon)}.tabs .ic{width:25px;height:25px;border-radius:8px;background:var(--arena);display:grid;place-items:center;font-size:13px}
 .tabs button.on .ic{background:var(--ambar)}
+
+/* La marca de la cabecera lleva a la pantalla principal: en la computadora no hay
+   botones de navegacion entre herramientas, asi que el logo es el camino de vuelta. */
+.hdr a.marca{display:flex;gap:10px;align-items:center;color:inherit;text-decoration:none;cursor:pointer}
+.hdr a.marca:hover{opacity:.82}
+.hdr a.marca:focus-visible{outline:2px solid var(--ambar);outline-offset:3px;border-radius:8px}
+.hdr .ir{font-size:11px;font-weight:700;opacity:.6;margin-left:auto;white-space:nowrap}
+@media(max-width:430px){.hdr .ir{display:none}}
 </style>
 </head>
 <body>
-<div class="hdr"><span><svg width="34" height="34" viewBox="47 128 119 119" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#FFB000" d="M 79.09375 132.964844 C 64.039062 132.964844 51.832031 145.171875 51.832031 160.226562 L 51.832031 214.75 C 51.832031 229.804688 64.039062 242.007812 79.09375 242.007812 L 133.617188 242.007812 C 148.671875 242.007812 160.878906 229.804688 160.878906 214.75 L 160.878906 160.226562 C 160.878906 145.171875 148.671875 132.964844 133.617188 132.964844 Z M 79.09375 132.964844"/><path fill="#393538" d="M 152.566406 171.191406 L 110.160156 140.382812 C 107.867188 138.71875 104.703125 138.734375 102.460938 140.425781 L 60.113281 171.191406 C 57.214844 173.300781 56.566406 177.375 58.667969 180.273438 C 59.6875 181.683594 61.195312 182.609375 62.914062 182.882812 C 64.628906 183.152344 66.347656 182.742188 67.753906 181.722656 L 71.042969 179.332031 L 71.042969 221.601562 C 71.042969 224.6875 73.554688 227.199219 76.640625 227.199219 L 93.195312 227.199219 L 105.445312 236.003906 C 105.710938 236.195312 106.027344 236.292969 106.339844 236.292969 C 106.652344 236.292969 106.96875 236.195312 107.234375 236.003906 L 119.484375 227.199219 L 136.035156 227.199219 C 139.125 227.199219 141.636719 224.6875 141.636719 221.601562 L 141.636719 179.332031 L 144.925781 181.722656 C 146.046875 182.535156 147.367188 182.964844 148.730469 182.964844 C 149.074219 182.964844 149.421875 182.9375 149.765625 182.882812 C 151.484375 182.609375 152.992188 181.683594 154.011719 180.273438 C 156.113281 177.375 155.464844 173.300781 152.566406 171.191406 Z M 94.660156 217.859375 C 90.6875 215.003906 88.671875 211.078125 88.671875 206.183594 L 88.671875 188.996094 C 101.9375 181.839844 110.742188 181.839844 124.007812 188.996094 L 124.007812 206.183594 C 124.007812 211.078125 121.992188 215.003906 118.019531 217.859375 L 106.339844 226.253906 Z M 138.566406 221.601562 C 138.566406 222.996094 137.429688 224.132812 136.035156 224.132812 L 123.71875 224.132812 C 129.429688 219.695312 132.445312 213.511719 132.445312 206.183594 L 132.445312 184.976562 C 132.445312 184.433594 132.160156 183.933594 131.695312 183.65625 C 121.796875 177.785156 113.976562 175.167969 106.339844 175.167969 C 98.703125 175.167969 90.882812 177.785156 80.984375 183.65625 C 80.519531 183.933594 80.234375 184.433594 80.234375 184.976562 L 80.234375 206.183594 C 80.234375 213.511719 83.246094 219.699219 88.957031 224.132812 L 76.640625 224.132812 C 75.246094 224.132812 74.113281 222.996094 74.113281 221.601562 L 74.113281 177.101562 L 106.339844 153.6875 L 138.566406 177.101562 Z M 119.546875 197.945312 L 105.164062 212.328125 C 104.308594 213.183594 103.164062 213.652344 101.972656 213.652344 C 101.839844 213.652344 101.707031 213.648438 101.570312 213.636719 C 100.25 213.519531 99.054688 212.835938 98.285156 211.761719 L 92.113281 203.992188 C 91.363281 203.046875 91.023438 201.867188 91.160156 200.667969 C 91.296875 199.472656 91.894531 198.398438 92.839844 197.648438 C 93.78125 196.894531 94.960938 196.558594 96.160156 196.695312 C 97.359375 196.832031 98.433594 197.425781 99.183594 198.371094 L 102.347656 202.355469 L 113.152344 191.550781 C 114.914062 189.789062 117.78125 189.789062 119.546875 191.550781 C 121.308594 193.316406 121.308594 196.183594 119.546875 197.945312 Z M 119.546875 197.945312"/></svg></span>
-<span><span class="t">CALCULADORA DE MATERIALES</span><br><span class="s">Mi Casa Soluciones · metrados y dosificación · v1.7</span></span></div>
+<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span><svg width="34" height="34" viewBox="47 128 119 119" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#FFB000" d="M 79.09375 132.964844 C 64.039062 132.964844 51.832031 145.171875 51.832031 160.226562 L 51.832031 214.75 C 51.832031 229.804688 64.039062 242.007812 79.09375 242.007812 L 133.617188 242.007812 C 148.671875 242.007812 160.878906 229.804688 160.878906 214.75 L 160.878906 160.226562 C 160.878906 145.171875 148.671875 132.964844 133.617188 132.964844 Z M 79.09375 132.964844"/><path fill="#393538" d="M 152.566406 171.191406 L 110.160156 140.382812 C 107.867188 138.71875 104.703125 138.734375 102.460938 140.425781 L 60.113281 171.191406 C 57.214844 173.300781 56.566406 177.375 58.667969 180.273438 C 59.6875 181.683594 61.195312 182.609375 62.914062 182.882812 C 64.628906 183.152344 66.347656 182.742188 67.753906 181.722656 L 71.042969 179.332031 L 71.042969 221.601562 C 71.042969 224.6875 73.554688 227.199219 76.640625 227.199219 L 93.195312 227.199219 L 105.445312 236.003906 C 105.710938 236.195312 106.027344 236.292969 106.339844 236.292969 C 106.652344 236.292969 106.96875 236.195312 107.234375 236.003906 L 119.484375 227.199219 L 136.035156 227.199219 C 139.125 227.199219 141.636719 224.6875 141.636719 221.601562 L 141.636719 179.332031 L 144.925781 181.722656 C 146.046875 182.535156 147.367188 182.964844 148.730469 182.964844 C 149.074219 182.964844 149.421875 182.9375 149.765625 182.882812 C 151.484375 182.609375 152.992188 181.683594 154.011719 180.273438 C 156.113281 177.375 155.464844 173.300781 152.566406 171.191406 Z M 94.660156 217.859375 C 90.6875 215.003906 88.671875 211.078125 88.671875 206.183594 L 88.671875 188.996094 C 101.9375 181.839844 110.742188 181.839844 124.007812 188.996094 L 124.007812 206.183594 C 124.007812 211.078125 121.992188 215.003906 118.019531 217.859375 L 106.339844 226.253906 Z M 138.566406 221.601562 C 138.566406 222.996094 137.429688 224.132812 136.035156 224.132812 L 123.71875 224.132812 C 129.429688 219.695312 132.445312 213.511719 132.445312 206.183594 L 132.445312 184.976562 C 132.445312 184.433594 132.160156 183.933594 131.695312 183.65625 C 121.796875 177.785156 113.976562 175.167969 106.339844 175.167969 C 98.703125 175.167969 90.882812 177.785156 80.984375 183.65625 C 80.519531 183.933594 80.234375 184.433594 80.234375 184.976562 L 80.234375 206.183594 C 80.234375 213.511719 83.246094 219.699219 88.957031 224.132812 L 76.640625 224.132812 C 75.246094 224.132812 74.113281 222.996094 74.113281 221.601562 L 74.113281 177.101562 L 106.339844 153.6875 L 138.566406 177.101562 Z M 119.546875 197.945312 L 105.164062 212.328125 C 104.308594 213.183594 103.164062 213.652344 101.972656 213.652344 C 101.839844 213.652344 101.707031 213.648438 101.570312 213.636719 C 100.25 213.519531 99.054688 212.835938 98.285156 211.761719 L 92.113281 203.992188 C 91.363281 203.046875 91.023438 201.867188 91.160156 200.667969 C 91.296875 199.472656 91.894531 198.398438 92.839844 197.648438 C 93.78125 196.894531 94.960938 196.558594 96.160156 196.695312 C 97.359375 196.832031 98.433594 197.425781 99.183594 198.371094 L 102.347656 202.355469 L 113.152344 191.550781 C 114.914062 189.789062 117.78125 189.789062 119.546875 191.550781 C 121.308594 193.316406 121.308594 196.183594 119.546875 197.945312 Z M 119.546875 197.945312"/></svg></span>
+<span><span class="t">CALCULADORA DE MATERIALES</span><br><span class="s">Mi Casa Soluciones · metrados y dosificación · v1.8</span></span><span class="ir">⌂ Inicio</span></a></div>
 <div class="wrap">
   <div class="chips rubros" id="rubros"></div>
   <div class="chips" id="chips"></div>
@@ -164,9 +172,190 @@ const RUBROS = [
   {id:"gris",    nombre:"Obra gris",     icono:"🏗"},
   {id:"acabado", nombre:"Acabados",      icono:"🎨"},
   {id:"madera",  nombre:"Carpintería",   icono:"🗄"},
+  {id:"metal",   nombre:"Mi Casa Metal", icono:"⚙"},
   {id:"inst",    nombre:"Instalaciones", icono:"🔧"},
   {id:"util",    nombre:"Herramientas",  icono:"🧮"}
 ];
+/* ================== MI CASA METAL (estructuras metálicas) ================== */
+/* Peso del acero estructural: 7.850 kg/m³ = 0,00785 kg por metro y por mm² de sección.
+   Los perfiles de tubo, ángulo, platina, varilla y canal se calculan por geometría;
+   las vigas laminadas IPE se toman de la tabla del fabricante (DIN 1025). */
+const DENS_ACERO = 0.00785;      /* kg/m por cada mm² de sección */
+const E_ACERO = 200000;          /* N/mm² — módulo de elasticidad del acero (NEC-SE-AC / AISC) */
+const PERFILES = {
+  "Tubo cuadrado 20x20x1,5":{f:"cua",a:20,b:20,t:1.5},
+  "Tubo cuadrado 25x25x1,5":{f:"cua",a:25,b:25,t:1.5},
+  "Tubo cuadrado 30x30x2":{f:"cua",a:30,b:30,t:2},
+  "Tubo cuadrado 40x40x2":{f:"cua",a:40,b:40,t:2},
+  "Tubo cuadrado 40x40x3":{f:"cua",a:40,b:40,t:3},
+  "Tubo cuadrado 50x50x2":{f:"cua",a:50,b:50,t:2},
+  "Tubo cuadrado 50x50x3":{f:"cua",a:50,b:50,t:3},
+  "Tubo cuadrado 60x60x3":{f:"cua",a:60,b:60,t:3},
+  "Tubo cuadrado 75x75x3":{f:"cua",a:75,b:75,t:3},
+  "Tubo cuadrado 100x100x4":{f:"cua",a:100,b:100,t:4},
+  "Tubo rectangular 40x20x2":{f:"rec",a:40,b:20,t:2},
+  "Tubo rectangular 50x25x2":{f:"rec",a:50,b:25,t:2},
+  "Tubo rectangular 60x30x2":{f:"rec",a:60,b:30,t:2},
+  "Tubo rectangular 80x40x2":{f:"rec",a:80,b:40,t:2},
+  "Tubo rectangular 80x40x3":{f:"rec",a:80,b:40,t:3},
+  "Tubo rectangular 100x50x3":{f:"rec",a:100,b:50,t:3},
+  "Tubo rectangular 120x60x4":{f:"rec",a:120,b:60,t:4},
+  "Tubo rectangular 150x100x4":{f:"rec",a:150,b:100,t:4},
+  "Tubo redondo 1/2\" (12,7 mm) e=1,5":{f:"red",a:12.7,t:1.5},
+  "Tubo redondo 3/4\" (19 mm) e=1,5":{f:"red",a:19.05,t:1.5},
+  "Tubo redondo 1\" (25,4 mm) e=2":{f:"red",a:25.4,t:2},
+  "Tubo redondo 1 1/2\" (38 mm) e=2":{f:"red",a:38.1,t:2},
+  "Tubo redondo 2\" (50,8 mm) e=2,5":{f:"red",a:50.8,t:2.5},
+  "Tubo redondo 3\" (76,2 mm) e=3":{f:"red",a:76.2,t:3},
+  "Tubo redondo 4\" (101,6 mm) e=3":{f:"red",a:101.6,t:3},
+  "Ángulo 20x20x3":{f:"ang",a:20,b:20,t:3},
+  "Ángulo 25x25x3":{f:"ang",a:25,b:25,t:3},
+  "Ángulo 30x30x3":{f:"ang",a:30,b:30,t:3},
+  "Ángulo 40x40x3":{f:"ang",a:40,b:40,t:3},
+  "Ángulo 40x40x4":{f:"ang",a:40,b:40,t:4},
+  "Ángulo 50x50x4":{f:"ang",a:50,b:50,t:4},
+  "Ángulo 50x50x5":{f:"ang",a:50,b:50,t:5},
+  "Ángulo 65x65x6":{f:"ang",a:65,b:65,t:6},
+  "Platina 20x3":{f:"pla",a:20,t:3},
+  "Platina 25x3":{f:"pla",a:25,t:3},
+  "Platina 30x4":{f:"pla",a:30,t:4},
+  "Platina 40x4":{f:"pla",a:40,t:4},
+  "Platina 50x5":{f:"pla",a:50,t:5},
+  "Platina 1\" x 1/8\" (25x3)":{f:"pla",a:25.4,t:3.2},
+  "Platina 2\" x 1/4\" (50x6)":{f:"pla",a:50.8,t:6.35},
+  "Varilla lisa 6 mm":{f:"var",a:6},
+  "Varilla lisa 8 mm":{f:"var",a:8},
+  "Varilla lisa 10 mm":{f:"var",a:10},
+  "Varilla lisa 12 mm":{f:"var",a:12},
+  "Varilla lisa 16 mm":{f:"var",a:16},
+  "Perfil C 100x50x15x2":{f:"c",a:100,b:50,c:15,t:2},
+  "Perfil C 100x50x15x3":{f:"c",a:100,b:50,c:15,t:3},
+  "Perfil C 120x50x15x3":{f:"c",a:120,b:50,c:15,t:3},
+  "Perfil C 150x50x15x3":{f:"c",a:150,b:50,c:15,t:3},
+  "Perfil C 150x65x20x3":{f:"c",a:150,b:65,c:20,t:3},
+  "Perfil C 200x50x15x3":{f:"c",a:200,b:50,c:15,t:3},
+  "Perfil C 200x65x20x4":{f:"c",a:200,b:65,c:20,t:4},
+  "Viga IPE 100":{f:"ipe",a:100,kg:8.1,A:10.3,Ix:171,Iy:15.9},
+  "Viga IPE 120":{f:"ipe",a:120,kg:10.4,A:13.2,Ix:318,Iy:27.7},
+  "Viga IPE 140":{f:"ipe",a:140,kg:12.9,A:16.4,Ix:541,Iy:44.9},
+  "Viga IPE 160":{f:"ipe",a:160,kg:15.8,A:20.1,Ix:869,Iy:68.3},
+  "Viga IPE 180":{f:"ipe",a:180,kg:18.8,A:23.9,Ix:1320,Iy:101},
+  "Viga IPE 200":{f:"ipe",a:200,kg:22.4,A:28.5,Ix:1940,Iy:142},
+  "Viga IPE 240":{f:"ipe",a:240,kg:30.7,A:39.1,Ix:3890,Iy:284}
+};
+/* Sección de cada perfil en mm² */
+function perfilA(x){
+  if(!x) return 0;
+  if(x.A) return x.A*100;                                    /* IPE: la tabla da cm² */
+  var a=x.a,b=x.b||x.a,t=x.t;
+  if(x.f==="cua") return 4*t*(a-t);
+  if(x.f==="rec") return 2*t*(a+b-2*t);
+  if(x.f==="red") return Math.PI*(a-t)*t;
+  if(x.f==="ang") return t*(a+b-t);
+  if(x.f==="pla") return a*t;
+  if(x.f==="var") return Math.PI*a*a/4;
+  if(x.f==="c")   return t*(a+2*b+2*x.c)-4*t*t;
+  return 0;
+}
+function perfilKg(x){ return x&&x.kg ? x.kg : perfilA(x)*DENS_ACERO; }        /* kg/m */
+/* Perímetro exterior en mm: sirve para pintar y para la soldadura de la placa base */
+function perfilPerim(x){
+  if(!x) return 0;
+  var a=x.a,b=x.b||x.a;
+  if(x.f==="cua") return 4*a;
+  if(x.f==="rec") return 2*(a+b);
+  if(x.f==="red") return Math.PI*a;
+  if(x.f==="ang") return 2*(a+b);
+  if(x.f==="pla") return 2*(a+x.t);
+  if(x.f==="var") return Math.PI*a;
+  if(x.f==="c")   return 2*(a+2*b+2*x.c);
+  if(x.f==="ipe") return 2*(b*0+ (a) )+4*(a/2);              /* aproximado para viga IPE */
+  return 0;
+}
+/* Momento de inercia mínimo (mm⁴). Se descompone la sección en rectángulos y se
+   buscan los ejes principales: así vale para el ángulo y para el canal, que no
+   tienen la misma inercia en las dos direcciones. */
+function rectsPerfil(x){
+  var r=[],a=x.a,b=x.b||x.a,t=x.t;
+  if(x.f==="cua"||x.f==="rec"){
+    r.push({x:0,y:0,b:a,h:t}); r.push({x:0,y:b-t,b:a,h:t});
+    r.push({x:0,y:t,b:t,h:b-2*t}); r.push({x:a-t,y:t,b:t,h:b-2*t});
+  } else if(x.f==="ang"){
+    r.push({x:0,y:0,b:t,h:a}); r.push({x:t,y:0,b:a-t,h:t});
+  } else if(x.f==="c"){
+    r.push({x:0,y:0,b:t,h:a});
+    r.push({x:t,y:0,b:b,h:t}); r.push({x:t,y:a-t,b:b,h:t});
+    r.push({x:t+b-t,y:t,b:t,h:x.c}); r.push({x:t+b-t,y:a-t-x.c,b:t,h:x.c});
+  } else if(x.f==="pla"){ r.push({x:0,y:0,b:a,h:t}); }
+  return r;
+}
+function inerciaMin(rects){
+  var A=0,sx=0,sy=0,i,r;
+  for(i=0;i<rects.length;i++){ r=rects[i]; var ar=r.b*r.h; A+=ar; sx+=ar*(r.x+r.b/2); sy+=ar*(r.y+r.h/2); }
+  if(!A) return {A:0,Ix:0,Iy:0,Imin:0};
+  var xc=sx/A, yc=sy/A, Ix=0, Iy=0, Ixy=0;
+  for(i=0;i<rects.length;i++){ r=rects[i];
+    var a2=r.b*r.h, dx=r.x+r.b/2-xc, dy=r.y+r.h/2-yc;
+    Ix += r.b*r.h*r.h*r.h/12 + a2*dy*dy;
+    Iy += r.h*r.b*r.b*r.b/12 + a2*dx*dx;
+    Ixy += a2*dx*dy; }
+  var p=(Ix+Iy)/2, d=(Ix-Iy)/2;
+  return {A:A,Ix:Ix,Iy:Iy,Ixy:Ixy,Imin:p-Math.sqrt(d*d+Ixy*Ixy),xc:xc,yc:yc};
+}
+function perfilImin(x){
+  if(!x) return 0;
+  if(x.f==="ipe") return x.Iy*10000;                        /* IPE: la tabla da cm⁴ */
+  if(x.f==="red"){ var D=x.a,t=x.t; return Math.PI*(Math.pow(D,4)-Math.pow(D-2*t,4))/64; }
+  if(x.f==="var") return Math.PI*Math.pow(x.a,4)/64;
+  var s=inerciaMin(rectsPerfil(x));
+  return s.Imin;
+}
+function perfilImax(x){
+  if(!x) return 0;
+  if(x.f==="ipe") return x.Ix*10000;
+  if(x.f==="red") return Math.PI*(Math.pow(x.a,4)-Math.pow(x.a-2*x.t,4))/64;
+  if(x.f==="var") return Math.PI*Math.pow(x.a,4)/64;
+  var s=inerciaMin(rectsPerfil(x));
+  return s.Ix;
+}
+function perfilRmin(x){
+  if(!x) return 0;
+  if(x.f==="ipe") return Math.sqrt(x.Iy*10000/(x.A*100));
+  if(x.f==="red") return Math.sqrt(perfilImin(x)/perfilA(x));
+  if(x.f==="var")  return x.a/4;
+  var s=inerciaMin(rectsPerfil(x));            /* misma descomposicion que la inercia */
+  return s.A? Math.sqrt(s.Imin/s.A) : 0;
+}
+/* Tabla J2.4 de AWS D1.1 / AISC: filete mínimo según el espesor de la plancha más delgada */
+function fileteMin(e){
+  if(e<=6) return 3;
+  if(e<=13) return 5;
+  if(e<=19) return 6;
+  return 8;
+}
+function fileteMax(e){ return e<6? e : e-1.5; }
+/* Filete que se puede ejecutar de verdad: entre el minimo de la norma y el maximo
+   que aguanta el borde. Con plancha de menos de 3 mm la norma pide mas de lo que
+   la plancha permite, y ahi manda el espesor. */
+function filetePractico(e){ return Math.min(Math.max(fileteMin(e),3), Math.max(fileteMax(e),1)); }
+function avisoFilete(e){ return fileteMin(e)>fileteMax(e)? "La plancha de "+M(e,1)+" mm es mas delgada que el filete minimo que pide la norma ("+fileteMin(e)+" mm): se suelda con electrodo de 2,5 mm y el cordon queda limitado por el espesor. Para trabajo estructural no conviene bajar de 3 mm de espesor. " : ""; }
+/* Metal depositado y electrodo consumido por metro de cordón de filete */
+function kgCordon(z,proceso){
+  var area=(Number(z)||0)*(Number(z)||0)/2;                 /* mm² de garganta del filete */
+  var dep=area*1000*1e-9*7850;                              /* kg de metal depositado por metro */
+  var ef=(proceso==="MIG/MAG (GMAW)")?0.95:((proceso==="Flux core (FCAW)")?0.85:0.60);
+  return {dep:dep, consum:dep/ef, ef:ef};
+}
+/* Comprobación preliminar de esbeltez y de flecha (no sustituye el diseño firmado) */
+function chequeoEsbeltez(K,L,r){ var klr=(K*L*1000)/(r||1); return {klr:klr, ok:klr<=200, limite:200}; }
+function flechaViga(wkgm,L,I){   /* w en kg/m, L en m, I en mm⁴ → flecha en mm */
+  var w=(Number(wkgm)||0)*9.81/1000;                        /* N/mm */
+  var Lm=(Number(L)||0)*1000;                               /* mm */
+  var I4=Number(I)||0;
+  if(!I4||!Lm) return 0;
+  return 5*w*Math.pow(Lm,4)/(384*E_ACERO*I4);
+}
+
 const ACTIVIDADES = [
 /* ---------------------------------------------------------------- 1 */
 { rubro:"gris", id:"concreto", nombre:"Concreto", icono:"🧱",
@@ -689,6 +878,189 @@ const ACTIVIDADES = [
     nota:"El barniz y la laca rinden de 10 a 14 m² por galón en cada mano, según lo chupadora que esté la madera: la primera mano siempre gasta más. El sellador o fijador se da antes para que el acabado no salga desparejo. El thinner se agrega solo si el fabricante lo pide, nunca más del 10 %.",
     fuente:"Rendimiento de barnices, lacas y esmaltes de 10 a 14 m² por galón por mano, según las fichas técnicas de las pinturas que se venden en Ecuador"};  },
   cotiza:function(v,r){ return {descripcion:v.tipo+" en madera, "+v.manos+" mano(s) sobre "+v.area+" m² ("+v.caras+" caras)",unidad:"m2",cantidad:n2(v.area*Math.max(1,Math.floor(v.caras)))}; }
+},
+/* ---------------------------------------------------------------- */
+{ rubro:"metal", id:"perfil_metal", corto:"Perfil", nombre:"Perfil metálico", icono:"📏",
+  campos:[
+    {k:"perf",e:"Perfil (medida comercial)",t:"sel",v:"Tubo cuadrado 40x40x2",op:Object.keys(PERFILES)},
+    {k:"l",e:"Largo de cada tramo (m)",t:"num",v:6},
+    {k:"n",e:"Cantidad de tramos",t:"num",v:1},
+    {k:"d",e:"Desperdicio y cortes (%)",t:"num",v:8}
+  ],
+  calc:function(v){
+    var x=PERFILES[v.perf]||PERFILES["Tubo cuadrado 40x40x2"];
+    var kg=perfilKg(x), A=perfilA(x), per=perfilPerim(x)/1000;
+    var L=Math.max(0,v.l)*Math.max(0,v.n), Ld=L*(1+v.d/100);
+    var peso=kg*Ld, area=per*Ld, barras=arriba(Ld/6);
+    var zmin=fileteMin(x.t||3), z=filetePractico(x.t||3), cor=kgCordon(z,"Electrodo revestido (SMAW)");
+    var sold=per*(Math.max(0,v.n)*2+2)*0.35;                /* placa base y uniones, estimado */
+    return {filas:[
+      ["Sección del perfil",M(A,1),"mm²"],
+      ["Peso del perfil",M(kg,3),"kg/m"],
+      ["Longitud pedida / con desperdicio",M(L,2)+" / "+M(Ld,2),"m"],
+      ["Barras comerciales de 6 m",barras,"barras"],
+      ["PESO TOTAL a comprar",M(peso,2),"kg"],
+      ["Área de superficie a pintar",M(area,2),"m²"],
+      ["Anticorrosivo (30 m² por galón)",arriba(area/30),"galones"],
+      ["Esmalte de acabado (30 m² por galón)",arriba(area/30),"galones"],
+      ["Filete mínimo según la norma (espesor "+M(x.t||3,1)+" mm)",zmin,"mm"],
+      ["Filete a ejecutar (limitado por el espesor)",M(z,1),"mm"],
+      ["Electrodo para soldar las uniones (estimado)",M(sold*cor.consum,2),"kg"],
+      ["Radio de giro mínimo (para esbeltez)",M(perfilRmin(x)/10,2),"cm"]
+    ],
+    nota:avisoFilete(x.t||3)+"El peso se calcula con la densidad del acero (7.850 kg/m³). Para tubo, ángulo, platina, varilla y canal se calcula por geometría de la sección; para la viga IPE se usa la tabla del fabricante (DIN 1025). El radio de giro mínimo es el que se usa para revisar la esbeltez de una columna: con él, KL/r no debe pasar de 200.",
+    fuente:"Densidad del acero y geometría de los perfiles; pesos de la viga IPE de la tabla DIN 1025; filete mínimo de la tabla J2.4 de AWS D1.1 / AISC 360"};  },
+  cotiza:function(v,r){ var x=PERFILES[v.perf]; return {descripcion:"Perfil "+v.perf+" ("+v.l+" m x "+v.n+")",unidad:"kg",cantidad:n2(perfilKg(x)*v.l*v.n*(1+v.d/100))}; }
+},
+/* ---------------------------------------------------------------- */
+{ rubro:"metal", id:"estructura_metal", corto:"Estructura", nombre:"Estructura metálica", icono:"⚙",
+  campos:[
+    {k:"pc",e:"Perfil de las columnas",t:"sel",v:"Tubo cuadrado 100x100x4",op:Object.keys(PERFILES)},
+    {k:"hc",e:"Alto de la columna (m)",t:"num",v:3.00},
+    {k:"nc",e:"Número de columnas",t:"num",v:4},
+    {k:"pv",e:"Perfil de las vigas",t:"sel",v:"Tubo rectangular 100x50x3",op:Object.keys(PERFILES)},
+    {k:"lv",e:"Largo de la viga (m)",t:"num",v:6.00},
+    {k:"nv",e:"Número de vigas",t:"num",v:2},
+    {k:"pcor",e:"Perfil de las correas",t:"sel",v:"Perfil C 120x50x15x3",op:Object.keys(PERFILES)},
+    {k:"lcor",e:"Largo de la correa (m)",t:"num",v:3.50},
+    {k:"ncor",e:"Número de correas",t:"num",v:6},
+    {k:"sep",e:"Separación entre correas (m)",t:"num",v:1.00},
+    {k:"carga",e:"Carga de servicio sobre la cubierta (kg/m²)",t:"num",v:70},
+    {k:"ubi",e:"Uso (para el límite de flecha)",t:"sel",v:"Cubierta (L/240)",op:["Cubierta (L/240)","Entrepiso (L/360)"]},
+    {k:"pos",e:"Posición de la correa (para la flecha)",t:"sel",v:"Alma vertical (eje fuerte)",op:["Alma vertical (eje fuerte)","Alma horizontal (eje débil)"]},
+    {k:"K",e:"Factor de longitud efectiva K de las columnas",t:"num",v:1},
+    {k:"d",e:"Desperdicio y cortes (%)",t:"num",v:8}
+  ],
+  calc:function(v){
+    var pc=PERFILES[v.pc], pv=PERFILES[v.pv], pk=PERFILES[v.pcor];
+    var d=1+v.d/100;
+    var Lc=Math.max(0,v.hc)*Math.max(0,v.nc), Lv=Math.max(0,v.lv)*Math.max(0,v.nv), Lk=Math.max(0,v.lcor)*Math.max(0,v.ncor);
+    var kgC=perfilKg(pc)*Lc*d, kgV=perfilKg(pv)*Lv*d, kgK=perfilKg(pk)*Lk*d;
+    var kgT=kgC+kgV+kgK;
+    var area=(perfilPerim(pc)/1000)*Lc*d+(perfilPerim(pv)/1000)*Lv*d+(perfilPerim(pk)/1000)*Lk*d;
+    /* soldadura: placa base de cada columna + uniones de vigas y correas */
+    var sPlaca=(perfilPerim(pc)/1000)*Math.max(0,v.nc);
+    var sUnion=(perfilPerim(pv)/1000*0.5)*Math.max(0,v.nv)+(perfilPerim(pk)/1000*0.5)*Math.max(0,v.ncor);
+    var eMin=Math.min(pc.t||6,pv.t||6,pk.t||6), z=filetePractico(eMin);
+    var cor=kgCordon(z,"Electrodo revestido (SMAW)");
+    var electrodo=(sPlaca+sUnion)*cor.consum;
+    /* comprobaciones */
+    var esb=chequeoEsbeltez(v.K,v.hc,perfilRmin(pc));
+    var wCorrea=(Number(v.carga)||0)*Math.max(0.1,v.sep);
+    var Itrab=(v.pos.indexOf("débil")>=0)? perfilImin(pk) : perfilImax(pk);
+    var fle=flechaViga(wCorrea,v.lcor,Itrab);
+    var lim=(v.ubi.indexOf("Entrepiso")===0? 360:240), limMm=(Number(v.lcor)||0)*1000/lim;
+    return {filas:[
+      ["Columnas ("+v.nc+")",M(Lc,1),"m"],
+      ["Vigas ("+v.nv+")",M(Lv,1),"m"],
+      ["Correas ("+v.ncor+")",M(Lk,1),"m"],
+      ["Peso de las columnas "+v.pc,M(kgC,1),"kg"],
+      ["Peso de las vigas "+v.pv,M(kgV,1),"kg"],
+      ["Peso de las correas "+v.pcor,M(kgK,1),"kg"],
+      ["PESO TOTAL DE ACERO",M(kgT,1),"kg"],
+      ["Área de superficie a pintar",M(area,1),"m²"],
+      ["Anticorrosivo (30 m² por galón)",arriba(area/30),"galones"],
+      ["Esmalte de acabado (30 m² por galón)",arriba(area/30),"galones"],
+      ["Filete a ejecutar (la norma pide mínimo "+fileteMin(eMin)+" mm)",M(z,1),"mm"],
+      ["Longitud de soldadura (placa base y uniones)",M(sPlaca+sUnion,2),"m"],
+      ["Electrodo 6013 (SMAW)",M(electrodo,2),"kg"],
+      ["Electrodos de 1/8\" (unos 18 por kg)",arriba(electrodo*18),"unidades"],
+      ["Placas base y pernos de anclaje (4 por columna)",Math.max(0,Math.floor(v.nc)),"juegos"],
+      ["CHEQUEO de esbeltez de la columna KL/r",M(esb.klr,0)+(esb.ok?" (cumple, límite 200)":" (NO cumple, límite 200)"),"—"],
+      ["CHEQUEO de flecha de la correa",M(fle,1)+(fle<=limMm?" (cumple, límite "+M(limMm,1)+" mm)":" (NO cumple, límite "+M(limMm,1)+" mm)"),"mm"],
+      ["Carga sobre la correa",M(wCorrea,1),"kg/m"]
+    ],
+    nota:avisoFilete(eMin)+"Sirve para presupuestar la estructura: cuánto acero, cuánta soldadura y cuánta pintura. Además trae dos comprobaciones de norma: la ESBELTEZ de las columnas (KL/r no debe pasar de 200, AISC 360 / NEC-SE-AC) y la FLECHA de las correas (L/240 en cubierta y L/360 en entrepiso). La flecha se calcula como viga simplemente apoyada con carga repartida: 5wL⁴/(384EI), con E=200.000 N/mm², y se revisa con el EJE FUERTE si la correa va con el alma vertical (que es como se coloca encima de la viga); si va acostada, cambia a eje débil y la flecha empeora. Si alguna NO cumple, hay que subir el perfil, acortar la luz o separar más las correas.",
+    fuente:"NEC-SE-AC (estructuras de acero) y AISC 360 para esbeltez y flecha; AWS D1.1 tabla J2.4 para el filete mínimo; densidad del acero 7.850 kg/m³ y E=200.000 N/mm²"};  },
+  cotiza:function(v,r){ return {descripcion:"Estructura metálica: "+v.nc+" columnas y "+v.nv+" vigas de "+v.hc+" m",unidad:"kg",cantidad:1}; }
+},
+/* ---------------------------------------------------------------- */
+{ rubro:"metal", id:"reja_porton", corto:"Reja o portón", nombre:"Reja, puerta o portón", icono:"🚧",
+  campos:[
+    {k:"tipo",e:"Qué se va a fabricar",t:"sel",v:"Reja o ventana de hierro",op:["Reja o ventana de hierro","Puerta metálica","Portón corredizo","Portón abatible","Baranda o pasamanos"]},
+    {k:"an",e:"Ancho (m)",t:"num",v:1.20},
+    {k:"al",e:"Alto o largo (m)",t:"num",v:1.00},
+    {k:"pm",e:"Perfil del marco",t:"sel",v:"Tubo cuadrado 40x40x2",op:Object.keys(PERFILES)},
+    {k:"pb",e:"Perfil de los barrotes",t:"sel",v:"Varilla lisa 12 mm",op:Object.keys(PERFILES)},
+    {k:"sep",e:"Separación entre barrotes (m)",t:"num",v:0.12},
+    {k:"n",e:"Cantidad",t:"num",v:1},
+    {k:"d",e:"Desperdicio y cortes (%)",t:"num",v:8}
+  ],
+  calc:function(v){
+    var pm=PERFILES[v.pm], pb=PERFILES[v.pb], n=Math.max(1,Math.floor(v.n)), d=1+v.d/100;
+    var an=Math.max(0,v.an), al=Math.max(0,v.al), esHorizontal=(v.tipo.indexOf("Baranda")===0);
+    /* marco: 2 lados largos + 2 cortos, más un travesaño intermedio si pasa de 1,20 m */
+    var lMarco=(2*al+2*an+(al>1.2?an:0))*n*d;
+    var nb=Math.floor((esHorizontal? al : an)/Math.max(0.05,v.sep))+1;      /* número de barrotes */
+    var lBarrotes=nb*(esHorizontal? an : al)*n*d;
+    var kgMarco=perfilKg(pm)*lMarco, kgBarr=perfilKg(pb)*lBarrotes, kgT=kgMarco+kgBarr;
+    var area=(perfilPerim(pm)/1000)*lMarco+(perfilPerim(pb)/1000)*lBarrotes;
+    /* soldadura: cada barrote se suelda en sus dos extremos, más las 4 esquinas del marco */
+    var sBarr=(perfilPerim(pb)/1000)*2*nb*n;
+    var sMarco=(perfilPerim(pm)/1000)*4*n;
+    var eMin=Math.min(pm.t||3,pb.t||pb.a||3), z=filetePractico(eMin);
+    var cor=kgCordon(z,"Electrodo revestido (SMAW)");
+    var electrodo=(sBarr+sMarco)*cor.consum;
+    var esPorton=(v.tipo.indexOf("Portón")===0);
+    return {filas:[
+      [v.tipo+" a fabricar",n,"unidades"],
+      ["Medida",M(an,2)+" x "+M(al,2),"m"],
+      ["Marco: "+v.pm,M(lMarco,1),"m"],
+      ["Barrotes: "+v.pb+" ("+nb+" por unidad)",M(lBarrotes,1),"m"],
+      ["Peso del marco",M(kgMarco,2),"kg"],
+      ["Peso de los barrotes",M(kgBarr,2),"kg"],
+      ["PESO TOTAL DE ACERO",M(kgT,2),"kg"],
+      ["Área de superficie a pintar",M(area,2),"m²"],
+      ["Anticorrosivo (30 m² por galón)",arriba(area/30),"galones"],
+      ["Esmalte de acabado (30 m² por galón)",arriba(area/30),"galones"],
+      ["Filete a ejecutar (la norma pide mínimo "+fileteMin(eMin)+" mm)",M(z,1),"mm"],
+      ["Longitud de soldadura",M(sBarr+sMarco,2),"m"],
+      ["Electrodo 6013 (SMAW)",M(electrodo,2),"kg"],
+      ["Bisagras de 3\"",(esPorton?4:3)*n,"unidades"],
+      ["Cerradura o pasador",n,"unidades"],
+      ["Jaladores",n,"unidades"],
+      ["Anclajes a la pared (tacos o platinas)",(esPorton?6:4)*n,"unidades"],
+      ["Riel y ruedas (solo portón corredizo)",(v.tipo.indexOf("corredizo")>=0? 1:0)*n,"juegos"]
+    ],
+    nota:avisoFilete(eMin)+"Para rejas y puertas los barrotes van verticales y se reparten según la separación que pidas; en barandas van horizontales. Una reja de ventana conviene dejarla con paso máximo de 12 cm por seguridad. El marco lleva un travesaño intermedio cuando pasa de 1,20 m de alto. El filete mínimo sale del espesor del perfil más delgado, según la tabla J2.4 de AWS D1.1.",
+    fuente:"Práctica del oficio de herrería en la costa ecuatoriana, tabla J2.4 de AWS D1.1 / AISC 360 para el filete mínimo y densidad del acero 7.850 kg/m³"};  },
+  cotiza:function(v,r){ return {descripcion:v.tipo+" de "+v.an+" x "+v.al+" m en "+v.pm,unidad:"unidad",cantidad:Math.max(1,Math.floor(v.n))}; }
+},
+/* ---------------------------------------------------------------- */
+{ rubro:"metal", id:"soldadura", corto:"Soldadura", nombre:"Soldadura", icono:"🔥",
+  campos:[
+    {k:"tipo",e:"Tipo de cordón",t:"sel",v:"Filete de ángulo",op:["Filete de ángulo","Bisel o penetración","Punto o tapón"]},
+    {k:"z",e:"Tamaño del filete o garganta (mm)",t:"num",v:3},
+    {k:"e",e:"Espesor de la plancha más delgada (mm)",t:"num",v:3},
+    {k:"l",e:"Longitud total de cordón (m)",t:"num",v:10},
+    {k:"pas",e:"Número de pasadas",t:"num",v:1},
+    {k:"proc",e:"Proceso",t:"sel",v:"Electrodo revestido (SMAW)",op:["Electrodo revestido (SMAW)","MIG/MAG (GMAW)","Flux core (FCAW)"]}
+  ],
+  calc:function(v){
+    var z=Math.max(0.5,v.z), zmin=fileteMin(v.e), zmax=fileteMax(v.e);
+    var L=Math.max(0,v.l)*Math.max(1,Math.floor(v.pas));
+    var c=kgCordon(z,v.proc);
+    var total=c.consum*L;
+    var largoMin=4*z;
+    var aviso=null;
+    if(v.tipo.indexOf("Filete")===0 && z<zmin) aviso="OJO: para una plancha de "+M(v.e,1)+" mm la norma pide un filete mínimo de "+zmin+" mm. Con "+M(z,1)+" mm el cordón queda por debajo de lo que exige AWS D1.1.";
+    if(v.tipo.indexOf("Filete")===0 && z>zmax) aviso="OJO: el filete no debe pasar de "+M(zmax,1)+" mm en el borde de una plancha de "+M(v.e,1)+" mm (se quema el borde).";
+    return {filas:[
+      ["Área de la garganta del cordón",M(z*z/2,2),"mm²"],
+      ["Metal depositado por metro",M(c.dep,4),"kg/m"],
+      ["Rendimiento del proceso "+v.proc,M(c.ef*100,0),"%"],
+      ["Consumible por metro de cordón",M(c.consum,4),"kg/m"],
+      ["Longitud de cordón ("+v.pas+" pasada(s))",M(L,1),"m"],
+      ["CONSUMIBLE TOTAL",M(total,2),"kg"],
+      ["Electrodos de 1/8\" (unos 18 por kg)",arriba(total*18),"unidades"],
+      ["Filete mínimo que exige la norma",zmin,"mm"],
+      ["Filete máximo en el borde",M(zmax,1),"mm"],
+      ["Longitud mínima de un cordón de filete",M(largoMin,1),"mm"],
+      ["¿El filete elegido cumple?",(v.tipo.indexOf("Filete")!==0? "no aplica":(z>=zmin&&z<=zmax? "SÍ cumple":"NO cumple")),"—"]
+    ],
+    nota:(aviso? aviso+" ":"")+"El consumible sale del metal depositado dividido por el rendimiento del proceso: en electrodo revestido (SMAW) se pierde cerca del 40 % entre escoria, salpicadura y la punta que se bota; en MIG/MAG se aprovecha cerca del 95 %. El filete mínimo y el máximo son los de la tabla J2.4 de AWS D1.1, que es la que se usa para soldadura estructural de acero. Un cordón de filete nunca debe ser más corto que 4 veces su tamaño.",
+    fuente:"Tabla J2.4 de AWS D1.1 / AISC 360 (filete mínimo y máximo según el espesor), rendimientos de depósito de uso corriente por proceso y densidad del acero 7.850 kg/m³"};  },
+  cotiza:function(v,r){ return {descripcion:"Soldadura "+v.tipo.toLowerCase()+" de "+v.z+" mm ("+v.l+" m de cordón)",unidad:"m",cantidad:n2(v.l)}; }
 },
 /* ---------------------------------------------------------------- 9 */
 { rubro:"inst", id:"agua", nombre:"Agua potable", icono:"🚰",
