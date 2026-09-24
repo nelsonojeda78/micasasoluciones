@@ -103,7 +103,7 @@ details.guion label{font-size:11px}
 <body>
 <div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas">
   <span id="hdrlogo"></span>
-  <span><span class="t">PRECIOS DE MERCADO</span><br><span class="s">Mi Casa Soluciones · encuesta telefónica · v1.1</span></span>
+  <span><span class="t">PRECIOS DE MERCADO</span><br><span class="s">Mi Casa Soluciones · encuesta telefónica · v1.2</span></span>
 <span class="ir">⌂ Inicio</span></a></div>
 <div class="wrap">
   <div id="aviso"></div>
@@ -120,6 +120,10 @@ details.guion label{font-size:11px}
           <option value="llamado">Ya llamados</option>
           <option value="no contesta">No contestaron</option></select></div>
         <div><label>Ciudad</label><select id="f_ciudad" onchange="pintarLlamar()"></select></div>
+        <div><label>Rubro</label><select id="f_rubro" onchange="pintarLlamar()">
+          <option value="construccion">Solo del rubro de la construcción</option>
+          <option value="todos">Todos (incluye las descartadas)</option>
+          <option value="fuera">Solo las descartadas</option></select></div>
       </div>
       <div id="resumen_llamar" class="hint"></div>
     </div>
@@ -306,88 +310,88 @@ SER-06|Alquiler de mezcladora (día)|día|Servicios|0
 
 /* ---------- Proveedores del sector (n|tipo|ciudad|direccion|telefono) ---------- */
 const PROVEEDORES_TXT = `
-Artipesca S. A.|(sin categoria en la fuente)|La Libertad|Sector La 7 esquinas, Santa Elena, La Libertad, Ecuador|04-2784971
-Bazar Musical Sandra|(sin categoria en la fuente)|La Libertad|3era Avenida y Calle Guayaquil, Santa Elena, La Libertad, |+593 4 278 3109
-Casber|(sin categoria en la fuente)|La Libertad|Barrio Mariscal Sucre Calle 21 E/ La 3era y 4ta Avenida, S|04-2785247
-Centro Ferretero ECONOVA|Ferretería|La Libertad|Q3FM+3RF Centro Ferretero ECONOVA, y, Av. Onceava, La Libe|+593 4-278-3027
-Centro Ferretero Yugcha|Ferretería|La Libertad|Q3GQ+R2P Centro Ferretero Yugcha, La Libertad, Ecuador|+593 4-278-6993
-Ciber Entertainment Pc|(sin categoria en la fuente)|La Libertad|Calle 20 E/ la 6ta y 7ma frente a Ferretería Barzola, Sant|04-2780481
-Comercial Buenaventura|(sin categoria en la fuente)|La Libertad|Calle Guayaquil y Av 6ta, Santa Elena, La Libertad, Ecuado|04-2786411
-Comisariato del Constructor|tienda de materiales de construcción|La Libertad|Av. Eleodoro Solorzano, La Libertad, Ecuador|+593 98 494 8837
-Compañía de Transporte Liberpesa S.A.|(sin categoria en la fuente)|La Libertad|Santa Elena, Ballenita, Terminal Terrestre Sumpa, La Liber|04-2772118
-Compraventa La Península|(sin categoria en la fuente)|La Libertad|Av 9 de Octubre 515 y Guayaquil, Santa Elena, La Libertad,|04-2782501
-Comunal Banco del Pichincha|(sin categoria en la fuente)|La Libertad|Barrio Rocafuerte 4ta Avenida E/ Calle 23 y 24, Santa Elen|04-2782207
-Cooperativa de Transportes Occidentales|(sin categoria en la fuente)|La Libertad|Av 9 de Octubre y Av 18, Santa Elena, La Libertad, Ecuador|04-2781845
-Cooperativa Interprovincial Costa Azul (C.I.C.A)|(sin categoria en la fuente)|La Libertad|Av Segunda s/n y Calle 18, Santa Elena, La Libertad, Ecuad|04-2786503
-Copicentro Poveda|(sin categoria en la fuente)|La Libertad|Barrio San Francisco Sector 7 Esquinas Av 6ta y Montecrist|04-2784780
-Deposito De Madera Y Ferreteria Ruta Del Sol|Ferreteria|La Libertad|La Libertad, Ecuador|
-Distribuidora de Gas Cedeño|Ferretería|La Libertad|Q3FQ+R4R Distribuidora de Gas Cedeño, Calle 17, La Liberta|
-El Mundo Del Perno|Ferretería|La Libertad|Av. Eleodoro Solorzano, La Libertad 240202, Ecuador|+593 99 200 5531
-Enterprises|(sin categoria en la fuente)|La Libertad|Av. 7ma y Calle 12, Santa Elena, La Libertad, Ecuador|04-2781875
-FERREFRANK|Ferretería|La Libertad|Av. Eleodoro Solorzano, La Libertad 240350, Av. Eleodoro S|+593 93 963 6956
-Ferretaria Chalen|Ferretería|La Libertad|Q3FW+2GH Ferretaria Chalen, La Libertad, Ecuador|
-Ferreteria Aguirre|Ferretería|La Libertad|Q3GM+976 Ferreteria Aguirre, La Libertad, Ecuador|
-Ferreteria Avila|tienda de artículos para el hogar|La Libertad|Q466+2G2 Ferreteria Avila, Unnamed Road, La Libertad, Ecua|+593 97 896 0127
-FERRETERIA BARRIO CHIQUITO|Ferretería|La Libertad|Q4C2+MGG FERRETERIA BARRIO CHIQUITO, La Libertad, Ecuador|
-Ferreteria Dinkletsa S.A|Ferretería|La Libertad|La Libertad, Ecuador|+593 96 010 2251
-Ferreteria Hnos Cuenca|Ferretería|La Libertad|P3WR+FWJ Ferreteria Hnos Cuenca, La Libertad, Ecuador|
-Ferreteria Ivan Y Celso Solis|Ferretería|La Libertad|La Libertad, Ecuador|+593 4-278-3065
-Ferreteria Jacome|Almacenar|La Libertad|Av. Eleodoro Solórzano y Calle 22 Santa Elena Ecuador, Ecu|+593 4-278-2972
-Ferreteria LA PROPICIA|tienda de artículos para el hogar|La Libertad|Q476+5G6 Ferreteria LA PROPICIA, C. 46, La Libertad, Ecuad|+593 98 243 7578
-Ferreteria Ventas Express HERMANOS PIN|Ferretería|La Libertad|P3XP+QV9 Ferreteria Ventas Express HERMANOS PIN, La Libert|+593 98 081 0166
-Ferreteria zavala|Ferretería|La Libertad|Q3FQ+X84 Ferreteria zavala, Av. Séptima, La Libertad, Ecua|
-FERRETERÍA BENJAMIN E.J.R.|Ferretería|La Libertad|La Libertad, Ecuador|+593 95 968 3133
-Ferretería KEVIN|Ferretería|La Libertad|Q3CR+GC2 Ferretería KEVIN, C. 20-A, La Libertad, Ecuador|+593 99 078 1662
-Ferretería La Libertad|Ferretería|La Libertad|Av. Octava 240, La Libertad 240350, Ecuador|+593 97 943 1248
-Ferretería Mejía|Almacenar|La Libertad|La Libertad, Ecuador|+593 4-278-3875
-Ferretería Naval e Industrial SEatec S.A.|(sin categoria en la fuente)|La Libertad|Av Eleodoro Solorzano y Calle 12 Fte al Cementerio, Santa |04-2781835
-Ferretería Pilay.|Ferretería|La Libertad|Avenida 27 Y Calle 13, La Libertad, Ecuador|
-Ferretería Regalo de Dios|Ferretería|La Libertad|Avenida 18 Y Calle 41 Cdla. Gral.Enrique Gallo, La Liberta|+593 4-293-4138
-Ferretería Solis|tienda de herramientas|La Libertad|Eleodoro Solorzano y, Alfonso Cobos Moscoso, La Libertad, |+593 99 217 4571
-Ferreterías Ortega|Ferretería|La Libertad|Q3CR+G9V Ferreterías Ortega, Av. Doceava, La Libertad, Ecu|
-FERROTTO Art. De Ferretería|Ferretería|La Libertad|Q37H+HJJ «FERROTTO» Art. De Ferretería, La Libertad, Ecuad|+593 4-451-0156
-GLOWPOINT LA LIBERTAD|Ferretería|La Libertad|Q3CR+J5C GLOWPOINT LA LIBERTAD, La Libertad, Ecuador|+593 98 507 2831
-Hostería Cuna Luna|(sin categoria en la fuente)|La Libertad|San José Km 700 Ruta del Spondylus, Santa Elena, La Libert|04-2780735
-Innaval La Libertad|tienda de herramientas|La Libertad|Calle 29 S/N entre Ave. Eleodoro Solórzano, y, La Libertad|+593 98 991 2465
-La Casa Del Oring|Ferretería|La Libertad|Av. Novena, y, Av. 14, La Libertad, Ecuador|+593 668286159
-Maderera y Ferreteria Virgen de Monserrate|tienda de madera|La Libertad|Barrio 5 de Junio AVDA 38 S/N Y CALLE 20A Y 21 La Libertad|+593 99 339 0852
-Materiales de construccion PILAY|Ferretería|La Libertad|Q474+W7H Materiales de construccion PILAY, La Libertad, Ec|
-MEGA ACERO SOLIS S.A.|Ferretería|La Libertad|La Libertad, Ecuador|+593 95 993 7191
-Montanita Estates Yoga|(sin categoria en la fuente)|La Libertad|Montanita, Provincia Santa Elena, Ecuador, La Libertad|
-Mundillantas|(sin categoria en la fuente)|La Libertad|Barrio 6 de Diciembre Av 12 E/ Calle 28 y 29, Santa Elena,|04-2782427
-Perniacero Herramientas|Ferretería|La Libertad|Av Eleodoro Solórzano, y, La Libertad, Ecuador|+593 93 932 8106
-Pinturas Gonzales|Ferretería|La Libertad|Av. Eleodoro Solorzano 719, La Libertad 240350, Ecuador|
-Pinturas Solis|Ferretería|La Libertad|A vei 10 929, La Libertad, Ecuador|+593 4-278-4229
-Radio Taxi Centro Radio Club "CANAL 40"|(sin categoria en la fuente)|La Libertad|Vía a Ballenita Cdla La Previsora Avenida 2 Solar 1 y Call|04-2781479
-SEATEC S. A.|tienda de herramientas|La Libertad|Av. Doceava, La Libertad, Ecuador|+593 4-278-1835
-Serigrafía Carlin|(sin categoria en la fuente)|La Libertad|Calle 21 E/ Av 8 y Av 9, Santa Elena, La Libertad, Ecuador|04-2785848
-Super Hierro Mejia|Ferretería|La Libertad|Q3FM+4QG Super Hierro Mejia, C. 15, La Libertad 240350, Ec|
-Universidad Estatal Península de Santa Elena|(sin categoria en la fuente)|La Libertad|Cdla. Universitaria Vía La Libertad, Santa Elena, Ecuador|04-2780018
-Óptica Luz|(sin categoria en la fuente)|La Libertad|9 de Octubre 414, Santa Elena, La Libertad, Ecuador|04-2786363
-Comercial Ramírez|tienda de herramientas|Salinas|Ciudadela Italiana, AV #38, Ecuador|
-Disensa|tienda de materiales de construcción|Salinas|Avenida Undecima Y Calle 43 Esquina, Construdismat S.a., S|+593 4-277-6176
-Fabrica de Bloques EJR|tienda de artículos para el hogar|Salinas|Unnamed Road,, Salinas, Ecuador|+593 99 540 5916
-Ferrenova 2|Ferretería|Salinas|Q379+R8G Ferrenova 2, Salinas, Ecuador|
-Ferreteria Italiana|Ferretería|Salinas|Q2PR+RP3 Ferreteria Italiana, Salinas, Ecuador|
-Ferreteria Lascano|Ferretería|Salinas|Q379+W9W Ferreteria Lascano, Salinas, Ecuador|+593 99 407 4168
-Ferreteria Molina|Centro comercial|Salinas|Q2QV+FJQ Ferreteria Molina, Salinas, Ecuador|
-Ferretería El capitán|tienda de herramientas|Salinas|240209, Salinas, Ecuador|+593 99 875 2317
-Ferretería hnos Cuenca 2|Ferretería|Salinas|Q33C+9P9 Ferretería hnos Cuenca 2, Salinas, Ecuador|+593 96 934 8849
-Ferretería Macofesa|Ferretería|Salinas|Av. Carlos Espinoza, Salinas 240203, Ecuador|+593 97 882 3367
-Ferriplast|Ferretería|Salinas|P3RP+H75 Ferriplast, La Libertad, Salinas, Ecuador|
-FERROCERAMICA|tienda de materiales de construcción|Salinas|Q3FM+4MM FERROCERAMICA, LA LIBERTAD, Salinas, Ecuador|+593 98 956 3279
-VENTA DE MATERIALES DE CONSTRUCCION Y FERRETERIA OVIEDO GUTIERREZ|tienda de materiales de construcción|Salinas|Q357+5J7 VENTA DE MATERIALES DE CONSTRUCCION Y FERRETERIA |+593 4-290-2319
-DEPOSITO DE MADERA ATAHUALPA|Ferretería|Santa Elena|Santa Elena, Ecuador|+593 99 195 9345
-Disensa|tienda de materiales de construcción|Santa Elena|Via Principal A La Libertad S/n – Parroquia Santa Elena, C|+593 4-294-3289
-FERRETERIA ANGIE|Ferretería|Santa Elena|Q4FR+P7M FERRETERIA ANGIE, C. 9 de Octubre, Santa Elena, E|+593 4-294-2785
-Ferreteria El Triunfador|Ferretería|Santa Elena|Q43V+R33 Ferreteria El Triunfador, Vía Ancón, Santa Elena,|+593 96 994 5042
-Ferreteria Villón|Ferretería|Santa Elena|C. 9 de Octubre, Santa Elena, Ecuador|+593 98 849 8059
-Ferretería|Ferretería|Santa Elena|240104, Ecuador|+593 93 901 3737
-FERRETERÍA C Y M|Ferretería|Santa Elena|Q4FR+Q43 FERRETERÍA C Y M, Simón Bolivar, Santa Elena, Ecu|
-Ferretería el ahorro|Compañía de construcción|Santa Elena|Sucre 824, Santa Elena, Ecuador|
-Hierro Mejia|Ferretería|Santa Elena|Q4CQ+25J Hierro Mejia, Santa Elena, Ecuador|
-Materiales de construcción Bolaños|tienda de herramientas|Santa Elena|Q49G+9C8 Materiales de construcción Bolaños, Santa Elena, |+593 99 750 1308
-Omnisariato|Centro comercial|Santa Elena|Manglaralto, calle Guayaquil y, C. 10 de Agosto, Santa Ele|+593 99 153 5096
+Artipesca S. A.|(sin categoria en la fuente)|La Libertad|Sector La 7 esquinas, Santa Elena, La Libertad, Ecuador|04-2784971|fuera: pesca y procesamiento de pescado
+Bazar Musical Sandra|(sin categoria en la fuente)|La Libertad|3era Avenida y Calle Guayaquil, Santa Elena, La Libertad,|+593 4 278 3109|fuera: bazar e instrumentos musicales
+Casber|(sin categoria en la fuente)|La Libertad|Barrio Mariscal Sucre Calle 21 E/ La 3era y 4ta Avenida, S|04-2785247|fuera: informatica y consumibles de computadora
+Centro Ferretero ECONOVA|Ferretería|La Libertad|Q3FM+3RF Centro Ferretero ECONOVA, y, Av. Onceava, La Libe|+593 4-278-3027|construccion
+Centro Ferretero Yugcha|Ferretería|La Libertad|Q3GQ+R2P Centro Ferretero Yugcha, La Libertad, Ecuador|+593 4-278-6993|construccion
+Ciber Entertainment Pc|(sin categoria en la fuente)|La Libertad|Calle 20 E/ la 6ta y 7ma frente a Ferretería Barzola, Sant|04-2780481|fuera: cyber y entretenimiento
+Comercial Buenaventura|(sin categoria en la fuente)|La Libertad|Calle Guayaquil y Av 6ta, Santa Elena, La Libertad, Ecuado|04-2786411|fuera: centro comercial
+Comisariato del Constructor|Materiales de construcción|La Libertad|Av. Eleodoro Solorzano, La Libertad, Ecuador|+593 98 494 8837|construccion
+Compañía de Transporte Liberpesa S.A.|(sin categoria en la fuente)|La Libertad|Santa Elena, Ballenita, Terminal Terrestre Sumpa, La Liber|04-2772118|fuera: transporte de pasajeros
+Compraventa La Península|(sin categoria en la fuente)|La Libertad|Av 9 de Octubre 515 y Guayaquil, Santa Elena, La Libertad,|04-2782501|fuera: compraventa de joyas
+Comunal Banco del Pichincha|(sin categoria en la fuente)|La Libertad|Barrio Rocafuerte 4ta Avenida E/ Calle 23 y 24, Santa Elen|04-2782207|fuera: banco
+Cooperativa de Transportes Occidentales|(sin categoria en la fuente)|La Libertad|Av 9 de Octubre y Av 18, Santa Elena, La Libertad, Ecuador|04-2781845|fuera: transporte de pasajeros
+Cooperativa Interprovincial Costa Azul (C.I.C.A)|(sin categoria en la fuente)|La Libertad|Av Segunda s/n y Calle 18, Santa Elena, La Libertad, Ecuad|04-2786503|fuera: transporte interprovincial
+Copicentro Poveda|(sin categoria en la fuente)|La Libertad|Barrio San Francisco Sector 7 Esquinas Av 6ta y Montecrist|04-2784780|fuera: cyber e imprenta
+Deposito De Madera Y Ferreteria Ruta Del Sol|Maderera y ferretería|La Libertad|La Libertad, Ecuador||construccion
+Distribuidora de Gas Cedeño|Ferretería|La Libertad|Q3FQ+R4R Distribuidora de Gas Cedeño, Calle 17, La Liberta||fuera: distribucion de gas
+El Mundo Del Perno|Ferretería|La Libertad|Av. Eleodoro Solorzano, La Libertad 240202, Ecuador|+593 99 200 5531|construccion
+Enterprises|(sin categoria en la fuente)|La Libertad|Av. 7ma y Calle 12, Santa Elena, La Libertad, Ecuador|04-2781875|fuera: no tiene relacion con la construccion
+FERREFRANK|Ferretería|La Libertad|Av. Eleodoro Solorzano, La Libertad 240350, Av. Eleodoro S|+593 93 963 6956|construccion
+Ferretaria Chalen|Ferretería|La Libertad|Q3FW+2GH Ferretaria Chalen, La Libertad, Ecuador||construccion
+Ferreteria Aguirre|Ferretería|La Libertad|Q3GM+976 Ferreteria Aguirre, La Libertad, Ecuador||construccion
+Ferreteria Avila|Ferretería|La Libertad|Q466+2G2 Ferreteria Avila, Unnamed Road, La Libertad, Ecua|+593 97 896 0127|construccion
+FERRETERIA BARRIO CHIQUITO|Ferretería|La Libertad|Q4C2+MGG FERRETERIA BARRIO CHIQUITO, La Libertad, Ecuador||construccion
+Ferreteria Dinkletsa S.A|Ferretería|La Libertad|La Libertad, Ecuador|+593 96 010 2251|construccion
+Ferreteria Hnos Cuenca|Ferretería|La Libertad|P3WR+FWJ Ferreteria Hnos Cuenca, La Libertad, Ecuador||construccion
+Ferreteria Ivan Y Celso Solis|Ferretería|La Libertad|La Libertad, Ecuador|+593 4-278-3065|construccion
+Ferreteria Jacome|Ferretería|La Libertad|Av. Eleodoro Solórzano y Calle 22 Santa Elena Ecuador, Ecu|+593 4-278-2972|construccion
+Ferreteria LA PROPICIA|Ferretería|La Libertad|Q476+5G6 Ferreteria LA PROPICIA, C. 46, La Libertad, Ecuad|+593 98 243 7578|construccion
+Ferreteria Ventas Express HERMANOS PIN|Ferretería|La Libertad|P3XP+QV9 Ferreteria Ventas Express HERMANOS PIN, La Libert|+593 98 081 0166|construccion
+Ferreteria zavala|Ferretería|La Libertad|Q3FQ+X84 Ferreteria zavala, Av. Séptima, La Libertad, Ecua||construccion
+FERRETERÍA BENJAMIN E.J.R.|Ferretería|La Libertad|La Libertad, Ecuador|+593 95 968 3133|construccion
+Ferretería KEVIN|Ferretería|La Libertad|Q3CR+GC2 Ferretería KEVIN, C. 20-A, La Libertad, Ecuador|+593 99 078 1662|construccion
+Ferretería La Libertad|Ferretería|La Libertad|Av. Octava 240, La Libertad 240350, Ecuador|+593 97 943 1248|construccion
+Ferretería Mejía|Ferretería|La Libertad|La Libertad, Ecuador|+593 4-278-3875|construccion
+Ferretería Naval e Industrial SEatec S.A.|Ferretería industrial|La Libertad|Av Eleodoro Solorzano y Calle 12 Fte al Cementerio, Santa|04-2781835|construccion
+Ferretería Pilay.|Ferretería|La Libertad|Avenida 27 Y Calle 13, La Libertad, Ecuador||construccion
+Ferretería Regalo de Dios|Ferretería|La Libertad|Avenida 18 Y Calle 41 Cdla. Gral.Enrique Gallo, La Liberta|+593 4-293-4138|construccion
+Ferretería Solis|Ferretería|La Libertad|Eleodoro Solorzano y, Alfonso Cobos Moscoso, La Libertad,|+593 99 217 4571|construccion
+Ferreterías Ortega|Ferretería|La Libertad|Q3CR+G9V Ferreterías Ortega, Av. Doceava, La Libertad, Ecu||construccion
+FERROTTO Art. De Ferretería|Ferretería|La Libertad|Q37H+HJJ «FERROTTO» Art. De Ferretería, La Libertad, Ecuad|+593 4-451-0156|construccion
+GLOWPOINT LA LIBERTAD|Ferretería|La Libertad|Q3CR+J5C GLOWPOINT LA LIBERTAD, La Libertad, Ecuador|+593 98 507 2831|fuera: internet, redes y telefonia
+Hostería Cuna Luna|(sin categoria en la fuente)|La Libertad|San José Km 700 Ruta del Spondylus, Santa Elena, La Libert|04-2780735|fuera: hosteria y hospedaje
+Innaval La Libertad|Ferretería industrial|La Libertad|Calle 29 S/N entre Ave. Eleodoro Solórzano, y, La Libertad|+593 98 991 2465|construccion
+La Casa Del Oring|Ferretería|La Libertad|Av. Novena, y, Av. 14, La Libertad, Ecuador|+593 668286159|construccion
+Maderera y Ferreteria Virgen de Monserrate|Maderera y ferretería|La Libertad|Barrio 5 de Junio AVDA 38 S/N Y CALLE 20A Y 21 La Libertad|+593 99 339 0852|construccion
+Materiales de construccion PILAY|Ferretería|La Libertad|Q474+W7H Materiales de construccion PILAY, La Libertad, Ec||construccion
+MEGA ACERO SOLIS S.A.|Ferretería|La Libertad|La Libertad, Ecuador|+593 95 993 7191|construccion
+Montanita Estates Yoga|(sin categoria en la fuente)|La Libertad|Montanita, Provincia Santa Elena, Ecuador, La Libertad||fuera: hospedaje y yoga
+Mundillantas|(sin categoria en la fuente)|La Libertad|Barrio 6 de Diciembre Av 12 E/ Calle 28 y 29, Santa Elena,|04-2782427|fuera: venta de llantas
+Perniacero Herramientas|Ferretería|La Libertad|Av Eleodoro Solórzano, y, La Libertad, Ecuador|+593 93 932 8106|construccion
+Pinturas Gonzales|Ferretería|La Libertad|Av. Eleodoro Solorzano 719, La Libertad 240350, Ecuador||construccion
+Pinturas Solis|Ferretería|La Libertad|A vei 10 929, La Libertad, Ecuador|+593 4-278-4229|construccion
+Radio Taxi Centro Radio Club "CANAL 40"|(sin categoria en la fuente)|La Libertad|Vía a Ballenita Cdla La Previsora Avenida 2 Solar 1 y Call|04-2781479|fuera: radio taxi
+SEATEC S. A.|Ferretería industrial|La Libertad|Av. Doceava, La Libertad, Ecuador|+593 4-278-1835|construccion
+Serigrafía Carlin|(sin categoria en la fuente)|La Libertad|Calle 21 E/ Av 8 y Av 9, Santa Elena, La Libertad, Ecuador|04-2785848|fuera: serigrafia e imprenta
+Super Hierro Mejia|Ferretería|La Libertad|Q3FM+4QG Super Hierro Mejia, C. 15, La Libertad 240350, Ec||construccion
+Universidad Estatal Península de Santa Elena|(sin categoria en la fuente)|La Libertad|Cdla. Universitaria Vía La Libertad, Santa Elena, Ecuador|04-2780018|fuera: universidad
+Óptica Luz|(sin categoria en la fuente)|La Libertad|9 de Octubre 414, Santa Elena, La Libertad, Ecuador|04-2786363|fuera: optica
+Comercial Ramírez|Ferretería|Salinas|Ciudadela Italiana, AV #38, Ecuador||construccion
+Disensa|tienda de materiales de construcción|Salinas|Avenida Undecima Y Calle 43 Esquina, Construdismat S.a., S|+593 4-277-6176|construccion
+Fabrica de Bloques EJR|Fábrica de bloques|Salinas|Unnamed Road,, Salinas, Ecuador|+593 99 540 5916|construccion
+Ferrenova 2|Ferretería|Salinas|Q379+R8G Ferrenova 2, Salinas, Ecuador||construccion
+Ferreteria Italiana|Ferretería|Salinas|Q2PR+RP3 Ferreteria Italiana, Salinas, Ecuador||construccion
+Ferreteria Lascano|Ferretería|Salinas|Q379+W9W Ferreteria Lascano, Salinas, Ecuador|+593 99 407 4168|construccion
+Ferreteria Molina|Ferretería|Salinas|Q2QV+FJQ Ferreteria Molina, Salinas, Ecuador||construccion
+Ferretería El capitán|Ferretería|Salinas|240209, Salinas, Ecuador|+593 99 875 2317|construccion
+Ferretería hnos Cuenca 2|Ferretería|Salinas|Q33C+9P9 Ferretería hnos Cuenca 2, Salinas, Ecuador|+593 96 934 8849|construccion
+Ferretería Macofesa|Ferretería|Salinas|Av. Carlos Espinoza, Salinas 240203, Ecuador|+593 97 882 3367|construccion
+Ferriplast|Ferretería|Salinas|P3RP+H75 Ferriplast, La Libertad, Salinas, Ecuador||construccion
+FERROCERAMICA|Cerámica y acabados|Salinas|Q3FM+4MM FERROCERAMICA, LA LIBERTAD, Salinas, Ecuador|+593 98 956 3279|construccion
+VENTA DE MATERIALES DE CONSTRUCCION Y FERRETERIA OVIEDO GUTIERREZ|tienda de materiales de construcción|Salinas|Q357+5J7 VENTA DE MATERIALES DE CONSTRUCCION Y FERRETERIA|+593 4-290-2319|construccion
+DEPOSITO DE MADERA ATAHUALPA|Ferretería|Santa Elena|Santa Elena, Ecuador|+593 99 195 9345|construccion
+Disensa|tienda de materiales de construcción|Santa Elena|Via Principal A La Libertad S/n – Parroquia Santa Elena, C|+593 4-294-3289|construccion
+FERRETERIA ANGIE|Ferretería|Santa Elena|Q4FR+P7M FERRETERIA ANGIE, C. 9 de Octubre, Santa Elena, E|+593 4-294-2785|construccion
+Ferreteria El Triunfador|Ferretería|Santa Elena|Q43V+R33 Ferreteria El Triunfador, Vía Ancón, Santa Elena,|+593 96 994 5042|construccion
+Ferreteria Villón|Ferretería|Santa Elena|C. 9 de Octubre, Santa Elena, Ecuador|+593 98 849 8059|construccion
+Ferretería|Ferretería|Santa Elena|240104, Ecuador|+593 93 901 3737|construccion
+FERRETERÍA C Y M|Ferretería|Santa Elena|Q4FR+Q43 FERRETERÍA C Y M, Simón Bolivar, Santa Elena, Ecu||construccion
+Ferretería el ahorro|Ferretería|Santa Elena|Sucre 824, Santa Elena, Ecuador||construccion
+Hierro Mejia|Ferretería|Santa Elena|Q4CQ+25J Hierro Mejia, Santa Elena, Ecuador||construccion
+Materiales de construcción Bolaños|Materiales de construcción|Santa Elena|Q49G+9C8 Materiales de construcción Bolaños, Santa Elena,|+593 99 750 1308|construccion
+Omnisariato|Centro comercial|Santa Elena|Manglaralto, calle Guayaquil y, C. 10 de Agosto, Santa Ele|+593 99 153 5096|fuera: centro comercial y bazar
 `;
 
 /* =====================================================================
@@ -415,9 +419,14 @@ function parsearProveedores(txt){
     if(!nombre || nombre.indexOf('{"')>=0) return;   /* filas con metadatos, no con el nombre */
     if(nombre.length>80) nombre=nombre.slice(0,77)+"...";
     i++;
+    /* El 6to campo dice si la empresa es del rubro de la construccion. Las que no
+       lo son quedan guardadas con el motivo, para poder revisarlas o recuperarlas. */
+    var rb=(p[5]||"construccion").trim();
     out.push({id:"p"+i, nombre:nombre, tipo:(p[1]||"Ferretería").trim(),
               ciudad:(p[2]||"").trim(), direccion:(p[3]||"").trim(),
-              telefono:(p[4]||"").trim(), estado:"pendiente", notas:""});
+              telefono:(p[4]||"").trim(), rubro:rb,
+              motivo:(rb.indexOf("fuera: ")===0? rb.slice(7) : ""),
+              estado:"pendiente", notas:""});
   });
   return out;
 }
@@ -573,18 +582,26 @@ function productosQueFaltan(id,filtro){
 function opcs(lista,valor){
   return lista.map(function(o){ return '<option'+(String(o)===String(valor)?" selected":"")+'>'+o+'</option>'; }).join("");
 }
+/* Solo se llama a las empresas que venden materiales de construccion. Las que no
+   son del rubro quedan guardadas con el motivo, para poder revisarlas. */
+function esDelRubro(p){ return (p.rubro||"construccion")==="construccion"; }
 function pintarLlamar(){
   var f=$("f_estado").value, ciudad=$("f_ciudad").value;
+  var rubro=$("f_rubro")? $("f_rubro").value : "construccion";
   var l=proveedores.filter(function(p){
+    if(rubro==="construccion" && !esDelRubro(p)) return false;
+    if(rubro==="fuera" && esDelRubro(p)) return false;
     if(f!=="todos" && p.estado!==f) return false;
     if(ciudad && p.ciudad!==ciudad) return false;
     return true;
   });
-  var total=proveedores.length, conTel=proveedores.filter(function(p){ return p.telefono; }).length;
-  var llamados=proveedores.filter(function(p){ return p.estado==="llamado"; }).length;
-  var regs=precios.length;
-  $("resumen_llamar").innerHTML="<b>"+llamados+"</b> de "+total+" proveedores llamados · "+
-    conTel+" con teléfono · <b>"+regs+"</b> precios registrados";
+  var delRubro=proveedores.filter(esDelRubro);
+  var total=delRubro.length, conTel=delRubro.filter(function(p){ return p.telefono; }).length;
+  var llamados=delRubro.filter(function(p){ return p.estado==="llamado"; }).length;
+  var descartadas=proveedores.length-total, regs=precios.length;
+  $("resumen_llamar").innerHTML="<b>"+llamados+"</b> de "+total+" proveedores del rubro llamados · "+
+    conTel+" con teléfono · <b>"+regs+"</b> precios registrados"+
+    (descartadas? ' · <span class="pill">'+descartadas+' descartadas por no ser del rubro</span>':"");
   var h="";
   if(!l.length) h='<div class="card"><div class="vacio">No hay proveedores en esta lista.<br>Cambia el filtro de arriba.</div></div>';
   l.forEach(function(p){
@@ -594,13 +611,15 @@ function pintarLlamar(){
       +'<div class="nm">'+esc(p.nombre)+'</div>'
       +'<div class="meta">'+esc(p.tipo)+(p.ciudad?" · "+esc(p.ciudad):"")+(p.telefono?" · "+esc(p.telefono):" · sin teléfono")+'</div>'
       +'<div class="meta"><span class="pill '+col+'">'+esc(p.estado)+'</span>'
-      +(n?' <span class="pill verde">'+n+' precio(s) registrados</span>':' <span class="pill">sin precios</span>')
-      +' <span class="pill ambar">le faltan '+productosQueFaltan(p.id,"falta").length+'</span>'
+      +(esDelRubro(p)
+        ? ((n?' <span class="pill verde">'+n+' precio(s) registrados</span>':' <span class="pill">sin precios</span>')
+           +' <span class="pill ambar">le faltan '+productosQueFaltan(p.id,"falta").length+'</span>')
+        : ' <span class="pill rojo">fuera del rubro: '+esc(p.motivo||"no vende materiales")+'</span>')
       +(p.vendedor?' <span class="pill">👤 '+esc(p.vendedor)+(p.vtel?' '+esc(p.vtel):'')+'</span>':'')
       +(p.direccion?'<br>'+esc(p.direccion):'')+'</div>'
       +'<div class="acc">'
       +(p.telefono?'<a class="btn verde sm" href="tel:'+telLimpio(p.telefono)+'">📞 Llamar</a>':'')
-      +'<button class="btn ambar sm" onclick="abrirRegistro(\''+p.id+'\')">Registrar precios</button>'
+      +(esDelRubro(p)? '<button class="btn ambar sm" onclick="abrirRegistro(\''+p.id+'\')">Registrar precios</button>' : '')
       +'<button class="btn gris sm" onclick="formProveedor(\''+p.id+'\')">Editar</button>'
       +'</div></div>';
   });
