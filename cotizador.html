@@ -374,6 +374,17 @@ const CATALOGO_DEF = [
  ["MET-07","Refuerzo estructural y anclajes","punto",35,"Mi Casa Metal"],
  ["MET-08","Reparación de mueble o estructura metálica","servicio",30,"Mi Casa Metal"],
  ["MET-09","Herrería por hora de soldador","hora",15,"Mi Casa Metal"],
+ ["MET-10","Estructura metálica: fabricación y montaje (columnas y vigas)","kg",3.5,"Mi Casa Metal"],
+ ["MET-11","Columna metálica (tubo o perfil estructural)","m",55,"Mi Casa Metal"],
+ ["MET-12","Viga metálica (perfil I, H o tubular)","m",48,"Mi Casa Metal"],
+ ["MET-13","Losa colaborante (steel deck con hormigón)","m2",58,"Mi Casa Metal"],
+ ["MET-14","Cubierta metálica (estructura + chapa o panel)","m2",55,"Mi Casa Metal"],
+ ["MET-15","Arriostramiento o riostra (diagonal de rigidez)","unidad",120,"Mi Casa Metal"],
+ ["MET-16","Conexión soldada calificada (filete o penetración)","punto",25,"Mi Casa Metal"],
+ ["MET-17","Conexión empernada de alta resistencia","punto",30,"Mi Casa Metal"],
+ ["MET-18","Placa base y anclaje de columna","unidad",85,"Mi Casa Metal"],
+ ["MET-19","Escalera metálica","m",120,"Mi Casa Metal"],
+ ["MET-20","Inspección y protocolo de calidad de soldadura y montaje","servicio",120,"Mi Casa Metal"],
  // ===== MI CASA DISEÑO — remodelación =====
  ["DIS-01","Asesoría de diseño y propuesta (gratis si se ejecuta la obra)","servicio",0,"Mi Casa Diseño"],
  ["DIS-02","Remodelación de baño completo","global",1200,"Mi Casa Diseño"],
@@ -623,6 +634,17 @@ MET-06|95|Estructura, rieles, ruedas, topes, soldadura, anclaje y ajuste del rec
 MET-07|8|Placa, pernos, soldadura y anclaje según el refuerzo requerido.|El cálculo estructural, si el trabajo lo requiere.
 MET-08|6|Corte, soldadura, ajuste y prueba en el sitio.|Pintura y repuestos que no sean metálicos.
 MET-09|3|Equipo, electrodos, gas y consumibles por hora de soldador.|El material a soldar y la pintura de acabado.
+MET-10|2.2|Perfil estructural, corte, armado, soldadura con soldador calificado conforme a AWS D1.1, montaje con plomada y niveles, y anticorrosivo base. El diseño y el cálculo se hacen conforme a la NEC-SE-AC (estructuras de acero) y la NEC-SE-DS (diseño sismorresistente). Garantía de 12 meses en mano de obra.|La pintura de acabado, la obra civil de cimentación y los permisos municipales.
+MET-11|30|Perfil estructural de la sección calculada, placa base, corte, armado, soldadura calificada (AWS D1.1) y montaje aplomado. Sección y esbeltez (KL/r ≤ 200) según la memoria de cálculo NEC-SE-AC.|La cimentación (dado o zapata de hormigón), la pintura de acabado y el cálculo estructural si se pide como servicio aparte.
+MET-12|26|Perfil laminado o conformado, corte, armado, soldadura calificada (AWS D1.1), montaje nivelado y anticorrosivo base. Flecha verificada según NEC-SE-AC (L/240 en cubierta y L/360 en entrepiso).|La pintura de acabado y los apoyos o muros que no sean de acero.
+MET-13|36|Placa colaborante (steel deck), conectores de corte, malla de repartición, hormigón de la resistencia especificada y apuntalamiento provisional durante el vaciado. Diseño conforme a NEC-SE-AC y AISC 360.|El acabado de piso, el encofrado de bordes y el curado especial.
+MET-14|33|Estructura metálica calculada para la carga de viento (NEC-SE-CG) y el sismo (NEC-SE-DS), correas, cubierta de chapa galvanizada o panel y su fijación. Garantía de 12 meses en mano de obra.|Las canaletas, las bajantes y la pintura de acabado de la estructura.
+MET-15|55|Perfil o platina de arriostramiento, corte, soldadura o empernado calificado, y verificación de la rigidez lateral. Conforme a la NEC-SE-DS (sistemas resistentes a carga lateral).|La pintura de acabado y la cimentación.
+MET-16|5|Soldadura ejecutada por soldador calificado, con electrodo de resistencia comprobada, inspección visual y prueba de calidad conforme a AWS D1.1. El filete mínimo se respeta según el espesor (tabla J2.4).|El material base y la pintura posterior a la soldadura.
+MET-17|12|Pernos de alta resistencia (A325 o A490), apriete controlado con torquímetro, arandela y verificación del torque. Conforme a AISC 360 y a la especificación RCSC.|Las placas de conexión, que se cotizan junto con la estructura.
+MET-18|38|Placa base, pernos de anclaje, nivelación con mortero de alta resistencia (grout), soldadura y montaje. Posición y tolerancias conforme a AISC 303.|La excavación y el dado o zapata de hormigón de la cimentación.
+MET-19|62|Perfil estructural, escalones, baranda, soldadura calificada (AWS D1.1) y anclaje. Pasos y contrahuellas según la norma de accesibilidad y la NEC.|La pintura de acabado y la obra civil de los apoyos.
+MET-20|0|Inspección visual de los cordones conforme a AWS D1.1, verificación de plomos y niveles, y entrega del protocolo de calidad firmado. Documento que respalda la garantía y el permiso municipal.|Los ensayos radiográficos o de partículas magnéticas, que se cotizan aparte si el proyecto los exige.
 DIS-01|0|Levantamiento de medidas, propuesta de distribución y de materiales, y presupuesto por rubros por escrito.|La ejecución de la obra. Si no se contrata, la asesoría se cobra como servicio.
 DIS-02|420|Demolición, instalaciones de agua y desagüe, puntos eléctricos, cerámica, grifería, sanitarios, muebles y pintura, con limpieza final.|Electrodomésticos, espejos y accesorios decorativos.
 DIS-03|520|Demolición, instalaciones, mesón, muebles, cerámica, pintura y limpieza final.|Electrodomésticos y el mesón de piedra natural si se elige.
