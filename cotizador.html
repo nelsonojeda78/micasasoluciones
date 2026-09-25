@@ -142,7 +142,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
 <body>
 <div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas">
   <span id="hdrlogo"></span>
-  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · La Libertad – Salinas · v1.7</span></span>
+  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · La Libertad – Salinas · v1.8</span></span>
 <span class="ir">⌂ Inicio</span></a></div>
 
 <div class="wrap">
@@ -186,6 +186,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
       <div class="row">
         <div><label>Anticipo (%)</label><input id="q_ant" type="number" step="5" min="0" max="100" value="60" oninput="calc()"></div>
         <div><label>Validez (días)</label><input id="q_val" type="number" min="1" value="15"></div>
+        <div><label>Imprevistos del plazo (%)</label><input id="q_imp" type="number" step="5" min="0" max="50" value="10" oninput="calc()"></div>
       </div>
       <div style="margin-top:12px">
         <div class="tot"><span>Subtotal</span><b id="t_sub">$0.00</b></div>
@@ -196,6 +197,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
         <div class="tot big"><span>TOTAL</span><span id="t_tot">$0.00</span></div>
         <div class="tot"><span>Anticipo a la firma</span><b id="t_ant">$0.00</b></div>
         <div class="tot"><span>Saldo contra entrega</span><b id="t_sal">$0.00</b></div>
+        <div class="tot plazo"><span>Plazo estimado de obra</span><b id="t_plazo">—</b></div>
       </div>
       <label>Observaciones / alcance del trabajo</label>
       <textarea id="q_obs" rows="3" placeholder="Ej.: Incluye retiro de escombros y limpieza final. No incluye cerámica."></textarea>
@@ -467,6 +469,15 @@ const CATALOGO_DEF = [
  ["ALB-12","Acero de refuerzo fy=4200 (cortado y armado)","kg",1.6,"Albañilería"],
  ["ALB-13","Escalera de hormigón armado","m3",140,"Albañilería"],
  ["ALB-14","Filos, bruñas y remates","m",4,"Albañilería"],
+ ["ALB-15","Losa alivianada de hormigón armado (nervada con casetones)","m2",68,"Albañilería"],
+ ["ALB-16","Losa maciza de hormigón armado","m2",85,"Albañilería"],
+ ["ALB-17","Dala o cadena de amarre (viga de encadenado)","m",26,"Albañilería"],
+ ["ALB-18","Columna de hormigón armado","m",52,"Albañilería"],
+ ["ALB-19","Viga de hormigón armado","m",45,"Albañilería"],
+ ["ALB-20","Zapata aislada de hormigón armado","unidad",130,"Albañilería"],
+ ["ALB-21","Cimiento corrido de hormigón ciclópeo","m",40,"Albañilería"],
+ ["ALB-22","Entrepiso de hormigón armado (losa + nivelación)","m2",90,"Albañilería"],
+ ["ALB-23","Muro de contención de hormigón armado","m3",185,"Albañilería"],
  // ===== MATERIALES (Mi Casa Ferretería) =====
  ["MAT-01","Cemento Portland (saco 50 kg)","saco",8.43,"Materiales"],
  ["MAT-02","Arena gruesa o fina","m3",28,"Materiales"],
@@ -688,6 +699,15 @@ ALB-11|6|Madera o tablero, puntales, armado, desencofrado y limpieza.|El alquile
 ALB-12|1.4|Acero de refuerzo, corte, doblado, amarre y colocación.|El cálculo estructural y los ensayos de laboratorio.
 ALB-13|105|Hormigón, encofrado, acero, vaciado, curado y acabado de peldaños.|El pasamanos y los acabados del piso.
 ALB-14|1|Mortero, herramienta y acabado de filos, bruñas y remates.|Los trabajos de ornamentación especial.
+ALB-15|30|Casetones o bloques aligerantes, acero de refuerzo fy=4200 kg/cm², hormigón f'c=210 kg/cm², encofrado, apuntalamiento y curado. Dosificación, recubrimientos y armado conforme a la NEC-SE-HM y al ACI 318.|El acabado de piso, los muros de apoyo y la impermeabilización.
+ALB-16|38|Acero de refuerzo en dos sentidos, hormigón f'c=210 kg/cm², encofrado, apuntalamiento y curado. Espesor y armado según el cálculo estructural (NEC-SE-HM / ACI 318).|El acabado de piso y el encofrado especial si la losa tiene desniveles.
+ALB-17|11|Acero longitudinal y estribos, hormigón f'c=210 kg/cm², encofrado y curado. Detallado sísmico conforme a la NEC-SE-HM y la NEC-SE-DS.|El muro que la soporta y la pintura o el enlucido posterior.
+ALB-18|22|Acero de refuerzo, estribos de confinamiento, hormigón f'c=210 kg/cm², encofrado y curado. Recubrimiento y confinamiento conforme a NEC-SE-HM / ACI 318 y NEC-SE-DS.|La cimentación (zapata) y el enlucido o la pintura de la columna.
+ALB-19|19|Acero de refuerzo, estribos, hormigón f'c=210 kg/cm², encofrado y curado. Armado y recubrimientos conforme a la NEC-SE-HM y el ACI 318.|El enlucido o la pintura de la viga y los muros de apoyo.
+ALB-20|58|Hormigón f'c=210 kg/cm², acero de refuerzo, encofrado y curado. Dimensiones y armado según el estudio de suelos (NEC-SE-GC) y la NEC-SE-HM.|La excavación, el replantillo si lo requiere el suelo y la sobreexcavación por terreno suelto.
+ALB-21|18|Hormigón ciclópeo (con piedra) de la proporción indicada, nivelación, vibrado y curado. Ancho y profundidad según el estudio de suelos (NEC-SE-GC).|La excavación y el relleno lateral.
+ALB-22|40|Losa de hormigón armado, nivelación con mortero y acabado base listo para el piso. Estructura conforme a la NEC-SE-HM.|El piso terminado (cerámica, porcelanato o duela) y las instalaciones embebidas.
+ALB-23|85|Hormigón armado, acero de refuerzo, encofrado, drenaje tras el muro y curado. Diseño conforme a la NEC-SE-GC y la NEC-SE-HM.|La excavación general, el relleno y el estudio de suelos.
 MAT-01|0|Saco de cemento Portland de 50 kg, producto nuevo de marca conocida, entregado en obra.|El transporte fuera de La Libertad y Salinas.
 MAT-02|0|Arena gruesa o fina de cantera, medida en metros cúbicos y entregada en obra.|El transporte fuera de La Libertad y Salinas.
 MAT-03|0|Piedra chancada o ripio, medido en metros cúbicos y entregado en obra.|El transporte fuera de La Libertad y Salinas.
@@ -911,6 +931,8 @@ function textoWhatsApp(cot, emp){
   if(cot.obs) L.push("Alcance: " + cot.obs);
   L.push("Incluye: garantía escrita de " + (emp.garantia||12) + " meses en mano de obra y factura.");
   L.push("Validez de la oferta: " + cot.validez + " días.");
+  var _dO=diasObra(cot.items); var _dI=Math.round(_dO*(cot.imprevisto||0)/100); var _dT=Math.ceil(_dO+_dI);
+  if(_dO>0) L.push("Plazo estimado: " + _dT + " días hábiles (incluye " + (_dI>0?_dI+" días de imprevistos":"sin imprevistos") + ").");
   L.push("");
   L.push("WhatsApp: +" + emp.tel);
   return L.join("\n");
@@ -1033,6 +1055,43 @@ function completarEmpresa(e, base){
   });
   return cambio;
 }
+/* ===== PLAZO DE OBRA =====
+   Dias de trabajo de una cuadrilla tipica (maestro + ayudante) por unidad, con
+   rendimientos de uso corriente en el mercado ecuatoriano. Sirve para estimar
+   el plazo de obra y sumarle el periodo de imprevistos. Es una ESTIMACION de
+   planificacion, no un contrato. */
+var TIEMPOS = {
+  /* concreto armado y obra gris */
+  "ALB-01":0.05,"ALB-02":0.04,"ALB-03":0.05,"ALB-04":0.08,"ALB-05":0.10,"ALB-06":0.08,
+  "ALB-07":0.06,"ALB-08":0.08,"ALB-09":0.08,"ALB-10":0.50,"ALB-11":0.10,"ALB-12":0.02,
+  "ALB-13":0.70,"ALB-14":0.02,"ALB-15":0.22,"ALB-16":0.28,"ALB-17":0.15,"ALB-18":0.18,
+  "ALB-19":0.18,"ALB-20":0.50,"ALB-21":0.18,"ALB-22":0.30,"ALB-23":0.90,
+  /* estructura metalica */
+  "MET-01":0.10,"MET-02":0.15,"MET-03":0.60,"MET-04":0.12,"MET-05":0.18,"MET-06":1.20,
+  "MET-07":0.15,"MET-08":0.40,"MET-09":0.125,"MET-10":0.004,"MET-11":0.20,"MET-12":0.18,
+  "MET-13":0.25,"MET-14":0.20,"MET-15":0.25,"MET-16":0.05,"MET-17":0.04,"MET-18":0.25,
+  "MET-19":0.35,"MET-20":0.50,
+  /* instalaciones y acabados */
+  "AGU-02":0.15,"AGU-03":0.20,"AGU-04":0.20,"AGU-06":0.15,"AGU-07":0.30,"AGU-10":0.25,
+  "LUZ-02":0.12,"LUZ-03":0.12,"LUZ-05":0.40,"GYP-01":0.08,"GYP-03":0.10,"GYP-04":0.12,
+  "COL-01":0.04,"COL-02":0.06,"COL-03":0.05,"PIS-01":0.10,
+  "DIS-02":0.30,"DIS-03":0.30,"DIS-06":0.12,"DIS-10":0.10,
+  "CAR-04":0.35,"CAR-07":0.40,"CAR-10":0.80,"CAR-11":1.20,"CAR-25":0.10,"CAR-24":0.08
+};
+/* Rendimiento por defecto segun la unidad, para las partidas sin dato propio */
+var REND_DEF = {m2:0.08, m3:0.50, m:0.15, punto:0.12, unidad:0.50, servicio:0.50,
+                hora:0.125, jornal:1, kg:0.005, global:0.25, juego:0.20, par:0.10};
+function diasPorUnidad(p){
+  if(!p) return 0;
+  if(TIEMPOS[p.codigo]!==undefined) return TIEMPOS[p.codigo];
+  if(esMaterial(p)) return 0;              /* el material no consume cuadrilla */
+  return REND_DEF[p.unidad] || 0;
+}
+/* Dias habiles de obra de una lista de partidas (redondeado hacia arriba) */
+function diasObra(items){
+  var d=0; (items||[]).forEach(function(it){ d += (Number(it.cantidad)||0) * diasPorUnidad(it); });
+  return Math.ceil(d*10)/10;
+}
 /* Agrega a cada partida del catalogo su detalle y su material */
 function enriquecerCatalogo(lista){
   var cambiado=false;
@@ -1106,7 +1165,7 @@ function nuevaCotizacion(limpiar){
     numero: numCotizacion(contador, anio),
     fecha: hoyISO(),
     cliente: {nombre:"",cedula:"",telefono:"",direccion:"",email:""},
-    items: [], descuento:0, iva:15, anticipo:60, validez:15, obs:""
+    items: [], descuento:0, iva:15, anticipo:60, validez:15, imprevisto:10, obs:""
   };
   if(limpiar) LS.set("borrador", q);
   pintarCotizacion();
@@ -1118,6 +1177,7 @@ function pintarCotizacion(){
   $("q_iva").value = String(q.iva);
   $("q_ant").value = q.anticipo;
   $("q_val").value = q.validez;
+  $("q_imp").value = q.imprevisto;
   $("q_obs").value = q.obs || "";
   pintarClientesSelect();
   pintarItems();
@@ -1187,6 +1247,7 @@ function calc(){
   q.iva=Number($("q_iva").value)||0;
   q.anticipo=Number($("q_ant").value)||0;
   q.validez=Number($("q_val").value)||15;
+  q.imprevisto=Number($("q_imp").value)||0;
   q.fecha=$("q_fecha").value||hoyISO();
   q.obs=$("q_obs").value||"";
   var t=calcTotales(q.items,q.descuento,q.iva,q.anticipo);
@@ -1197,6 +1258,14 @@ function calc(){
   $("t_tot").textContent=money(t.total);
   $("t_ant").textContent=money(t.anticipo)+"  ("+q.anticipo+"%)";
   $("t_sal").textContent=money(t.saldo);
+  /* Plazo estimado: dias de obra + imprevistos */
+  var dObra=diasObra(q.items);
+  var dImp=Math.round(dObra*(q.imprevisto||0)/100);
+  var dTotal=Math.ceil(dObra+dImp);
+  var semanas=Math.ceil(dTotal/6);
+  $("t_plazo").textContent = dObra>0
+    ? dTotal+" días hábiles (obra "+Math.ceil(dObra)+" + imprevistos "+dImp+") · ≈ "+semanas+" semana(s)"
+    : "—";
   /* Desglose transparente: material + mano de obra + gestion y garantia */
   var rp=repartoCotizacion(q.items, emp.gestion);
   var dg=$("t_desglose");
@@ -1513,6 +1582,7 @@ function pintarPrint(){
    +'<tr class="b"><td>TOTAL</td><td class="n">'+money(t.total)+'</td></tr>'
    +'<tr><td>Anticipo ('+q.anticipo+'%) a la firma</td><td class="n">'+money(t.anticipo)+'</td></tr>'
    +'<tr><td>Saldo contra entrega</td><td class="n">'+money(t.saldo)+'</td></tr>'
+   +'<tr class="b" style="border-top:2px solid var(--ambar)"><td>PLAZO ESTIMADO DE OBRA</td><td class="n">'+(function(){ var _o=diasObra(q.items); var _i=Math.round(_o*(q.imprevisto||0)/100); var _t=Math.ceil(_o+_i); return _o>0? (_t+' días hábiles (obra '+Math.ceil(_o)+' + imprevistos '+_i+')') : 'a convenir'; })()+'</td></tr>'
    +'</table></div>'
    +(emp.banco?'<div class="box" style="margin-top:6px"><b>Forma de pago:</b> '+esc(emp.banco)+'</div>':'')
    +(q.obs?'<div class="box" style="margin-top:6px"><b>Alcance del trabajo:</b> '+esc(q.obs)+'</div>':'')
