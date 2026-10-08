@@ -142,7 +142,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
 <body>
 <div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas">
   <span id="hdrlogo"></span>
-  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · La Libertad – Salinas · v2.0</span></span>
+  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · La Libertad – Salinas · v2.1</span></span>
 <span class="ir">⌂ Inicio</span></a></div>
 
 <div class="wrap">
@@ -466,10 +466,10 @@ const CATALOGO_DEF = [
  ["ALB-07","Tarrajeo o enlucido de pared (mortero)","m2",9,"Albañilería"],
  ["ALB-08","Enlucido de cielo raso","m2",11,"Albañilería"],
  ["ALB-09","Contrapiso o solado de hormigón simple","m2",12,"Albañilería"],
- ["ALB-10","Hormigón en columnas, vigas o losa (f'c 210)","m3",120,"Albañilería"],
- ["ALB-11","Encofrado y desencofrado","m2",10,"Albañilería"],
- ["ALB-12","Acero de refuerzo fy=4200 (cortado y armado)","kg",1.6,"Albañilería"],
- ["ALB-13","Escalera de hormigón armado","m3",140,"Albañilería"],
+ ["ALB-10","Hormigón en columnas, vigas o losa (f'c 210)","m3",125,"Albañilería"],
+ ["ALB-11","Encofrado y desencofrado","m2",14.5,"Albañilería"],
+ ["ALB-12","Acero de refuerzo fy=4200 (cortado y armado)","kg",1.95,"Albañilería"],
+ ["ALB-13","Escalera de hormigón armado","m3",170.8,"Albañilería"],
  ["ALB-14","Filos, bruñas y remates","m",4,"Albañilería"],
  ["ALB-15","Losa alivianada de hormigón armado (nervada con casetones)","m2",68,"Albañilería"],
  ["ALB-16","Losa maciza de hormigón armado","m2",85,"Albañilería"],
@@ -709,7 +709,7 @@ ALB-08|3|Cemento, arena, aplicación en cielo raso y curado.|Los trabajos en alt
 ALB-09|5|Hormigón simple, nivelación, curado y limpieza.|La cerámica o el piso final.
 ALB-10|95|Cemento, arena, piedra, agua, vaciado, vibrado, curado y encofrado básico.|El acero de refuerzo (se cotiza aparte) y el diseño estructural.
 ALB-11|6|Madera o tablero, puntales, armado, desencofrado y limpieza.|El alquiler de andamios o de encofrado metálico especial.
-ALB-12|1.4|Acero de refuerzo, corte, doblado, amarre y colocación.|El cálculo estructural y los ensayos de laboratorio.
+ALB-12|1.0|Acero de refuerzo, corte, doblado, amarre y colocación.|El cálculo estructural y los ensayos de laboratorio.
 ALB-13|105|Hormigón, encofrado, acero, vaciado, curado y acabado de peldaños.|El pasamanos y los acabados del piso.
 ALB-14|1|Mortero, herramienta y acabado de filos, bruñas y remates.|Los trabajos de ornamentación especial.
 ALB-15|30|Casetones o bloques aligerantes, acero de refuerzo fy=4200 kg/cm², hormigón f'c=210 kg/cm², encofrado, apuntalamiento y curado. Dosificación, recubrimientos y armado conforme a la NEC-SE-HM y al ACI 318.|El acabado de piso, los muros de apoyo y la impermeabilización.
@@ -1105,12 +1105,12 @@ function completarEmpresa(e, base){
 var TIEMPOS = {
   /* concreto armado y obra gris */
   "ALB-01":0.05,"ALB-02":0.04,"ALB-03":0.05,"ALB-04":0.08,"ALB-05":0.10,"ALB-06":0.08,
-  "ALB-07":0.06,"ALB-08":0.08,"ALB-09":0.08,"ALB-10":0.50,"ALB-11":0.10,"ALB-12":0.02,
+  "ALB-07":0.06,"ALB-08":0.08,"ALB-09":0.08,"ALB-10":0.25,"ALB-11":0.10,"ALB-12":0.02,
   "ALB-13":0.70,"ALB-14":0.02,"ALB-15":0.22,"ALB-16":0.28,"ALB-17":0.15,"ALB-18":0.18,
   "ALB-19":0.18,"ALB-20":0.50,"ALB-21":0.18,"ALB-22":0.30,"ALB-23":0.90,
   /* estructura metalica */
   "MET-01":0.10,"MET-02":0.15,"MET-03":0.60,"MET-04":0.12,"MET-05":0.18,"MET-06":1.20,
-  "MET-07":0.15,"MET-08":0.40,"MET-09":0.125,"MET-10":0.004,"MET-11":0.20,"MET-12":0.18,
+  "MET-07":0.15,"MET-08":0.25,"MET-09":0.125,"MET-10":0.004,"MET-11":0.20,"MET-12":0.18,
   "MET-13":0.25,"MET-14":0.20,"MET-15":0.25,"MET-16":0.05,"MET-17":0.04,"MET-18":0.25,
   "MET-19":0.35,"MET-20":0.50,
   /* instalaciones y acabados */
@@ -1118,7 +1118,9 @@ var TIEMPOS = {
   "LUZ-02":0.12,"LUZ-03":0.12,"LUZ-05":0.40,"GYP-01":0.08,"GYP-03":0.10,"GYP-04":0.12,
   "COL-01":0.04,"COL-02":0.06,"COL-03":0.05,"PIS-01":0.10,
   "DIS-02":0.30,"DIS-03":0.30,"DIS-06":0.12,"DIS-10":0.10,
-  "CAR-04":0.35,"CAR-07":0.40,"CAR-10":0.80,"CAR-11":1.20,"CAR-25":0.10,"CAR-24":0.08
+  "CAR-04":0.35,
+  "LUZ-13":0.03,"LUZ-06":0.06,"LUZ-04":0.12,"CAR-03":0.06,"CAR-33":0.06,"CAR-02":0.12,
+  "CAR-08":0.08,"CAR-27":0.08,"GYP-06":0.08,"GYP-09":0.25,"SER-05":0.25,"SER-06":0.25,"CAR-07":0.40,"CAR-10":0.80,"CAR-11":1.20,"CAR-25":0.10,"CAR-24":0.08
 };
 /* Rendimiento por defecto segun la unidad, para las partidas sin dato propio */
 var REND_DEF = {m2:0.08, m3:0.50, m:0.15, punto:0.12, unidad:0.50, servicio:0.50,
