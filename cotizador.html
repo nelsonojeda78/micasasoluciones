@@ -142,7 +142,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
 <body>
 <div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas">
   <span id="hdrlogo"></span>
-  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · La Libertad – Salinas · v1.9</span></span>
+  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · La Libertad – Salinas · v2.0</span></span>
 <span class="ir">⌂ Inicio</span></a></div>
 
 <div class="wrap">
@@ -590,12 +590,21 @@ const CATALOGO_DEF = [
  ["MAT-106","Aligerante o caballete para losa","unidad",2,"Materiales"],
  ["MAT-107","Madera o tablero para encofrado (m2)","m2",6,"Materiales"],
  // ===== MANO DE OBRA POR JORNAL =====
- ["MO-01","Jornal de maestro (8 horas) — uso interno","jornal",70,"Mano de obra"],
- ["MO-02","Jornal de ayudante (8 horas) — uso interno","jornal",62,"Mano de obra"],
- ["MO-03","Hora de maestro — uso interno","hora",8.77,"Mano de obra"],
- ["MO-04","Hora de ayudante — uso interno","hora",7.81,"Mano de obra"],
+ ["MO-01","Jornal de maestro (8 horas) — uso interno","jornal",37.08,"Mano de obra"],
+ ["MO-02","Jornal de ayudante (8 horas) — uso interno","jornal",34.73,"Mano de obra"],
+ ["MO-03","Hora de maestro — uso interno","hora",4.64,"Mano de obra"],
+ ["MO-04","Hora de ayudante — uso interno","hora",4.34,"Mano de obra"],
  ["MO-05","Recargo por trabajo nocturno, domingo o feriado (30 %)","servicio",0,"Mano de obra"],
  ["MO-06","Movilización fuera de La Libertad y Salinas","servicio",15,"Mano de obra"],
+ ["MO-07","Mano de obra: pegado de bloque o ladrillo","m2",5,"Mano de obra"],
+ ["MO-08","Mano de obra: colocación de cerámica o porcelanato","m2",9.5,"Mano de obra"],
+ ["MO-09","Mano de obra: carpintería (metro lineal)","m",40,"Mano de obra"],
+ ["MO-10","Mano de obra: enlucido o tarrajeo","m2",4.6,"Mano de obra"],
+ ["MO-11","Mano de obra: pintura (por confirmar)","m2",0,"Mano de obra"],
+ ["MO-12","Mano de obra: gypsum o cielo raso (por confirmar)","m2",0,"Mano de obra"],
+ ["MO-13","Mano de obra: contrapiso (por confirmar)","m2",0,"Mano de obra"],
+ ["MO-14","Mano de obra: hormigón armado (por confirmar)","m3",0,"Mano de obra"],
+ ["MO-15","Mano de obra: estructura metálica (por confirmar)","kg",0,"Mano de obra"],
  // ===== SERVICIOS Y CONTRATOS =====
  ["SER-01","Plan de mantenimiento mensual de condominio (básico)","mes",80,"Servicios"],
  ["SER-02","Plan de mantenimiento mensual de condominio (medio)","mes",150,"Servicios"],
@@ -819,12 +828,21 @@ MAT-104|0|Varilla de hierro corrugada de 1/2 pulgada por 12 m, fy=4200.|El corte
 MAT-105|0|Alambre de amarre para sujetar el acero de refuerzo, por kilogramo.|El corte, el doblado y el amarre del acero, que van en la partida de la armadura.
 MAT-106|0|Aligerante o caballete para alivianar losas y nervios.|Su colocación.
 MAT-107|0|Madera o tablero para encofrar columnas, vigas y losas, por m2.|El armado y desarmado del encofrado.
-MO-01|0|Jornal de 8 horas de maestro, con su herramienta básica.|Uso interno para trabajos por día. No se muestra al cliente como rubro.
-MO-02|0|Jornal de 8 horas de ayudante, con su herramienta básica.|Uso interno para trabajos por día. No se muestra al cliente como rubro.
-MO-03|0|Una hora de maestro, con su herramienta básica.|Uso interno para diagnosticos y trabajos de alcance incierto.
-MO-04|0|Una hora de ayudante, con su herramienta básica.|Uso interno para trabajos por hora.
+MO-01|0|Jornal de 8 horas de maestro de obra, según el salario mínimo sectorial de construcción 2026 (jornal real $37,08).|Es el mínimo legal; la tarifa de mercado suele ser mayor y se ajusta aquí.
+MO-02|0|Jornal de 8 horas de ayudante, según el salario mínimo sectorial de construcción 2026 (jornal real $34,73).|Es el mínimo legal; la tarifa de mercado suele ser mayor y se ajusta aquí.
+MO-03|0|Hora de maestro de obra (costo horario sectorial 2026: $4,64).|Uso interno para diagnósticos y trabajos de alcance incierto.
+MO-04|0|Hora de ayudante (costo horario sectorial 2026: $4,34).|Uso interno para trabajos por hora.
 MO-05|0|Recargo por trabajar de noche, en domingo o en feriado, avisado antes de empezar.|El recargo se aplica solo si el cliente lo aprueba por escrito.
 MO-06|0|Movilización de la cuadrilla y la herramienta fuera de La Libertad y Salinas.|Los viáticos si el trabajo requiere pernoctar.
+MO-07|0|Pegado de bloque o ladrillo (solo mano de obra). Rango de mercado $4-6/m².|El material y la mezcla.
+MO-08|0|Colocación de cerámica o porcelanato, con mortero de pega (solo mano de obra). Rango de mercado $7-12/m².|La cerámica, el porcelanato y la fragua.
+MO-09|0|Carpintería de madera o melamina por metro lineal (solo mano de obra). Rango de mercado $35-45/m.|El material y la herrería.
+MO-10|0|Enlucido o tarrajeo interior (solo mano de obra). Referencia de APU de obra pública: aprox. $4,6/m².|El mortero y el andamiaje.
+MO-11|0|Pintura interior o exterior (solo mano de obra). Sin tarifa pública de referencia: por confirmar.|La pintura y los protectores.
+MO-12|0|Gypsum o cielo raso (solo mano de obra). Sin tarifa pública de referencia: por confirmar.|Las planchas y los perfiles.
+MO-13|0|Contrapiso (solo mano de obra). Sin tarifa pública de referencia: por confirmar.|El hormigón y el enrasado.
+MO-14|0|Hormigón armado (solo mano de obra de vaciado). Sin tarifa pública de referencia: por confirmar.|El hormigón, el acero y el encofrado.
+MO-15|0|Estructura metálica (solo mano de obra de montaje). Sin tarifa pública de referencia: por confirmar.|El acero, la soldadura y los pernos.
 SER-01|0|Dos visitas al mes de inspección de áreas comunes (bombas, tablero, fugas, iluminación y pintura), informe con fotos y atención de urgencias en 24 horas.|Los materiales y la mano de obra de las reparaciones, que se cotizan aparte.
 SER-02|0|Cuatro visitas al mes, informe con fotos, atención de urgencias en 24 horas y 10 % de descuento en trabajos adicionales.|Los materiales de las reparaciones.
 SER-03|0|Visitas semanales, informe con fotos, respuesta en 24 horas, prioridad de agenda y 15 % de descuento en trabajos adicionales.|Los materiales de las reparaciones.
