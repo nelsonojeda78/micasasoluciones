@@ -87,6 +87,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ambar);b
 .chip{display:inline-block;border:1.5px solid var(--borde);border-radius:999px;padding:6px 11px;font-size:13px;margin:0 6px 6px 0;cursor:pointer;background:#fff;font-weight:600}
 .chip.on{background:var(--carbon);color:#fff;border-color:var(--carbon)}
 .empty{text-align:center;color:var(--gris);padding:26px 10px;font-size:14px}
+.mat-list{margin-top:10px;border:1px solid var(--borde);border-radius:8px;overflow:hidden}
+.mat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;border-bottom:1px solid var(--borde);font-size:14px}
+.mat-row:last-child{border-bottom:0}
+.mat-row b{color:var(--tinta)}
+.mat-tot{margin-top:10px;padding:9px 11px;background:var(--arena);border-radius:8px;font-size:13px}
+.mat-tot b{color:var(--verde)}
 .mask{position:fixed;inset:0;background:rgba(16,15,13,.45);display:none;z-index:50;align-items:flex-end}
 .mask.on{display:flex}
 .sheet{background:#fff;width:100%;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:14px}
@@ -142,7 +148,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
 <body>
 <div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas">
   <span id="hdrlogo"></span>
-  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · v2.2</span></span>
+  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · v2.3</span></span>
 <span class="ir">⌂ Inicio</span></a></div>
 
 <div class="wrap">
@@ -244,6 +250,26 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
   </section>
 
   <!-- =================== AJUSTES =================== -->
+  <section class="view" id="v-mat">
+    <div class="card">
+      <h2>Materiales para la obra</h2>
+      <p class="hint">Calcula el material por rubro y genera el reporte de compra desde la cotización actual.</p>
+
+      <h3 style="margin:14px 0 4px">💧 Puntos de agua con termofusión (PPR)</h3>
+      <p class="hint">Cada punto incluye el tendido desde el alimentador hasta la salida: trazado, picado, termofusión a 260 °C y prueba de presión. Mano de obra de referencia: $8,50–14/pto (APU ≈ $9,60/pto).</p>
+      <div class="row">
+        <div><label>Puntos de agua fría</label><input id="m_af" type="number" min="0" step="1" value="0" oninput="calcAguaMat()"></div>
+        <div><label>Puntos de agua caliente</label><input id="m_ac" type="number" min="0" step="1" value="0" oninput="calcAguaMat()"></div>
+      </div>
+      <div id="m_agua"></div>
+
+      <hr style="margin:16px 0;border:0;border-top:1px solid var(--borde)">
+      <h3 style="margin-bottom:4px">📦 Reporte desde la cotización</h3>
+      <p class="hint">Material necesario para las partidas de la cotización que tienen receta (puntos de agua, tubería…).</p>
+      <div id="m_reporte"></div>
+    </div>
+  </section>
+
   <section class="view" id="v-aj">
     <div class="card">
       <h2>Datos de la empresa</h2>
@@ -286,6 +312,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
   <button data-v="hist" onclick="tab('hist',this)"><span class="ic">📁</span>Historial</button>
   <button data-v="cli" onclick="tab('cli',this)"><span class="ic">👤</span>Clientes</button>
   <button data-v="cat" onclick="tab('cat',this)"><span class="ic">📋</span>Precios</button>
+  <button data-v="mat" onclick="tab('mat',this)"><span class="ic">🧱</span>Materiales</button>
   <button data-v="aj" onclick="tab('aj',this)"><span class="ic">⚙️</span>Ajustes</button>
 </nav>
 
@@ -340,8 +367,8 @@ const CATALOGO_DEF = [
  // ===== MI CASA AGUA — gasfitería y termofusión =====
  ["AGU-01","Visita de diagnóstico y presupuesto en La Libertad y Salinas","visita",0,"Mi Casa Agua"],
  ["AGU-02","Reparación de fuga de agua (localización, corte y prueba)","punto",45,"Mi Casa Agua"],
- ["AGU-03","Instalación de punto de agua con termofusión PPR (½\")","punto",65,"Mi Casa Agua"],
- ["AGU-04","Instalación de punto de agua con termofusión PPR (¾\")","punto",85,"Mi Casa Agua"],
+ ["AGU-03","Instalación de punto de agua con termofusión PPR (½\")","punto",27,"Mi Casa Agua"],
+ ["AGU-04","Instalación de punto de agua con termofusión PPR (¾\")","punto",32,"Mi Casa Agua"],
  ["AGU-05","Cambio de tubería empotrada, incluye picado y resane","m",28,"Mi Casa Agua"],
  ["AGU-06","Cambio de grifería (lavabo, fregadero o ducha)","unidad",35,"Mi Casa Agua"],
  ["AGU-07","Instalación de inodoro o lavamanos","unidad",45,"Mi Casa Agua"],
@@ -622,8 +649,8 @@ const CATALOGO_DEF = [
 const DETALLE_TXT = `
 AGU-01|0|Visita al sitio, revisión del problema con el cliente, detección de la falla y presupuesto por escrito.|Trabajos correctivos: se cotizan aparte y se aprueban antes de empezar.
 AGU-02|12|Localización de la fuga, corte del tramo dañado, tubería y accesorios de reposición hasta 1 m, sellado, prueba de presión y limpieza.|Rotura de losa o de muro de hormigón estructural y reposición de cerámica o acabado.
-AGU-03|22|Tubería PPR de 1/2", codos, tees y uniones, termofusión, fijación a la pared, prueba de presión y limpieza.|La grifería o accesorios de salida si los compra el cliente, y la obra civil de picado.
-AGU-04|28|Tubería PPR de 3/4", accesorios, termofusión, fijación, prueba de presión y limpieza.|La grifería y la obra civil de picado y resane.
+AGU-03|15|Tubería PPR de 20 mm (1/2"), codos, tees y uniones, termofusión a 260 °C, fijación a la pared, prueba de presión (1,5× la de trabajo, mín. 10 bar/145 PSI, 30-60 min) y limpieza. Conforme a NTE INEN 2957/ISO 15874, NEC-HS-CI y DIN 16962/8077/8078.|La grifería o accesorios de salida si los compra el cliente, y la obra civil de picado.
+AGU-04|19|Tubería PPR de 25 mm (3/4"), accesorios, termofusión a 260 °C, fijación, prueba de presión (1,5× la de trabajo, mín. 10 bar/145 PSI, 30-60 min) y limpieza. Conforme a NTE INEN 2957/ISO 15874, NEC-HS-CI y DIN 16962/8077/8078.|La grifería y la obra civil de picado y resane.
 AGU-05|9|Tubería nueva del diámetro existente, accesorios, picado del tramo dañado y resane con mortero.|Reposición de cerámica, pintura del área y albañilería mayor.
 AGU-06|4|Desmontaje de la grifería vieja, teflón o sellador, empaques, instalación y prueba de fugas.|La grifería nueva: la puede comprar el cliente.
 AGU-07|8|Desmontaje del aparato viejo, sello, empaques, instalación, conexión de agua y prueba.|El inodoro o lavamanos nuevo y la reposición de cerámica.
@@ -995,6 +1022,44 @@ function guardarCostoRef(codigo, valor){
   var m=costosRef(); m[codigo]=Number(valor)||0;
   LS.set("costo_ref", JSON.stringify(m));
 }
+/* ---- RECETA DE MATERIALES por partida ----
+   Cantidad de cada material por unidad de la partida. Sirve para generar el
+   reporte de compra desde la cotizacion. Son cantidades estimadas de obra
+   (promedio por punto/por metro); se ajustan al plano real. */
+var RECETAS = {
+  "AGU-03": [ /* punto de agua PPR 20 mm (1/2") */
+    {n:"Tubo PPR 20 mm (1/2\")", u:"m", q:3},
+    {n:"Codo 90° PPR 20 mm", u:"u", q:2},
+    {n:"Tee PPR 20 mm", u:"u", q:1},
+    {n:"Adaptador rosca macho 1/2\"", u:"u", q:1},
+    {n:"Abrazadera/clip 20 mm", u:"u", q:2},
+    {n:"Cinta teflón", u:"rollo", q:0.25}
+  ],
+  "AGU-04": [ /* punto de agua PPR 25 mm (3/4") */
+    {n:"Tubo PPR 25 mm (3/4\")", u:"m", q:3},
+    {n:"Codo 90° PPR 25 mm", u:"u", q:2},
+    {n:"Tee PPR 25 mm", u:"u", q:1},
+    {n:"Adaptador rosca macho 3/4\"", u:"u", q:1},
+    {n:"Abrazadera/clip 25 mm", u:"u", q:2},
+    {n:"Cinta teflón", u:"rollo", q:0.25}
+  ],
+  "AGU-05": [ /* cambio de tubería por metro */
+    {n:"Tubo PPR (diámetro existente)", u:"m", q:1},
+    {n:"Unión o codo PPR", u:"u", q:1}
+  ]
+};
+function reporteMateriales(items){
+  var map={};
+  (items||[]).forEach(function(it){
+    var rec=RECETAS[it.codigo]; if(!rec) return;
+    var c=Number(it.cantidad)||0;
+    rec.forEach(function(r){
+      if(!map[r.n]) map[r.n]={u:r.u,q:0};
+      map[r.n].q += r.q*c;
+    });
+  });
+  return map;
+}
 function esMaterial(p){ return !!p && p.capitulo==="Materiales"; }
 function esInterno(p){ return !!p && p.capitulo==="Mano de obra"; }
 function materialDe(p, gestionPct){
@@ -1190,13 +1255,14 @@ function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,
 
 function tab(v,btn){
   var vs=document.querySelectorAll(".view"); for(var i=0;i<vs.length;i++) vs[i].classList.remove("on");
-  var id = v==="nueva"?"v-nueva":(v==="hist"?"v-hist":(v==="cli"?"v-cli":(v==="cat"?"v-cat":"v-aj")));
+  var id = v==="nueva"?"v-nueva":(v==="hist"?"v-hist":(v==="cli"?"v-cli":(v==="cat"?"v-cat":(v==="mat"?"v-mat":"v-aj"))));
   $(id).classList.add("on");
   var bs=document.querySelectorAll(".tabs button"); for(var j=0;j<bs.length;j++) bs[j].classList.remove("on");
   if(btn) btn.classList.add("on");
   if(v==="hist") pintarHistorial();
   if(v==="cli") pintarClientes();
   if(v==="cat") pintarCatalogo();
+  if(v==="mat") pintarMateriales();
   if(v==="aj") pintarEmpresa();
   window.scrollTo(0,0);
 }
@@ -1641,6 +1707,50 @@ function pintarPrint(){
    +'<div>Por '+esc(emp.nombre)+'<br>Nelson Patricio Ojeda Pantoja<br>CI: 1002170775</div></div>'
    +'<div class="foot">'+esc(emp.nombre)+' · '+esc(emp.lema)+' · WhatsApp +'+esc(emp.tel)+' · '+esc(emp.mail)+'</div>';
   $("print").innerHTML=html;
+}
+
+/* ---------------- Materiales ---------------- */
+function calcAguaMat(){
+  var af=Number($("m_af").value)||0, ac=Number($("m_ac").value)||0;
+  var total=af+ac;
+  if(total<=0){ $("m_agua").innerHTML=""; return; }
+  var tubo=Math.ceil(total*3), codos=total*2, tees=total, adapt=total, abraz=total*2, teflon=Math.ceil(total*0.25);
+  var mo=9.60*total, venta=27*total;
+  $("m_agua").innerHTML =
+    '<div class="mat-list">'
+    +'<div class="mat-row"><span>Tubo PPR 20 mm (1/2")</span><b>'+tubo+' m</b></div>'
+    +'<div class="mat-row"><span>Codo 90° PPR 20 mm</span><b>'+codos+' u</b></div>'
+    +'<div class="mat-row"><span>Tee PPR 20 mm</span><b>'+tees+' u</b></div>'
+    +'<div class="mat-row"><span>Adaptador rosca macho 1/2"</span><b>'+adapt+' u</b></div>'
+    +'<div class="mat-row"><span>Abrazadera/clip 20 mm</span><b>'+abraz+' u</b></div>'
+    +'<div class="mat-row"><span>Cinta teflón</span><b>'+teflon+' rollo</b></div>'
+    +'</div>'
+    +'<div class="mat-tot">Mano de obra (APU $6/h × 1,6 h/pto): <b>'+money(mo)+'</b> · Rubro completo a la venta: <b>'+money(venta)+'</b></div>'
+    +'<button class="btn ambar full" style="margin-top:10px" onclick="usarPuntosAgua('+total+')">Agregar '+total+' punto(s) de agua a la cotización</button>';
+}
+function usarPuntosAgua(n){
+  if(!n||n<=0) return;
+  var p=catalogo.filter(function(x){ return x.codigo==="AGU-03"; })[0];
+  if(!p) return;
+  q.items.push({codigo:p.codigo,descripcion:p.descripcion,unidad:p.unidad,cantidad:n,precio:p.precio,capitulo:p.capitulo,mat:p.mat,incl:p.incl,no:p.no});
+  pintarItems(); calc();
+  aviso("Se agregaron "+n+" puntos de agua (AGU-03) a la cotización.","ok");
+}
+function pintarMateriales(){
+  calcAguaMat();
+  var rep=reporteMateriales(q.items), claves=Object.keys(rep), h="";
+  if(!claves.length){
+    h='<div class="empty">La cotización actual no tiene partidas con receta de materiales.<br>Agrega puntos de agua con termofusión o usa la calculadora de arriba.</div>';
+  } else {
+    h='<div class="mat-list">';
+    claves.forEach(function(k){
+      var r=rep[k];
+      var v = r.u==="m" ? (Math.round(r.q*10)/10)+" m" : Math.ceil(r.q)+" "+r.u;
+      h+='<div class="mat-row"><span>'+esc(k)+'</span><b>'+v+'</b></div>';
+    });
+    h+='</div><p class="hint">Cantidades estimadas por partida (ajusta según el plano). No incluye grifería ni accesorios de salida.</p>';
+  }
+  $("m_reporte").innerHTML=h;
 }
 
 /* ---------------- Arranque ---------------- */
