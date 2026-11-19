@@ -84,7 +84,7 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
 </style>
 </head>
 <body>
-<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v2.0</span></span><span class="ir">⌂ Inicio</span></a></div>
+<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v2.1</span></span><span class="ir">⌂ Inicio</span></a></div>
 <div class="wrap">
   <section class="view on" id="v-piezas">
     <div class="card">
@@ -835,10 +835,17 @@ function enviarACotizador(){
   var cfg=R.cfg, meds=[];
   R.planchasPorGrupo.forEach(function(g){ var l=g.medida.w+"x"+g.medida.h; if(meds.indexOf(l)<0) meds.push(l); });
   var desc="Tablero y corte: "+R.totalPlan+" plancha(s)"+(meds.length===1?" de "+meds[0]+" mm":" (medidas "+meds.join(", ")+" mm)")+", canto "+R.cantoG.toFixed(2)+" m grueso + "+R.cantoD.toFixed(2)+" m delgado"+(accesorios.length?", "+accesorios.length+" herrajes":"");
-  var total=(R.costoPlan||0) + (R.cantoG*cfg.pcg) + (R.cantoD*cfg.pcd) + R.totalPlan*cfg.pk + (R.herrajesTotal||0);
+  /* Material: planchas + canto + herrajes. Mano de obra: el servicio de corte. */
+  var materialTotal=(R.costoPlan||0) + (R.cantoG*cfg.pcg) + (R.cantoD*cfg.pcd) + (R.herrajesTotal||0);
+  var laborTotal=R.totalPlan*cfg.pk;
+  var total=materialTotal+laborTotal;
   try{
     localStorage.setItem("mcs_pendiente", JSON.stringify({
-      descripcion:desc, unidad:"global", cantidad:1, precio:Number(total.toFixed(2)), origen:"despiece"
+      descripcion:desc, unidad:"global", cantidad:1,
+      precio:Number(total.toFixed(2)),
+      mat:Number(materialTotal.toFixed(2)),
+      mo:Number(laborTotal.toFixed(2)),
+      origen:"despiece"
     }));
   }catch(e){}
   window.location.href="cotizador.html";

@@ -148,7 +148,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
 <body>
 <div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas">
   <span id="hdrlogo"></span>
-  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · v2.3</span></span>
+  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · v2.4</span></span>
 <span class="ir">⌂ Inicio</span></a></div>
 
 <div class="wrap">
@@ -1073,8 +1073,9 @@ function reparto(p, gestionPct){
   if(esMaterial(p)) return {material:precio, manoObra:0, gestion:0, total:precio};
   if(esInterno(p))  return {material:0, manoObra:precio, gestion:0, total:precio};
   var mat=materialDe(p,gestionPct);
-  var mo=r2(precio/(1+g)-mat);
+  var mo=(p && p.mo!==undefined) ? r2(Number(p.mo)||0) : r2(precio/(1+g)-mat);
   if(mo<0) mo=0;
+  if(mat+mo>precio && precio>0) mo=r2(Math.max(0,precio-mat));
   var ges=r2(precio-mat-mo);
   return {material:mat, manoObra:mo, gestion:ges, total:precio};
 }
@@ -1760,10 +1761,13 @@ function leerPendiente(){
   if(!p) return;
   LS.set("pendiente",null);
   if(!q) nuevaCotizacion();
-  q.items.push({codigo:"",descripcion:p.descripcion||"Partida calculada",
-                unidad:p.unidad||"global",cantidad:Number(p.cantidad)||1,
-                precio:Number(p.precio)||0,capitulo:"Otras",
-                detalle:"calculado en "+(p.origen||"la calculadora")});
+  var it={codigo:"",descripcion:p.descripcion||"Partida calculada",
+          unidad:p.unidad||"global",cantidad:Number(p.cantidad)||1,
+          precio:Number(p.precio)||0,capitulo:"Otras",
+          detalle:"calculado en "+(p.origen||"la calculadora")};
+  if(p.mat!==undefined) it.mat=Number(p.mat)||0;
+  if(p.mo!==undefined) it.mo=Number(p.mo)||0;
+  q.items.push(it);
   pintarItems(); calc();
   setTimeout(function(){ aviso("Se agregó la partida calculada (cantidad "+(Number(p.cantidad)||1)+" "+(p.unidad||"")+"). Revisa el precio y el resto de partidas.","ok"); },500);
 }
