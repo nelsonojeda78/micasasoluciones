@@ -84,7 +84,7 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
 </style>
 </head>
 <body>
-<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v1.7</span></span><span class="ir">⌂ Inicio</span></a></div>
+<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v1.8</span></span><span class="ir">⌂ Inicio</span></a></div>
 <div class="wrap">
   <section class="view on" id="v-piezas">
     <div class="card">
@@ -118,7 +118,7 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
         <button class="btn gris" onclick="cargarEjemplo()">Ejemplo</button>
       </div>
       <input type="file" id="f_csv" accept=".csv,.txt,text/csv,text/plain" style="display:none" onchange="importarCSV(event)">
-      <p class="hint">El CSV puede venir con punto y coma, coma o tabulador, y con o sin encabezados.
+      <p class="hint">El CSV puede venir con punto y coma, coma o tabulador, y con o sin encabezados. También acepta el CSV de <b>OpenCutList (SketchUp)</b>: de ese archivo toma solo las piezas con <b>Tipo de material = Tablero</b> y traduce sus columnas automáticamente.
       Si trae encabezados se reconocen solos; si no, el orden es: módulo, pieza, material, espesor,
       cantidad, largo, ancho, canto L1, L2, A1, A2, veta. Descarga la plantilla para verlo.</p>
       <p class="hint">L1/L2/A1/A2 = lados con canteado (orilla). Marca los lados que llevan cinta de canto.</p>
@@ -302,7 +302,40 @@ function parsearCSV(texto){
   }
   function norm(x){ return String(x==null?"":x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""); }
   function siNo(x){ var t=norm(x); return (t==="si"||t==="s"||t==="1"||t==="x"||t==="true"||t==="verdadero"); }
+  /* En OpenCutList el canto viene como texto ("D - BLANCO (0,50 x 19,00)") o vacio */
+  function hayCanto(x){ var t=norm(x); return t!=="" && !/^(no|false|ninguno|na|0)$/.test(t); }
   var cab=celdas(lineas[0]).map(norm);
+
+  /* --- Formato OpenCutList (plugin de SketchUp) ---
+     Trae otros nombres de columna y mezcla accesorios y cantos con los tableros.
+     Se filtra Tipo de material = Tablero y se traducen las columnas a las de la herramienta. */
+  if(cab.indexOf("designacion")>=0 && cab.indexOf("tipodematerial")>=0){
+    var iDes=cab.indexOf("designacion"), iTipo=cab.indexOf("tipodematerial"),
+        iMat=cab.indexOf("nombredelmaterial"), iEsp=cab.indexOf("espesorcrudo"),
+        iCant=cab.indexOf("cantidad"), iLar=cab.indexOf("longitudcruda"), iAnc=cab.indexOf("anchocrudo"),
+        iL1=cab.indexOf("longituddelborde1"), iL2=cab.indexOf("longituddelborde2"),
+        iA1=cab.indexOf("anchodelborde1"), iA2=cab.indexOf("anchodeborde2");
+    var outOCL=[], saltadasOCL=0, noTablero=0;
+    for(var k=1;k<lineas.length;k++){
+      var ck=celdas(lineas[k]);
+      if(norm(val(ck,iTipo))!=="tablero"){ noTablero++; continue; }
+      var desc=String(val(ck,iDes)||""), mod="", pieza=desc, sp=desc.indexOf(" ");
+      if(sp>0){
+        var t0=desc.slice(0,sp);
+        if(/^[A-Za-z]{1,6}\d+$/.test(t0)){ mod=t0; pieza=desc.slice(sp+1); }
+      }
+      pieza=pieza.replace(/,\s*\.\.\.\s*$/,"").replace(/\s+/g," ").trim();
+      var largoO=numCSV(val(ck,iLar)), anchoO=numCSV(val(ck,iAnc)), cantO=numCSV(val(ck,iCant));
+      if(!(largoO>0 && anchoO>0)){ saltadasOCL++; continue; }
+      outOCL.push({modulo:mod, pieza:pieza||("Pieza "+(outOCL.length+1)),
+        material:val(ck,iMat)||"Melamina 15 mm", espesor:numCSV(val(ck,iEsp))||15,
+        cant:cantO>0?cantO:1, largo:largoO, ancho:anchoO,
+        l1:hayCanto(val(ck,iL1)), l2:hayCanto(val(ck,iL2)),
+        a1:hayCanto(val(ck,iA1)), a2:hayCanto(val(ck,iA2)), veta:false});
+    }
+    return {filas:outOCL, saltadas:saltadasOCL, tieneCab:true, formato:"opencutlist", noTablero:noTablero};
+  }
+
   var alias={modulo:["modulo","mueble"],pieza:["pieza","descripcion","nombre","elemento"],
     material:["material","tablero"],espesor:["espesor","esp","grosor"],
     cant:["cantidad","cant","cantidadpiezas","pzas","unidades"],
@@ -552,7 +585,9 @@ function importarCSV(ev){
   r.onload=function(){
     var res=parsearCSV(r.result);
     if(!res.filas.length){
-      alert("No se pudo leer ninguna pieza del archivo.\n\nRevisa que tenga las columnas de LARGO y ANCHO.\nDescarga la plantilla CSV para ver el formato correcto.");
+      alert(res.formato==="opencutlist"
+        ? "El archivo es de OpenCutList, pero no tiene filas con Tipo de material = Tablero.\n\nRevisa que el despiece tenga tableros (no solo accesorios ni cantos)."
+        : "No se pudo leer ninguna pieza del archivo.\n\nRevisa que tenga las columnas de LARGO y ANCHO.\nDescarga la plantilla CSV para ver el formato correcto.");
       ev.target.value=""; return;
     }
     if(filas.length && !confirm("Ya hay "+filas.length+" pieza(s) en la tabla.\n\n¿Reemplazarlas por las "+res.filas.length+" del archivo?")){
@@ -560,6 +595,8 @@ function importarCSV(ev){
     }
     filas=res.filas; pintar();
     var msg="Se importaron "+res.filas.length+" pieza(s) de:\n"+f.name;
+    if(res.formato==="opencutlist") msg+="\n\nFormato OpenCutList: se tomaron solo las filas con Tipo de material = Tablero.";
+    if(res.noTablero) msg+="\nSe omitieron "+res.noTablero+" fila(s) de accesorios, cantos u otro material.";
     if(res.saltadas) msg+="\n\nSe omitieron "+res.saltadas+" fila(s) sin largo o ancho válido.";
     msg+="\n\nPulsa «Calcular corte» en la pestaña siguiente.";
     alert(msg);
