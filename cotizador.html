@@ -148,7 +148,7 @@ code{background:var(--arena);padding:1px 5px;border-radius:5px;font-size:13px}
 <body>
 <div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas">
   <span id="hdrlogo"></span>
-  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · v2.4</span></span>
+  <span><span class="t">COTIZADOR</span><br><span class="s">Mi Casa Soluciones · v2.5</span></span>
 <span class="ir">⌂ Inicio</span></a></div>
 
 <div class="wrap">
@@ -1068,6 +1068,12 @@ function materialDe(p, gestionPct){
   if(esInterno(p)) return 0;
   return Math.min(Number(p.mat)||0, Number(p.precio)||0);
 }
+/* Precio de una partida que llega del despiece: costo (material + mano de obra)
+   mas el porcentaje de gestion y garantia de la empresa. */
+function precioConGestion(mat, mo, gestionPct){
+  var g=(Number(gestionPct)||0)/100;
+  return r2(((Number(mat)||0)+(Number(mo)||0))*(1+g));
+}
 function reparto(p, gestionPct){
   var precio=Number(p&&p.precio)||0, g=(Number(gestionPct)||0)/100;
   if(esMaterial(p)) return {material:precio, manoObra:0, gestion:0, total:precio};
@@ -1765,8 +1771,11 @@ function leerPendiente(){
           unidad:p.unidad||"global",cantidad:Number(p.cantidad)||1,
           precio:Number(p.precio)||0,capitulo:"Otras",
           detalle:"calculado en "+(p.origen||"la calculadora")};
-  if(p.mat!==undefined) it.mat=Number(p.mat)||0;
-  if(p.mo!==undefined) it.mo=Number(p.mo)||0;
+  if(p.mat!==undefined){
+    it.mat=Number(p.mat)||0;
+    it.mo=(p.mo!==undefined)? (Number(p.mo)||0) : 0;
+    if(p.origen==="despiece") it.precio=precioConGestion(it.mat, it.mo, emp.gestion);
+  }
   q.items.push(it);
   pintarItems(); calc();
   setTimeout(function(){ aviso("Se agregó la partida calculada (cantidad "+(Number(p.cantidad)||1)+" "+(p.unidad||"")+"). Revisa el precio y el resto de partidas.","ok"); },500);
