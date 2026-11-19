@@ -84,7 +84,7 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
 </style>
 </head>
 <body>
-<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v1.9</span></span><span class="ir">⌂ Inicio</span></a></div>
+<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v2.0</span></span><span class="ir">⌂ Inicio</span></a></div>
 <div class="wrap">
   <section class="view on" id="v-piezas">
     <div class="card">
@@ -107,6 +107,7 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
           <th style="width:80px">Material</th><th style="width:56px">Esp.</th><th style="width:50px">Cant.</th>
           <th style="width:64px">Largo</th><th style="width:64px">Ancho</th>
           <th style="width:42px">L1</th><th style="width:42px">L2</th><th style="width:42px">A1</th><th style="width:42px">A2</th>
+          <th style="width:64px">Canto</th>
           <th style="width:52px">Veta</th><th style="width:44px"></th>
         </tr></thead>
         <tbody id="tbod"></tbody>
@@ -135,7 +136,8 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
       </div>
       <div class="row">
         <div><label>Precio de plancha por defecto (USD)</label><input id="cf_pp" type="number" step="0.01" value="0"></div>
-        <div><label>Canto por metro (USD)</label><input id="cf_pc" type="number" step="0.01" value="0"></div>
+        <div><label>Canto grueso / duro (USD/m)</label><input id="cf_pcg" type="number" step="0.01" value="0.90"></div>
+        <div><label>Canto delgado / PVC (USD/m)</label><input id="cf_pcd" type="number" step="0.01" value="0.30"></div>
         <div><label>Corte por plancha (USD)</label><input id="cf_pk" type="number" step="0.01" value="0"></div>
       </div>
       <label style="margin-top:12px">Medidas de plancha disponibles (mm)</label>
@@ -150,6 +152,11 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
       <h2>4. Tableros del proyecto (por material y espesor)</h2>
       <p class="hint">Cada material y espesor se corta en su <b>propia lista</b>, con su medida de plancha y su precio. El color, la textura y el espesor cambian el costo.</p>
       <div id="tableros"></div>
+    </div>
+    <div class="card">
+      <h2>5. Herrajes y accesorios</h2>
+      <p class="hint">Los accesorios salen del CSV (<b>Tipo de material = Accesorio</b>). Las <b>bisagras</b> y <b>correderas</b> se cuentan <b>por par</b> (2 unidades = 1 par); los <b>tiradores</b>, por unidad. Escribe el precio de cada uno.</p>
+      <div id="accesorios"></div>
       <div class="row acciones" style="margin-top:10px">
         <button class="btn verde" onclick="optimizar()">Calcular corte</button>
         <button class="btn gris" onclick="exportarCSV()">Exportar al proveedor (CSV)</button>
@@ -283,9 +290,28 @@ function cantoMetros(p){
   var c=p.canto||[0,0,0,0];
   return ((Number(p.largo)||0)*((c[0]?1:0)+(c[1]?1:0)) + (Number(p.ancho)||0)*((c[2]?1:0)+(c[3]?1:0)))/1000;
 }
+/* Metros de canto de la pieza separados por tipo: grueso (G) y delgado (D). */
+function cantoPorTipo(p){
+  var m=cantoMetros(p);
+  if(p && p.cantoTipo==="G") return {grueso:m, delgado:0};
+  if(p && p.cantoTipo==="D") return {grueso:0, delgado:m};
+  return {grueso:0, delgado:0};
+}
 /* ---------- Lectura de archivos CSV con el despiece ----------
    Acepta punto y coma, coma o tabulador. Si la primera linea trae encabezados
    los usa; si no, toma las columnas por posicion. Devuelve las piezas listas. */
+/* Tipo de canto a partir del texto: G = grueso/duro, D = delgado/PVC.
+   En OpenCutList el borde viene como "G - FRESNO (2,00 x 19,00)" o "D - BLANCO (0,50 x 19,00)". */
+function normalizarTipoCanto(t){
+  var s=String(t==null?"":t).trim().toUpperCase();
+  if(!s) return "";
+  var c=s.charAt(0);
+  if(c==="G") return "G";
+  if(c==="D") return "D";
+  if(s.indexOf("GRUESO")>=0||s.indexOf("DURO")>=0) return "G";
+  if(s.indexOf("DELGADO")>=0||s.indexOf("PVC")>=0) return "D";
+  return "";
+}
 function numCSV(x){
   var t=String(x==null?"":x).replace(/[^0-9.,\-]/g,"").replace(/\.(?=.*\.)/g,"").replace(",",".");
   var v=parseFloat(t); return isNaN(v)?0:v;
@@ -322,10 +348,17 @@ function parsearCSV(texto){
         iCant=cab.indexOf("cantidad"), iLar=cab.indexOf("longitudcruda"), iAnc=cab.indexOf("anchocrudo"),
         iL1=cab.indexOf("longituddelborde1"), iL2=cab.indexOf("longituddelborde2"),
         iA1=cab.indexOf("anchodelborde1"), iA2=cab.indexOf("anchodeborde2");
-    var outOCL=[], saltadasOCL=0, noTablero=0;
+    var outOCL=[], saltadasOCL=0, noTablero=0, accOCL=[];
     for(var k=1;k<lineas.length;k++){
       var ck=celdas(lineas[k]);
-      if(norm(val(ck,iTipo))!=="tablero"){ noTablero++; continue; }
+      var tipoO=norm(val(ck,iTipo));
+      if(tipoO==="accesorio"){
+        var nomA=String(val(ck,iDes)||"").replace(/^acc\s+/i,"").replace(/_/g," ").replace(/\s+/g," ").trim();
+        var cantA=numCSV(val(ck,iCant));
+        if(nomA && cantA>0) accOCL.push({nombre:nomA, cantidad:cantA});
+        noTablero++; continue;
+      }
+      if(tipoO!=="tablero"){ noTablero++; continue; }
       var desc=String(val(ck,iDes)||""), mod="", pieza=desc, sp=desc.indexOf(" ");
       if(sp>0){
         var t0=desc.slice(0,sp);
@@ -334,13 +367,16 @@ function parsearCSV(texto){
       pieza=pieza.replace(/,\s*\.\.\.\s*$/,"").replace(/\s+/g," ").trim();
       var largoO=numCSV(val(ck,iLar)), anchoO=numCSV(val(ck,iAnc)), cantO=numCSV(val(ck,iCant));
       if(!(largoO>0 && anchoO>0)){ saltadasOCL++; continue; }
+      var t1=normalizarTipoCanto(val(ck,iL1)), t2=normalizarTipoCanto(val(ck,iL2)),
+          t3=normalizarTipoCanto(val(ck,iA1)), t4=normalizarTipoCanto(val(ck,iA2));
+      var cTipo=(t1==="G"||t2==="G"||t3==="G"||t4==="G")?"G":((t1==="D"||t2==="D"||t3==="D"||t4==="D")?"D":"");
       outOCL.push({modulo:mod, pieza:pieza||("Pieza "+(outOCL.length+1)),
         material:val(ck,iMat)||"Melamina 15 mm", espesor:numCSV(val(ck,iEsp))||15,
         cant:cantO>0?cantO:1, largo:largoO, ancho:anchoO,
         l1:hayCanto(val(ck,iL1)), l2:hayCanto(val(ck,iL2)),
-        a1:hayCanto(val(ck,iA1)), a2:hayCanto(val(ck,iA2)), veta:false});
+        a1:hayCanto(val(ck,iA1)), a2:hayCanto(val(ck,iA2)), cantoTipo:cTipo, veta:false});
     }
-    return {filas:outOCL, saltadas:saltadasOCL, tieneCab:true, formato:"opencutlist", noTablero:noTablero};
+    return {filas:outOCL, accesorios:accOCL, saltadas:saltadasOCL, tieneCab:true, formato:"opencutlist", noTablero:noTablero};
   }
 
   var alias={modulo:["modulo","mueble"],pieza:["pieza","descripcion","nombre","elemento"],
@@ -349,7 +385,7 @@ function parsearCSV(texto){
     largo:["largo","longitud"],ancho:["ancho","anchura"],
     l1:["cantol1","l1","canteadol1","canto1"],l2:["cantol2","l2","canteadol2","canto2"],
     a1:["cantoa1","a1","canteadoa1","cantoancho1"],a2:["cantoa2","a2","canteadoa2","cantoancho2"],
-    veta:["veta","grano","direccion"]};
+    veta:["veta","grano","direccion"],ct:["cantotipo","tipocanto","tipodecanto"]};
   var col={}, tieneCab=false;
   Object.keys(alias).forEach(function(k){
     for(var j=0;j<alias[k].length;j++){
@@ -368,7 +404,7 @@ function parsearCSV(texto){
       material:val(c,col.material)||"Melamina 15 mm", espesor:numCSV(val(c,col.espesor))||15,
       cant:cant>0?cant:1, largo:largo, ancho:ancho,
       l1:siNo(val(c,col.l1)), l2:siNo(val(c,col.l2)), a1:siNo(val(c,col.a1)), a2:siNo(val(c,col.a2)),
-      veta:siNo(val(c,col.veta))});
+      cantoTipo:normalizarTipoCanto(val(c,col.ct)), veta:siNo(val(c,col.veta))});
   }
   return {filas:out, saltadas:saltadas, tieneCab:tieneCab};
 }
@@ -394,13 +430,29 @@ function configDeGrupo(grupoCfg, medidas, key, idxDefecto, precioDefecto){
   return {med:med, precio:precio};
 }
 /* Herrajes estimados a partir del nombre de la pieza (regla transparente) */
+/* Agrupa los accesorios del CSV por nombre y decide si se cuenta por par o por unidad.
+   Bisagras y correderas vienen por unidad (2 unidades = 1 par); tiradores, por unidad. */
+function agruparAccesorios(acc){
+  var m={}, orden=[];
+  (acc||[]).forEach(function(a){
+    var nombre=String(a&&a.nombre||"").replace(/\s+/g," ").trim();
+    if(!nombre) return;
+    if(!m[nombre]){ m[nombre]={nombre:nombre, unidades:0}; orden.push(nombre); }
+    m[nombre].unidades += Number(a.cantidad)||0;
+  });
+  return orden.map(function(n){
+    var g=m[n], esPar=/bisagra|corredera/i.test(n);
+    return {nombre:n, unidad:esPar?"par":"unidad", unidades:g.unidades,
+            cantidad:esPar? g.unidades/2 : g.unidades};
+  });
+}
 function herrajesEstimados(piezas){
   var h={bisagras:0,correderas:0,soportes:0,tornillos:0};
   piezas.forEach(function(p){
-    var n=(p.pieza||"").toLowerCase(), c=Number(p.cant)||0;
-    if(/puerta|tapa/.test(n)) h.bisagras += 2*c;
-    if(/caj|gaveta|gav/.test(n)) h.correderas += c;
-    if(/repisa|estante/.test(n)) h.soportes += 4*c;
+    var n=String(p.pieza||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(), c=Number(p.cant)||0;
+    if(/^puerta/.test(n)||/^tapa/.test(n)) h.bisagras += 2*c;
+    if(/^cajon|^gaveta/.test(n)) h.correderas += c;
+    if(/^repisa|^estante/.test(n)) h.soportes += 4*c;
     h.tornillos += 8*c;
   });
   return h;
@@ -419,6 +471,8 @@ var MEDIDAS_DEF=[{w:2440,h:1220},{w:2150,h:2440},{w:2440,h:1830},{w:2750,h:1830}
 var MEDIDAS=LSget("mcs_medidas_plancha",null)||JSON.parse(JSON.stringify(MEDIDAS_DEF));
 var GRUPOCFG=LSget("mcs_grupos_tablero",null)||{};
 var __grupos=[];
+var accesorios=[];
+var PRECIOS_HZ=LSget("mcs_precios_herrajes",null)||{};
 function etiquetaMedida(m){ return m.w+" × "+m.h+" mm"; }
 function pintarSelectMedidas(){
   var sel=$("cf_med"); if(!sel) return;
@@ -448,7 +502,7 @@ function agregarMedida(){
   var w=Number($("nm_w").value)||0, h=Number($("nm_h").value)||0;
   if(!(w>0&&h>0)){ alert("Escribe el ancho y el alto de la plancha en mm."); return; }
   MEDIDAS.push({w:w,h:h}); LSset("mcs_medidas_plancha",MEDIDAS);
-  pintarSelectMedidas(); pintarMedidas(); pintarTableros();
+  pintarSelectMedidas(); pintarMedidas(); pintarAccesorios(); pintarTableros();
 }
 function borrarMedida(i){
   if(MEDIDAS.length<=1){ alert("Debe quedar al menos una medida de plancha."); return; }
@@ -476,6 +530,32 @@ function pintarTableros(){
   h+='</tbody></table>';
   h+='<p class="hint">El precio cambia por el color o la textura y por el espesor. Si un tablero queda en $0, no se suma al costo.</p>';
   cont.innerHTML=h;
+}
+function setCanto(i,v){ if(filas[i]) filas[i].cantoTipo=(v==="G"||v==="D")?v:""; }
+function fmtCant(n){ var v=Number(n)||0; return (Math.abs(v-Math.round(v))<1e-9)?String(Math.round(v)):v.toFixed(1); }
+function precioHz(nombre){ var v=PRECIOS_HZ[nombre]; return (v!==undefined)? (Number(v)||0) : 0; }
+function setPrecioHz(i,v){
+  var a=accesorios[i]; if(!a) return;
+  PRECIOS_HZ[a.nombre]=Number(v)||0; LSset("mcs_precios_herrajes",PRECIOS_HZ);
+  pintarAccesorios(); if(window.__res) pintarResumen();
+}
+function totalHerrajes(){ var t=0; accesorios.forEach(function(a){ t += (Number(a.cantidad)||0)*precioHz(a.nombre); }); return t; }
+function pintarAccesorios(){
+  var c=$("accesorios"); if(!c) return;
+  if(!accesorios.length){
+    c.innerHTML='<div class="hint">El CSV no trajo accesorios. Si tu archivo los trae (Tipo de material = Accesorio), aparecerán aquí agrupados por tipo y medida.</div>';
+    return;
+  }
+  var h='<table><thead><tr><th>Accesorio</th><th>Unidad</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>';
+  accesorios.forEach(function(a,i){
+    var p=precioHz(a.nombre), sub=(Number(a.cantidad)||0)*p;
+    h+='<tr><td>'+esc(a.nombre)+'</td><td class="n">'+a.unidad+'</td><td class="n">'+fmtCant(a.cantidad)+'</td>'
+      +'<td><input type="number" step="0.01" value="'+p+'" oninput="setPrecioHz('+i+',this.value)"></td>'
+      +'<td class="n">$'+sub.toFixed(2)+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  h+='<div class="tot big"><span>TOTAL DE HERRAJES</span><span>$'+totalHerrajes().toFixed(2)+'</span></div>';
+  c.innerHTML=h;
 }
 function setGrupoIdx(gi,campo,valor){
   var g=__grupos[gi]; if(!g) return;
@@ -507,12 +587,17 @@ function fila(i){
    +'<td class="n canto" data-l="Canto L2"><input type="checkbox" '+(f.l2?"checked":"")+' onchange="set('+i+',\'l2\',this.checked)"></td>'
    +'<td class="n canto" data-l="Canto A1"><input type="checkbox" '+(f.a1?"checked":"")+' onchange="set('+i+',\'a1\',this.checked)"></td>'
    +'<td class="n canto" data-l="Canto A2"><input type="checkbox" '+(f.a2?"checked":"")+' onchange="set('+i+',\'a2\',this.checked)"></td>'
+   +'<td data-l="Canto"><select onchange="setCanto('+i+',this.value)">'
+   +'<option value=""'+(f.cantoTipo!=="G"&&f.cantoTipo!=="D"?" selected":"")+'>—</option>'
+   +'<option value="D"'+(f.cantoTipo==="D"?" selected":"")+'>Delgado</option>'
+   +'<option value="G"'+(f.cantoTipo==="G"?" selected":"")+'>Grueso</option>'
+   +'</select></td>'
    +'<td class="n canto" data-l="Veta (no girar)"><input type="checkbox" '+(f.veta?"checked":"")+' onchange="set('+i+',\'veta\',this.checked)"></td>'
    +'<td class="borrar"><button class="btn rojo sm" onclick="delFila('+i+')">Quitar</button></td></tr>';
 }
 function pintar(){
   if(!filas.length){
-    $("tbod").innerHTML='<tr><td class="vacio" colspan="14" style="text-align:center;color:var(--gris);padding:24px 12px;line-height:1.7">'
+    $("tbod").innerHTML='<tr><td class="vacio" colspan="15" style="text-align:center;color:var(--gris);padding:24px 12px;line-height:1.7">'
       +'<b style="color:var(--carbon);font-size:15px">No hay piezas todavía</b><br>'
       +'Agrega una pieza con el botón de abajo o <b>importa tu despiece desde un archivo CSV</b>.<br>'
       +'<span style="font-size:12px">Si es la primera vez, descarga la plantilla CSV para ver el formato.</span></td></tr>';
@@ -551,7 +636,8 @@ function leerConfig(){
   var idx=Number($("cf_med").value)||0, m=MEDIDAS[idx]||{w:2440,h:1220};
   return {W:m.w, H:m.h, medidaIdx:idx, kerf:Number($("cf_kerf").value)||0,
           margen:Number($("cf_margen").value)||0, rotar:$("cf_rot").value==="1",
-          pp:Number($("cf_pp").value)||0, pc:Number($("cf_pc").value)||0, pk:Number($("cf_pk").value)||0};
+          pp:Number($("cf_pp").value)||0, pcg:Number($("cf_pcg").value)||0,
+          pcd:Number($("cf_pcd").value)||0, pk:Number($("cf_pk").value)||0};
 }
 function optimizar(){
   if(!filas.length){ alert("Agrega al menos una pieza."); return; }
@@ -562,9 +648,9 @@ function optimizar(){
     var k=f.material+"|"+f.espesor;
     if(!grupos[k]) grupos[k]={material:f.material, espesor:f.espesor, piezas:[]};
     grupos[k].piezas.push({ref:i,modulo:f.modulo,pieza:f.pieza,material:f.material,espesor:f.espesor,
-      cant:f.cant,largo:f.largo,ancho:f.ancho,veta:f.veta,canto:[f.l1,f.l2,f.a1,f.a2]});
+      cant:f.cant,largo:f.largo,ancho:f.ancho,veta:f.veta,canto:[f.l1,f.l2,f.a1,f.a2],cantoTipo:f.cantoTipo});
   }
-  var totalPlan=0, totalArea=0, totalUtil=0, sinColocar=[], bloques=[], cantoTotal=0, planchasPorGrupo=[], costoPlan=0;
+  var totalPlan=0, totalArea=0, totalUtil=0, sinColocar=[], bloques=[], cantoG=0, cantoD=0, planchasPorGrupo=[], costoPlan=0;
   Object.keys(grupos).forEach(function(k){
     var g=grupos[k], gc=cfgGrupo(k), med=MEDIDAS[gc.med]||{w:2440,h:1220};
     var r=optimizarGrupo(g.piezas,med.w,med.h,cfg.kerf,cfg.margen,cfg.rotar);
@@ -574,29 +660,37 @@ function optimizar(){
     planchasPorGrupo.push({nombre:g.material+" "+g.espesor+" mm", material:g.material, espesor:g.espesor,
        r:r, piezas:g.piezas, medida:med, precio:gc.precio, costo:costo,
        areaPiezas:(function(){var a=0;g.piezas.forEach(function(p){a+=(Number(p.largo)||0)*(Number(p.ancho)||0)*(Number(p.cant)||0);});return a;})()});
-    g.piezas.forEach(function(p){ cantoTotal += cantoMetros(p)*(Number(p.cant)||0); });
+    g.piezas.forEach(function(p){
+      var ct=cantoPorTipo(p), cc=Number(p.cant)||0;
+      cantoG+=ct.grueso*cc; cantoD+=ct.delgado*cc;
+    });
   });
   window.__res={cfg:cfg, totalPlan:totalPlan, totalArea:totalArea, totalUtil:totalUtil, costoPlan:costoPlan,
-                sinColocar:sinColocar, planchasPorGrupo:planchasPorGrupo, cantoTotal:cantoTotal};
+                sinColocar:sinColocar, planchasPorGrupo:planchasPorGrupo,
+                cantoG:cantoG, cantoD:cantoD, cantoTotal:cantoG+cantoD, herrajesTotal:totalHerrajes()};
   pintarResumen(); pintarPlanos(); tab("res",document.querySelectorAll(".tabs button")[1]);
 }
 function pintarResumen(){
   var R=window.__res, c=R.cfg;
   var m2=function(a){ return (a/1e6).toFixed(3)+" m²"; };
-  var costoPlan=R.costoPlan||0, costoCanto=R.cantoTotal*c.pc, costoCorte=R.totalPlan*c.pk;
-  var costoTotal=costoPlan+costoCanto+costoCorte;
+  var costoPlan=R.costoPlan||0, costoCanto=R.cantoG*c.pcg + R.cantoD*c.pcd, costoCorte=R.totalPlan*c.pk;
+  var costoHerrajes=R.herrajesTotal||0;
+  var costoTotal=costoPlan+costoCanto+costoCorte+costoHerrajes;
   var h="";
   h+='<div class="tot"><span>Planchas necesarias</span><b>'+R.totalPlan+'</b></div>';
   h+='<div class="tot"><span>Área de material comprado</span><b>'+m2(R.totalArea)+'</b></div>';
   h+='<div class="tot"><span>Área realmente usada</span><b>'+m2(R.totalUtil)+'</b></div>';
   h+='<div class="tot"><span>Aprovechamiento</span><b>'+(R.aprovechamientoPct=(R.totalArea?(R.totalUtil/R.totalArea*100).toFixed(1):0))+' %</b></div>';
   h+='<div class="tot"><span>Desperdicio</span><b>'+(R.totalArea?(100-R.totalUtil/R.totalArea*100).toFixed(1):0)+' %</b></div>';
-  h+='<div class="tot"><span>Canto (cinta de orilla)</span><b>'+R.cantoTotal.toFixed(2)+' m</b></div>';
-  if(c.pp||c.pc||c.pk){
+  h+='<div class="tot"><span>Canto grueso / duro</span><b>'+R.cantoG.toFixed(2)+' m</b></div>';
+  h+='<div class="tot"><span>Canto delgado / PVC</span><b>'+R.cantoD.toFixed(2)+' m</b></div>';
+  if(c.pp||c.pcg||c.pcd||c.pk||costoHerrajes){
     h+='<div class="tot"><span>Planchas ('+R.totalPlan+', a su precio)</span><b>$'+costoPlan.toFixed(2)+'</b></div>';
-    h+='<div class="tot"><span>Canto ('+R.cantoTotal.toFixed(2)+' m × $'+c.pc.toFixed(2)+')</span><b>$'+costoCanto.toFixed(2)+'</b></div>';
+    h+='<div class="tot"><span>Canto grueso ('+R.cantoG.toFixed(2)+' m × $'+c.pcg.toFixed(2)+')</span><b>$'+(R.cantoG*c.pcg).toFixed(2)+'</b></div>';
+    h+='<div class="tot"><span>Canto delgado ('+R.cantoD.toFixed(2)+' m × $'+c.pcd.toFixed(2)+')</span><b>$'+(R.cantoD*c.pcd).toFixed(2)+'</b></div>';
     h+='<div class="tot"><span>Cortes ('+R.totalPlan+' × $'+c.pk.toFixed(2)+')</span><b>$'+costoCorte.toFixed(2)+'</b></div>';
-    h+='<div class="tot big"><span>COSTO DE TABLERO Y CORTE</span><span>$'+costoTotal.toFixed(2)+'</span></div>';
+    h+='<div class="tot"><span>Herrajes y accesorios</span><b>$'+costoHerrajes.toFixed(2)+'</b></div>';
+    h+='<div class="tot big"><span>COSTO DE TABLERO, CANTO, CORTE Y HERRAJES</span><span>$'+costoTotal.toFixed(2)+'</span></div>';
   } else {
     h+='<div class="hint">Escribe el precio de la plancha, del canto y del corte en la pestaña Despiece para ver el costo.</div>';
   }
@@ -612,11 +706,19 @@ function pintarResumen(){
   });
   h+='</tbody></table>';
   h+='<p class="hint">El aprovechamiento se mide contra las planchas completas que hay que comprar. Un 65 % a 80 % es normal: el resto es el retazo inevitable por el tamaño de la plancha. Si un material queda por debajo del 50 %, revisa si conviene cambiar la medida de plancha o agrupar más piezas del mismo material.</p>';
-  var hz=herrajesEstimados(filas);
-  h+='<h3 style="margin-top:12px">Herrajes estimados (regla por nombre de pieza)</h3>';
-  h+='<div class="retazo">Bisagras: <b>'+hz.bisagras+'</b></div><div class="retazo">Correderas (pares): <b>'+hz.correderas+'</b></div>'
-   +'<div class="retazo">Soportes de repisa: <b>'+hz.soportes+'</b></div><div class="retazo">Tornillos: <b>'+hz.tornillos+'</b></div>';
-  h+='<p class="hint">El herraje se estima por el nombre de la pieza (puerta/tapa = 2 bisagras, cajón = 1 par de correderas, repisa = 4 soportes). Ajusta a mano lo que corresponda.</p>';
+  h+='<h3 style="margin-top:12px">Herrajes y accesorios</h3>';
+  if(accesorios.length){
+    h+='<table><thead><tr><th>Accesorio</th><th>Unidad</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>';
+    accesorios.forEach(function(a){ var p=precioHz(a.nombre), sub=(Number(a.cantidad)||0)*p;
+      h+='<tr><td>'+esc(a.nombre)+'</td><td class="n">'+a.unidad+'</td><td class="n">'+fmtCant(a.cantidad)+'</td>'
+        +'<td class="n">$'+p.toFixed(2)+'</td><td class="n">$'+sub.toFixed(2)+'</td></tr>'; });
+    h+='</tbody></table><div class="tot big"><span>TOTAL DE HERRAJES</span><span>$'+(R.herrajesTotal||0).toFixed(2)+'</span></div>';
+  } else {
+    var hz=herrajesEstimados(filas);
+    h+='<div class="retazo">Bisagras (pares): <b>'+Math.ceil(hz.bisagras/2)+'</b></div><div class="retazo">Correderas (pares): <b>'+hz.correderas+'</b></div>'
+     +'<div class="retazo">Soportes de repisa: <b>'+hz.soportes+'</b></div><div class="retazo">Tornillos: <b>'+hz.tornillos+'</b></div>';
+    h+='<p class="hint">El CSV no trajo accesorios, así que el herraje se estima por el nombre de la pieza (puerta = 2 bisagras = 1 par, cajón = 1 par de correderas, repisa = 4 soportes). Importa el CSV con accesorios para el detalle exacto.</p>';
+  }
   if(R.sinColocar.length){
     h+='<div class="warn">No se pudieron colocar '+R.sinColocar.length+' pieza(s) en la plancha configurada. Revisa las medidas o cambia la medida de plancha.</div>';
   }
@@ -679,11 +781,11 @@ function descargar(nombre, texto){
 /* Plantilla vacia con el formato correcto */
 function plantillaCSV(){
   descargar("plantilla_despiece_melamina.csv",
-    ["Modulo;Pieza;Material;Espesor;Cantidad;Largo;Ancho;Canto L1;Canto L2;Canto A1;Canto A2;Veta",
-     "MBA01;Base;Melamina 15 mm;15;2;770;335;Si;No;Si;No;No",
-     "MBA01;Lateral;Melamina 15 mm;15;2;700;585;Si;No;Si;Si;No",
-     "MBA01;Puerta;Melamina 15 mm;15;2;700;398;Si;Si;Si;Si;No",
-     "MBA01;Fondo;MDF 3 mm;3;1;684;784;No;No;No;No;No"].join("\n"));
+    ["Modulo;Pieza;Material;Espesor;Cantidad;Largo;Ancho;Canto L1;Canto L2;Canto A1;Canto A2;Veta;Canto tipo",
+     "MBA01;Base;Melamina 15 mm;15;2;770;335;Si;No;Si;No;No;D",
+     "MBA01;Lateral;Melamina 15 mm;15;2;700;585;Si;No;Si;Si;No;D",
+     "MBA01;Puerta;Melamina 15 mm;15;2;700;398;Si;Si;Si;Si;No;G",
+     "MBA01;Fondo;MDF 3 mm;3;1;684;784;No;No;No;No;No;"].join("\n"));
 }
 /* Importa el despiece desde el archivo que elige el usuario */
 function importarCSV(ev){
@@ -702,9 +804,11 @@ function importarCSV(ev){
       ev.target.value=""; return;
     }
     filas=res.filas; pintar();
+    accesorios=agruparAccesorios(res.accesorios||[]); pintarAccesorios();
     var msg="Se importaron "+res.filas.length+" pieza(s) de:\n"+f.name;
     if(res.formato==="opencutlist") msg+="\n\nFormato OpenCutList: se tomaron solo las filas con Tipo de material = Tablero.";
-    if(res.noTablero) msg+="\nSe omitieron "+res.noTablero+" fila(s) de accesorios, cantos u otro material.";
+    if(accesorios.length) msg+="\nSe leyeron "+accesorios.length+" tipo(s) de accesorio para la sección de herrajes.";
+    if(res.noTablero) msg+="\nSe omitieron "+res.noTablero+" fila(s) de accesorios, cantos u otro material (los accesorios van a herrajes).";
     if(res.saltadas) msg+="\n\nSe omitieron "+res.saltadas+" fila(s) sin largo o ancho válido.";
     msg+="\n\nPulsa «Calcular corte» en la pestaña siguiente.";
     alert(msg);
@@ -715,10 +819,10 @@ function importarCSV(ev){
 }
 function exportarCSV(){
   if(!filas.length){ alert("No hay piezas."); return; }
-  var L=["Modulo;Pieza;Material;Espesor;Cantidad;Largo;Ancho;Canto L1;Canto L2;Canto A1;Canto A2;Veta"];
+  var L=["Modulo;Pieza;Material;Espesor;Cantidad;Largo;Ancho;Canto L1;Canto L2;Canto A1;Canto A2;Veta;Canto tipo"];
   filas.forEach(function(f){
     L.push([f.modulo,f.pieza,f.material,f.espesor,f.cant,f.largo,f.ancho,
-            f.l1?"Si":"No",f.l2?"Si":"No",f.a1?"Si":"No",f.a2?"Si":"No",f.veta?"Si":"No"].join(";"));
+            f.l1?"Si":"No",f.l2?"Si":"No",f.a1?"Si":"No",f.a2?"Si":"No",f.veta?"Si":"No",f.cantoTipo||""].join(";"));
   });
   var R=window.__res;
   if(R){
@@ -730,8 +834,8 @@ function enviarACotizador(){
   var R=window.__res; if(!R){ alert("Primero calcula el corte."); return; }
   var cfg=R.cfg, meds=[];
   R.planchasPorGrupo.forEach(function(g){ var l=g.medida.w+"x"+g.medida.h; if(meds.indexOf(l)<0) meds.push(l); });
-  var desc="Tablero y corte: "+R.totalPlan+" plancha(s)"+(meds.length===1?" de "+meds[0]+" mm":" (medidas "+meds.join(", ")+" mm)")+", canto "+R.cantoTotal.toFixed(2)+" m";
-  var total=(R.costoPlan||0) + R.cantoTotal*cfg.pc + R.totalPlan*cfg.pk;
+  var desc="Tablero y corte: "+R.totalPlan+" plancha(s)"+(meds.length===1?" de "+meds[0]+" mm":" (medidas "+meds.join(", ")+" mm)")+", canto "+R.cantoG.toFixed(2)+" m grueso + "+R.cantoD.toFixed(2)+" m delgado"+(accesorios.length?", "+accesorios.length+" herrajes":"");
+  var total=(R.costoPlan||0) + (R.cantoG*cfg.pcg) + (R.cantoD*cfg.pcd) + R.totalPlan*cfg.pk + (R.herrajesTotal||0);
   try{
     localStorage.setItem("mcs_pendiente", JSON.stringify({
       descripcion:desc, unidad:"global", cantidad:1, precio:Number(total.toFixed(2)), origen:"despiece"
