@@ -84,7 +84,7 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
 </style>
 </head>
 <body>
-<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v1.8</span></span><span class="ir">⌂ Inicio</span></a></div>
+<div class="hdr"><a class="marca" href="index.html" title="Ir a la pantalla principal de las herramientas"><span id="hl"></span><span><span class="t">DESPIECE Y CORTE</span><br><span class="s">Melamina y tableros · Mi Casa Soluciones · v1.9</span></span><span class="ir">⌂ Inicio</span></a></div>
 <div class="wrap">
   <section class="view on" id="v-piezas">
     <div class="card">
@@ -126,12 +126,7 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
     <div class="card">
       <h2>3. Configuración del tablero</h2>
       <div class="row">
-        <div><label>Medida de plancha</label><select id="cf_med">
-          <option value="2440x1220">2440 × 1220 mm (estándar 15/18 mm)</option>
-          <option value="2150x2440">2150 × 2440 mm</option>
-          <option value="2440x1830">2440 × 1830 mm</option>
-          <option value="2750x1830">2750 × 1830 mm (MDF grande)</option>
-          <option value="1830x610">1830 × 610 mm</option></select></div>
+        <div><label>Medida de plancha (por defecto)</label><select id="cf_med" onchange="pintarTableros()"></select></div>
         <div><label>Grosor de sierra (mm)</label><input id="cf_kerf" type="number" step="0.5" value="4"></div>
       </div>
       <div class="row">
@@ -139,10 +134,22 @@ svg.lay{border:1px solid var(--borde);background:#fff;width:100%;height:auto;max
         <div><label>Permitir girar piezas sin veta</label><select id="cf_rot"><option value="1">Sí</option><option value="0">No</option></select></div>
       </div>
       <div class="row">
-        <div><label>Precio de la plancha (USD)</label><input id="cf_pp" type="number" step="0.01" value="0"></div>
+        <div><label>Precio de plancha por defecto (USD)</label><input id="cf_pp" type="number" step="0.01" value="0"></div>
         <div><label>Canto por metro (USD)</label><input id="cf_pc" type="number" step="0.01" value="0"></div>
         <div><label>Corte por plancha (USD)</label><input id="cf_pk" type="number" step="0.01" value="0"></div>
       </div>
+      <label style="margin-top:12px">Medidas de plancha disponibles (mm)</label>
+      <div id="lista_medidas"></div>
+      <div class="row" style="margin-top:6px">
+        <div><label>Ancho</label><input id="nm_w" type="number" step="10" value="2440"></div>
+        <div><label>Alto</label><input id="nm_h" type="number" step="10" value="1220"></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn ambar sm" onclick="agregarMedida()">+ Agregar medida</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>4. Tableros del proyecto (por material y espesor)</h2>
+      <p class="hint">Cada material y espesor se corta en su <b>propia lista</b>, con su medida de plancha y su precio. El color, la textura y el espesor cambian el costo.</p>
+      <div id="tableros"></div>
       <div class="row acciones" style="margin-top:10px">
         <button class="btn verde" onclick="optimizar()">Calcular corte</button>
         <button class="btn gris" onclick="exportarCSV()">Exportar al proveedor (CSV)</button>
@@ -365,6 +372,27 @@ function parsearCSV(texto){
   }
   return {filas:out, saltadas:saltadas, tieneCab:tieneCab};
 }
+/* Agrupa las piezas en tableros distintos por material y espesor: cada uno se
+   corta en su propia lista, con su medida de plancha y su precio. */
+function gruposDeTableros(lista){
+  var g={}, orden=[];
+  (lista||[]).forEach(function(f){
+    if(!(f.largo>0&&f.ancho>0&&f.cant>0)) return;
+    var k=String(f.material)+"|"+String(f.espesor);
+    if(!g[k]){ g[k]={key:k,material:f.material,espesor:f.espesor,lineas:0,cant:0}; orden.push(k); }
+    g[k].lineas++; g[k].cant+=Number(f.cant)||0;
+  });
+  return orden.map(function(k){ return g[k]; });
+}
+/* Configuracion de un tablero: indice de medida y precio por plancha.
+   Si el tablero no tiene valor propio usa el defecto de la pantalla. */
+function configDeGrupo(grupoCfg, medidas, key, idxDefecto, precioDefecto){
+  var c=(grupoCfg||{})[key]||{};
+  var med=(c.med!==undefined && medidas[Number(c.med)])? Number(c.med) : (Number(idxDefecto)||0);
+  if(!medidas[med]) med=0;
+  var precio=(c.precio!==undefined)? (Number(c.precio)||0) : (Number(precioDefecto)||0);
+  return {med:med, precio:precio};
+}
 /* Herrajes estimados a partir del nombre de la pieza (regla transparente) */
 function herrajesEstimados(piezas){
   var h={bisagras:0,correderas:0,soportes:0,tornillos:0};
@@ -381,6 +409,81 @@ function herrajesEstimados(piezas){
 
 /* ---------------- Interfaz ---------------- */
 var filas=[];
+
+/* ---------- Medidas de plancha editables y configuracion por tablero ----------
+   Cada material + espesor es una lista de corte distinta, con su medida de plancha
+   y su precio. Las medidas y los precios se guardan en el navegador. */
+function LSget(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function LSset(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+var MEDIDAS_DEF=[{w:2440,h:1220},{w:2150,h:2440},{w:2440,h:1830},{w:2750,h:1830},{w:1830,h:610}];
+var MEDIDAS=LSget("mcs_medidas_plancha",null)||JSON.parse(JSON.stringify(MEDIDAS_DEF));
+var GRUPOCFG=LSget("mcs_grupos_tablero",null)||{};
+var __grupos=[];
+function etiquetaMedida(m){ return m.w+" × "+m.h+" mm"; }
+function pintarSelectMedidas(){
+  var sel=$("cf_med"); if(!sel) return;
+  var prev=sel.value;
+  sel.innerHTML=MEDIDAS.map(function(m,i){ return '<option value="'+i+'">'+esc(etiquetaMedida(m))+'</option>'; }).join("");
+  if(prev!=="" && MEDIDAS[Number(prev)]) sel.value=prev; else sel.value="0";
+}
+function pintarMedidas(){
+  var c=$("lista_medidas"); if(!c) return;
+  var h="";
+  MEDIDAS.forEach(function(m,i){
+    h+='<div class="row" style="margin-top:4px">'
+      +'<div><label>Ancho</label><input type="number" step="10" value="'+m.w+'" oninput="setMedida('+i+',\'w\',this.value)"></div>'
+      +'<div><label>Alto</label><input type="number" step="10" value="'+m.h+'" oninput="setMedida('+i+',\'h\',this.value)"></div>'
+      +'<div style="display:flex;align-items:flex-end"><button class="btn rojo sm" onclick="borrarMedida('+i+')">Quitar</button></div>'
+      +'</div>';
+  });
+  c.innerHTML=h||'<div class="hint">Agrega al menos una medida de plancha.</div>';
+}
+function setMedida(i,k,v){
+  if(!MEDIDAS[i]) return;
+  MEDIDAS[i][k]=Number(v)||0;
+  LSset("mcs_medidas_plancha",MEDIDAS);
+  pintarSelectMedidas(); pintarTableros();
+}
+function agregarMedida(){
+  var w=Number($("nm_w").value)||0, h=Number($("nm_h").value)||0;
+  if(!(w>0&&h>0)){ alert("Escribe el ancho y el alto de la plancha en mm."); return; }
+  MEDIDAS.push({w:w,h:h}); LSset("mcs_medidas_plancha",MEDIDAS);
+  pintarSelectMedidas(); pintarMedidas(); pintarTableros();
+}
+function borrarMedida(i){
+  if(MEDIDAS.length<=1){ alert("Debe quedar al menos una medida de plancha."); return; }
+  if(!confirm("¿Quitar la medida "+etiquetaMedida(MEDIDAS[i])+"?")) return;
+  MEDIDAS.splice(i,1); LSset("mcs_medidas_plancha",MEDIDAS);
+  pintarSelectMedidas(); pintarMedidas(); pintarTableros();
+}
+function gruposDePiezas(){ return gruposDeTableros(filas); }
+function cfgGrupo(key){
+  return configDeGrupo(GRUPOCFG, MEDIDAS, key, Number($("cf_med").value)||0, Number($("cf_pp").value)||0);
+}
+function pintarTableros(){
+  var cont=$("tableros"); if(!cont) return;
+  __grupos=gruposDePiezas();
+  if(!__grupos.length){ cont.innerHTML='<div class="hint">Todavía no hay piezas. Importa el CSV o agrega piezas para ver los tableros del proyecto.</div>'; return; }
+  var h='<table><thead><tr><th>Material</th><th>Esp.</th><th>Piezas</th><th>Plancha</th><th>Precio plancha</th></tr></thead><tbody>';
+  __grupos.forEach(function(g,gi){
+    var c=cfgGrupo(g.key);
+    h+='<tr><td>'+esc(g.material)+'</td><td class="n">'+g.espesor+' mm</td><td class="n">'+g.cant+'</td>'
+      +'<td><select onchange="setGrupoIdx('+gi+',\'med\',this.value)">';
+    MEDIDAS.forEach(function(m,i){ h+='<option value="'+i+'"'+(i===c.med?" selected":"")+'>'+esc(etiquetaMedida(m))+'</option>'; });
+    h+='</select></td>'
+      +'<td><input type="number" step="0.01" value="'+c.precio+'" oninput="setGrupoIdx('+gi+',\'precio\',this.value)"></td></tr>';
+  });
+  h+='</tbody></table>';
+  h+='<p class="hint">El precio cambia por el color o la textura y por el espesor. Si un tablero queda en $0, no se suma al costo.</p>';
+  cont.innerHTML=h;
+}
+function setGrupoIdx(gi,campo,valor){
+  var g=__grupos[gi]; if(!g) return;
+  if(!GRUPOCFG[g.key]) GRUPOCFG[g.key]={};
+  GRUPOCFG[g.key][campo]=(campo==="precio")? (Number(valor)||0) : (Number(valor)||0);
+  LSset("mcs_grupos_tablero",GRUPOCFG);
+}
+
 function $(i){ return document.getElementById(i); }
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function tab(v,btn){
@@ -413,12 +516,14 @@ function pintar(){
       +'<b style="color:var(--carbon);font-size:15px">No hay piezas todavía</b><br>'
       +'Agrega una pieza con el botón de abajo o <b>importa tu despiece desde un archivo CSV</b>.<br>'
       +'<span style="font-size:12px">Si es la primera vez, descarga la plantilla CSV para ver el formato.</span></td></tr>';
+    pintarTableros();
     return;
   }
-  var h=""; filas.forEach(function(f,i){ h+=fila(i); }); $("tbod").innerHTML=h;
+  var h=""; filas.forEach(function(f,i){ h+=fila(i); }); $("tbod").innerHTML=h; pintarTableros();
 }
 function set(i,c,v){
   filas[i][c]= (c==="l1"||c==="l2"||c==="a1"||c==="a2"||c==="veta") ? v : (c==="modulo"||c==="pieza"||c==="material" ? v : Number(v)||0);
+  if(c==="material"||c==="espesor") pintarTableros();
 }
 function addFila(){
   filas.push({modulo:"",pieza:"",material:"Melamina 15 mm",espesor:15,cant:1,largo:0,ancho:0,
@@ -443,8 +548,8 @@ function cargarEjemplo(){
   pintar(); alert("Ejemplo cargado: 12 líneas (mueble de cocina). Pulsa Calcular corte.");
 }
 function leerConfig(){
-  var m=$("cf_med").value.split("x");
-  return {W:Number(m[0]), H:Number(m[1]), kerf:Number($("cf_kerf").value)||0,
+  var idx=Number($("cf_med").value)||0, m=MEDIDAS[idx]||{w:2440,h:1220};
+  return {W:m.w, H:m.h, medidaIdx:idx, kerf:Number($("cf_kerf").value)||0,
           margen:Number($("cf_margen").value)||0, rotar:$("cf_rot").value==="1",
           pp:Number($("cf_pp").value)||0, pc:Number($("cf_pc").value)||0, pk:Number($("cf_pk").value)||0};
 }
@@ -459,24 +564,26 @@ function optimizar(){
     grupos[k].piezas.push({ref:i,modulo:f.modulo,pieza:f.pieza,material:f.material,espesor:f.espesor,
       cant:f.cant,largo:f.largo,ancho:f.ancho,veta:f.veta,canto:[f.l1,f.l2,f.a1,f.a2]});
   }
-  var totalPlan=0, totalArea=0, totalUtil=0, sinColocar=[], bloques=[], cantoTotal=0, planchasPorGrupo=[];
+  var totalPlan=0, totalArea=0, totalUtil=0, sinColocar=[], bloques=[], cantoTotal=0, planchasPorGrupo=[], costoPlan=0;
   Object.keys(grupos).forEach(function(k){
-    var g=grupos[k];
-    var r=optimizarGrupo(g.piezas,cfg.W,cfg.H,cfg.kerf,cfg.margen,cfg.rotar);
-    totalPlan+=r.planchas.length; totalArea+=r.areaTotal; totalUtil+=r.areaUtil;
+    var g=grupos[k], gc=cfgGrupo(k), med=MEDIDAS[gc.med]||{w:2440,h:1220};
+    var r=optimizarGrupo(g.piezas,med.w,med.h,cfg.kerf,cfg.margen,cfg.rotar);
+    var costo=r.planchas.length*gc.precio;
+    totalPlan+=r.planchas.length; totalArea+=r.areaTotal; totalUtil+=r.areaUtil; costoPlan+=costo;
     sinColocar=sinColocar.concat(r.sinColocar);
-    planchasPorGrupo.push({nombre:g.material+" "+g.espesor+" mm", r:r, piezas:g.piezas,
+    planchasPorGrupo.push({nombre:g.material+" "+g.espesor+" mm", material:g.material, espesor:g.espesor,
+       r:r, piezas:g.piezas, medida:med, precio:gc.precio, costo:costo,
        areaPiezas:(function(){var a=0;g.piezas.forEach(function(p){a+=(Number(p.largo)||0)*(Number(p.ancho)||0)*(Number(p.cant)||0);});return a;})()});
     g.piezas.forEach(function(p){ cantoTotal += cantoMetros(p)*(Number(p.cant)||0); });
   });
-  window.__res={cfg:cfg, totalPlan:totalPlan, totalArea:totalArea, totalUtil:totalUtil,
+  window.__res={cfg:cfg, totalPlan:totalPlan, totalArea:totalArea, totalUtil:totalUtil, costoPlan:costoPlan,
                 sinColocar:sinColocar, planchasPorGrupo:planchasPorGrupo, cantoTotal:cantoTotal};
   pintarResumen(); pintarPlanos(); tab("res",document.querySelectorAll(".tabs button")[1]);
 }
 function pintarResumen(){
   var R=window.__res, c=R.cfg;
   var m2=function(a){ return (a/1e6).toFixed(3)+" m²"; };
-  var costoPlan=R.totalPlan*c.pp, costoCanto=R.cantoTotal*c.pc, costoCorte=R.totalPlan*c.pk;
+  var costoPlan=R.costoPlan||0, costoCanto=R.cantoTotal*c.pc, costoCorte=R.totalPlan*c.pk;
   var costoTotal=costoPlan+costoCanto+costoCorte;
   var h="";
   h+='<div class="tot"><span>Planchas necesarias</span><b>'+R.totalPlan+'</b></div>';
@@ -486,20 +593,21 @@ function pintarResumen(){
   h+='<div class="tot"><span>Desperdicio</span><b>'+(R.totalArea?(100-R.totalUtil/R.totalArea*100).toFixed(1):0)+' %</b></div>';
   h+='<div class="tot"><span>Canto (cinta de orilla)</span><b>'+R.cantoTotal.toFixed(2)+' m</b></div>';
   if(c.pp||c.pc||c.pk){
-    h+='<div class="tot"><span>Planchas ('+R.totalPlan+' × $'+c.pp.toFixed(2)+')</span><b>$'+costoPlan.toFixed(2)+'</b></div>';
+    h+='<div class="tot"><span>Planchas ('+R.totalPlan+', a su precio)</span><b>$'+costoPlan.toFixed(2)+'</b></div>';
     h+='<div class="tot"><span>Canto ('+R.cantoTotal.toFixed(2)+' m × $'+c.pc.toFixed(2)+')</span><b>$'+costoCanto.toFixed(2)+'</b></div>';
     h+='<div class="tot"><span>Cortes ('+R.totalPlan+' × $'+c.pk.toFixed(2)+')</span><b>$'+costoCorte.toFixed(2)+'</b></div>';
     h+='<div class="tot big"><span>COSTO DE TABLERO Y CORTE</span><span>$'+costoTotal.toFixed(2)+'</span></div>';
   } else {
     h+='<div class="hint">Escribe el precio de la plancha, del canto y del corte en la pestaña Despiece para ver el costo.</div>';
   }
-  h+='<h3 style="margin-top:12px">Detalle por material</h3>'
-   +'<table><thead><tr><th>Material</th><th>Piezas</th><th>m² de piezas</th><th>Planchas</th><th>m² comprados</th><th>Aprovechamiento</th></tr></thead><tbody>';
+  h+='<h3 style="margin-top:12px">Detalle por tablero (material y espesor)</h3>'
+   +'<table><thead><tr><th>Material</th><th>Esp.</th><th>Piezas</th><th>Plancha</th><th>Precio</th><th>Planchas</th><th>Costo</th><th>Aprov.</th></tr></thead><tbody>';
   R.planchasPorGrupo.forEach(function(g){
     var npiezas=0; g.piezas.forEach(function(p){ npiezas+=Number(p.cant)||0; });
-    var ap=g.areaTotal? (g.areaPiezas/g.areaTotal*100):0;
-    h+='<tr><td>'+esc(g.nombre)+'</td><td class="n">'+npiezas+'</td><td class="n">'+(g.areaPiezas/1e6).toFixed(3)+'</td>'
-      +'<td class="n">'+g.r.planchas.length+'</td><td class="n">'+(g.r.areaTotal/1e6).toFixed(3)+'</td>'
+    var ap=g.r.areaTotal? (g.areaPiezas/g.r.areaTotal*100):0;
+    h+='<tr><td>'+esc(g.material)+'</td><td class="n">'+g.espesor+' mm</td><td class="n">'+npiezas+'</td>'
+      +'<td class="n">'+g.medida.w+'×'+g.medida.h+'</td><td class="n">$'+g.precio.toFixed(2)+'</td>'
+      +'<td class="n">'+g.r.planchas.length+'</td><td class="n">$'+g.costo.toFixed(2)+'</td>'
       +'<td class="n"><b>'+ap.toFixed(1)+' %</b></td></tr>';
   });
   h+='</tbody></table>';
@@ -620,9 +728,10 @@ function exportarCSV(){
 }
 function enviarACotizador(){
   var R=window.__res; if(!R){ alert("Primero calcula el corte."); return; }
-  var cfg=R.cfg;
-  var desc="Tablero y corte: "+R.totalPlan+" plancha(s) de "+cfg.W+"x"+cfg.H+" mm, canto "+R.cantoTotal.toFixed(2)+" m";
-  var total=R.totalPlan*cfg.pp + R.cantoTotal*cfg.pc + R.totalPlan*cfg.pk;
+  var cfg=R.cfg, meds=[];
+  R.planchasPorGrupo.forEach(function(g){ var l=g.medida.w+"x"+g.medida.h; if(meds.indexOf(l)<0) meds.push(l); });
+  var desc="Tablero y corte: "+R.totalPlan+" plancha(s)"+(meds.length===1?" de "+meds[0]+" mm":" (medidas "+meds.join(", ")+" mm)")+", canto "+R.cantoTotal.toFixed(2)+" m";
+  var total=(R.costoPlan||0) + R.cantoTotal*cfg.pc + R.totalPlan*cfg.pk;
   try{
     localStorage.setItem("mcs_pendiente", JSON.stringify({
       descripcion:desc, unidad:"global", cantidad:1, precio:Number(total.toFixed(2)), origen:"despiece"
@@ -633,6 +742,7 @@ function enviarACotizador(){
 /* arranque */
 $("hl").innerHTML='<svg width="34" height="34" viewBox="47 128 119 119" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#FFB000" d="M 79.09375 132.964844 C 64.039062 132.964844 51.832031 145.171875 51.832031 160.226562 L 51.832031 214.75 C 51.832031 229.804688 64.039062 242.007812 79.09375 242.007812 L 133.617188 242.007812 C 148.671875 242.007812 160.878906 229.804688 160.878906 214.75 L 160.878906 160.226562 C 160.878906 145.171875 148.671875 132.964844 133.617188 132.964844 Z M 79.09375 132.964844"/><path fill="#393538" d="M 152.566406 171.191406 L 110.160156 140.382812 C 107.867188 138.71875 104.703125 138.734375 102.460938 140.425781 L 60.113281 171.191406 C 57.214844 173.300781 56.566406 177.375 58.667969 180.273438 C 59.6875 181.683594 61.195312 182.609375 62.914062 182.882812 C 64.628906 183.152344 66.347656 182.742188 67.753906 181.722656 L 71.042969 179.332031 L 71.042969 221.601562 C 71.042969 224.6875 73.554688 227.199219 76.640625 227.199219 L 93.195312 227.199219 L 105.445312 236.003906 C 105.710938 236.195312 106.027344 236.292969 106.339844 236.292969 C 106.652344 236.292969 106.96875 236.195312 107.234375 236.003906 L 119.484375 227.199219 L 136.035156 227.199219 C 139.125 227.199219 141.636719 224.6875 141.636719 221.601562 L 141.636719 179.332031 L 144.925781 181.722656 C 146.046875 182.535156 147.367188 182.964844 148.730469 182.964844 C 149.074219 182.964844 149.421875 182.9375 149.765625 182.882812 C 151.484375 182.609375 152.992188 181.683594 154.011719 180.273438 C 156.113281 177.375 155.464844 173.300781 152.566406 171.191406 Z M 94.660156 217.859375 C 90.6875 215.003906 88.671875 211.078125 88.671875 206.183594 L 88.671875 188.996094 C 101.9375 181.839844 110.742188 181.839844 124.007812 188.996094 L 124.007812 206.183594 C 124.007812 211.078125 121.992188 215.003906 118.019531 217.859375 L 106.339844 226.253906 Z M 138.566406 221.601562 C 138.566406 222.996094 137.429688 224.132812 136.035156 224.132812 L 123.71875 224.132812 C 129.429688 219.695312 132.445312 213.511719 132.445312 206.183594 L 132.445312 184.976562 C 132.445312 184.433594 132.160156 183.933594 131.695312 183.65625 C 121.796875 177.785156 113.976562 175.167969 106.339844 175.167969 C 98.703125 175.167969 90.882812 177.785156 80.984375 183.65625 C 80.519531 183.933594 80.234375 184.433594 80.234375 184.976562 L 80.234375 206.183594 C 80.234375 213.511719 83.246094 219.699219 88.957031 224.132812 L 76.640625 224.132812 C 75.246094 224.132812 74.113281 222.996094 74.113281 221.601562 L 74.113281 177.101562 L 106.339844 153.6875 L 138.566406 177.101562 Z M 119.546875 197.945312 L 105.164062 212.328125 C 104.308594 213.183594 103.164062 213.652344 101.972656 213.652344 C 101.839844 213.652344 101.707031 213.648438 101.570312 213.636719 C 100.25 213.519531 99.054688 212.835938 98.285156 211.761719 L 92.113281 203.992188 C 91.363281 203.046875 91.023438 201.867188 91.160156 200.667969 C 91.296875 199.472656 91.894531 198.398438 92.839844 197.648438 C 93.78125 196.894531 94.960938 196.558594 96.160156 196.695312 C 97.359375 196.832031 98.433594 197.425781 99.183594 198.371094 L 102.347656 202.355469 L 113.152344 191.550781 C 114.914062 189.789062 117.78125 189.789062 119.546875 191.550781 C 121.308594 193.316406 121.308594 196.183594 119.546875 197.945312 Z M 119.546875 197.945312"/></svg>';
 $("fe").value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+pintarSelectMedidas(); pintarMedidas();
 pintar();  /* arranca vacio: el usuario agrega sus piezas o importa su CSV */
 </script>
 <script>
